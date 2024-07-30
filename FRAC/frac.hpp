@@ -14,20 +14,13 @@ class frac {
 	}
 	inline ul __internal_abs(l a){ return (a>=0?a:-a); }
 	frac*__internal_copy(frac*T,const frac&o){
-		T->s=o.s;
-		T->n=o.n;
-		T->d=o.d;
+		T->s=o.s, T->n=o.n, T->d=o.d;
 		return T;
 	}
 public:
 	frac approx() {
-		if (n == 0 || d == 0)
-			if (n == 0) d = 1;
-			else n = 0;
-		else {
-			ul g = egcd(n, d);
-			n = n / g, d = d / g;
-		}
+		ul g;
+		(n&&d)?(g=egcd(n,d),n/=g,d/=g):(n?n=0:d=1);
 		return *this;
 	}
 	frac() : s(false), n(0ULL), d(1ULL) {}
@@ -57,18 +50,14 @@ public:
 	bool operator<=(const ul o) { return *this <= frac(o); }
 	bool operator<=(const l o) { return *this <= frac(o); }
 	bool operator>(const frac &o) {
-		ul g = egcd(this->d, o.d);
-		ul l=this->n*o.d/g, r=this->d/g*o.n;
-		if(this->s==o.s) return (o.s?l<r:l>r);
-		else return o.s;
+		ul g = egcd(this->d, o.d), l=this->n*o.d/g, r=this->d/g*o.n;
+		return (this->s==o.s?o.s?l<r:l>r:o.s);
 	}
 	bool operator>(const ul o) { return *this>frac(o); }
 	bool operator>(const l o) { return *this > frac(o); }
 	bool operator<(const frac &o) {
-		ul g = egcd(this->d, o.d);
-		ul l=this->n*o.d/g, r=this->d/g*o.n;
-		if(this->s==o.s) return (o.s?l>r:l<r);
-		else return this->s;
+		ul g = egcd(this->d, o.d), l=this->n*o.d/g, r=this->d/g*o.n;
+		return (this->s==o.s?o.s?l>r:l<r:this->s);
 	}
 	bool operator<(const ul o) { return *this < frac(o); }
 	bool operator<(const l o) { return *this < frac(o); }
@@ -78,8 +67,7 @@ public:
 	frac operator-()const{ return frac(!(this->s),this->n,this->d);}
 	frac operator+(const frac &o) const {
 		frac ret;
-		ul G = egcd(this->d, o.d);
-		ul p=this->d/G,q=o.d/G;
+		ul G = egcd(this->d, o.d), p=this->d/G,q=o.d/G;
 		return frac(this->n*q+o.n*p,p*q*G).approx();
 	}
 	frac operator+(const ul o) const { return *this + frac(o); }
@@ -91,9 +79,7 @@ public:
 		if (this->n == 0 || o.n == 0) return frac(0ll);
 		else {
 			ul g1 = egcd(this->n, o.d), g2 = egcd(this->d, o.n);
-			return frac(this->s ^ o.s,
-				this->n / g1 * o.n / g2,
-				this->d / g2 * o.d / g1).approx();
+			return frac(this->s ^ o.s, this->n / g1 * o.n / g2, this->d / g2 * o.d / g1).approx();
 		}
 	}
 	frac operator*(const ul o) { return *this * frac(o); }
