@@ -29,26 +29,3 @@ vi dijkstra(vv<pi> &edge,int start=0) {
 	}
 	return dist;
 }
-
-// no weight graph dijkstra
-std::vector<int> dijkstra(std::vector<std::vector<int>> &edge,int start=0) {
-	using PAIR = std::pair<int, int>;
-	std::vector<int> dist(edge.size(), 1ll << 60);
-	std::vector<bool> confirm(edge.size(),false);
-	std::priority_queue<PAIR, std::vector<PAIR>, std::greater<PAIR>> q;
-	dist[start] = 0;
-	q.push(std::make_pair(dist[start], start));
-	while (!q.empty()) {
-		auto [now_dist, here] = q.top();
-		q.pop();
-		if(confirm[here])continue;
-		confirm[here]=true;
-		for (auto to : edge[here]) {
-			if (1 + now_dist < dist[to]) {
-				dist[to] = 1 + now_dist;
-				q.push(std::make_pair(dist[to], to));
-			}
-		}
-	}
-	return dist;
-}

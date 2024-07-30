@@ -16,7 +16,7 @@ class trie {
 			}
 		}
 	} *tree;
-	int count_internal(node *here) {
+	int count_prefix_internal(node *here) {
 		int res = 0;
 		for (int i = 0; i < char_size; i++)
 			if (here->cnt[i] > 1)
@@ -54,6 +54,20 @@ public:
 				here->next[c] = new node(char_size);
 			here = here->next[c];
 		}
+	} 
+	// ABC 353 E https://atcoder.jp/contests/abc353/tasks/abc353_e
+	int count_prefix_sum() { return count_prefix_internal(tree); }
+	// ABC 287 E https://atcoder.jp/contests/abc287/tasks/abc287_e
+	int count_longest_prefix(std::string&s){
+		int l=0;
+		node*here=tree;
+		for(auto x:s){
+			int c=char_set(x);
+			if(here->next[c]==nullptr||here->cnt[c]<2)
+				break;
+			here=here->next[c];
+			l++;
+		}
+		return l;
 	}
-	int count() { return count_internal(tree); }
 };
