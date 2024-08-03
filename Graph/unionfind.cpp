@@ -14,7 +14,8 @@ public:
 	void unite(int i, int j) {
 		i=root(i),j=root(j);
 		if(size_array[i]>size_array[j])std::swap(i,j);
-			root_array[i]=j,size_array[i]+=size_array[j];
+		root_array[i]=j;
+		size_array[j]+=size_array[i];
 	}
-	int size(int i) { return size[root(i)]; }
+	int size(int i) { return size_array[root(i)]; }
 };
