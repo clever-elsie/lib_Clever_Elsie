@@ -1,9 +1,7 @@
 #include<vector>
 
-template<class S,S e>
+template<class S,S(*op)(S,S),S e>
 class segment_tree{
-private: // set op
-	S op(S a,S b){ return a+b;}
 private: // don't write
 	std::vector<S> v;
 	size_t n,tl,tr;
