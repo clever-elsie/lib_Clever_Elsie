@@ -37,7 +37,7 @@ std::vector<int>
 dijkstra(
 	std::vector<
 		std::vector<int>>&edge,
-	int start=0;
+	int start=0
 ){
 	std::priority_queue<
 		std::pair<int,int>,
