@@ -3,6 +3,7 @@
 #include<vector>
 using namespace std;
 
+template<class type>
 class max_flow{
 	class edge {
 		public:
