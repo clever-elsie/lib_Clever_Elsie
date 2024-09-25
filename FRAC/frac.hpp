@@ -29,13 +29,13 @@ public:
 	template<signed_integral T>
 	frac(T N, T D = 1LL) {
 		if (D == 0) D = 1;
-		s = (((N < 0 && D < 0) || (N >= 0 && D >= 0)) ? 0 : 1);
+		s = (((N <= 0 && D <= 0) || (N >= 0 && D >= 0)) ? 0 : 1);
 		n = (N < 0 ? -N : N);
 		d = (D < 0 ? -D : D);
 	}
 	bool operator==(const frac &o) {
 		ul g = egcd(this->d, o.d);
-		return ((this->s == o.s) && (this->n * o.d / g == this->d / g * o.n));
+		return ((this->s == o.s) && (o.d / g * this->n == this->d / g * o.n ));
 	}
 	bool operator!=(const frac &o) { return !(*this == o); }
 	bool operator>=(const frac &o) { return !(*this < o); }
@@ -68,4 +68,9 @@ public:
 	frac operator-=(const frac &o) { return *this = *this - o; }
 	frac operator*=(const frac &o) { return *this = *this * o; }
 	frac operator/=(const frac &o) { return *this = *this / o; }
+	friend ostream& operator<<(ostream&dst,frac&o){
+		if(o.s)dst<<"-";
+		dst<<o.n<<"/"<<o.d;
+		return dst;
+	}
 };
