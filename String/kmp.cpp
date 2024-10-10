@@ -7,7 +7,7 @@ using namespace std;
 class kmp{
 	private:
 	string src,word;
-	vector<size_t>t;
+	vector<ssize_t>t;
 	public:
 	kmp(const string&SRC):src(SRC){}
 	kmp(const string&SRC,const string&tar):src(SRC){ make_match(tar); }
