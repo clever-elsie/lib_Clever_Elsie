@@ -22,8 +22,8 @@ class kmp{
 			else t[i++]=0;
 		}
 	}
-	vector<size_t> find(){
-		vector<size_t> ret;
+	vector<ssize_t> find(){
+		vector<ssize_t> ret;
 		size_t i=0,j=0;
 		while(i+j<src.size()){
 			if(src[i+j]==word[j]){
