@@ -1,6 +1,7 @@
 #include<string>
 #include<vector>
 #include<cstddef>
+using namespace std;
 
 int edit_dist(string&s,string&t){
 	vector dp(s.size()+1,vector<size_t>(t.size()+1,1ll<<60));

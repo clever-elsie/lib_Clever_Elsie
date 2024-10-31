@@ -3,10 +3,11 @@
 #include <string>
 #include <utility>
 #include <vector>
+using namespace std;
 
-std::pair<int, std::string> LCS(std::string &s, std::string &t, int return_lenght_or_string = 0) {
+pair<int, string> LCS(string &s, string &t, int return_lenght_or_string = 0) {
 	size_t ss = s.size(), ts = t.size();
-	std::vector<std::vector<int>> dp(ss + 1, std::vector<int>(ts + 1, 0));
+	vector<vector<int>> dp(ss + 1, vector<int>(ts + 1, 0));
 	auto chmax = [&](int A, int B) -> int { return A > B ? A : B; };
 	for (size_t i = 1; i <= ss; i++) // O(st*tt)
 		for (size_t j = 1; j <= ts; j++)
@@ -14,24 +15,24 @@ std::pair<int, std::string> LCS(std::string &s, std::string &t, int return_lengh
 			else dp[i][j] = chmax(dp[i - 1][j - 1] + 1, chmax(dp[i][j - 1], dp[i - 1][j]));
 
 	if (return_lenght_or_string == 0)
-		return std::make_pair(dp[ss][ts], std::string(""));
+		return make_pair(dp[ss][ts], string(""));
 
-	std::vector<std::pair<int, int>> index, Stack;
-	Stack.push_back(std::make_pair(ss, ts));
+	vector<pair<int, int>> index, Stack;
+	Stack.push_back(make_pair(ss, ts));
 	while (Stack.size() > 0) {
 		auto [y, x] = Stack.back();
 		int now = dp[y][x];
 		Stack.pop_back();
-		index.push_back(std::make_pair(y, x));
+		index.push_back(make_pair(y, x));
 		if (now == 0) break;
 		while (dp[y - 1][x] == now) y--;
 		while (dp[y][x - 1] == now) x--; // O(st+tt)
-		Stack.push_back(std::make_pair(y - 1, x - 1));
+		Stack.push_back(make_pair(y - 1, x - 1));
 	}
-	std::reverse(index.begin(), index.end());
-	std::string res;
+	reverse(index.begin(), index.end());
+	string res;
 	for (auto [i, j] : index)
 		if (0 <= i && i < (int)ss)
 			res.push_back(s[i]);
-	return std::make_pair(dp[ss][ts], res);
+	return make_pair(dp[ss][ts], res);
 }
