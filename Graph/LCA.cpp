@@ -8,22 +8,50 @@ using namespace atcoder;
 // cntはその頂点が最初に現れるときにのみ更新
 // LCAはLCA(u,v)= min_{depth_i} RMinQ(cnt_u,cnt_v)
 
+namespace elsie{
+static constexpr int LCA_INF = INT32_MAX;
+struct idx_depth {
+	int idx,depth;
+	idx_depth(int i,int d):idx(i),depth(d){}
+};
+idx_depth LCA_OP(idx_depth a, idx_depth b){
+	return a.depth<b.depth?a:b;
+}
+idx_depth LCA_E(){ return idx_depth(-1,LCA_INF); }
+template<integral T>
 class LCA{
-	vector<vector<int>>e;
-	segtree<int,[](int a,int b){return a<b?a:b;},[](){return 0;}> seg;
-	void dfs(int now,int&cnt){
-		seg.set(now,cnt);
-		cnt++;
-		for(const int&to:e[now])
-		if(seg.get(to)!=INT32_MAX)
-			dfs(to,cnt);
+	segtree<idx_depth,LCA_OP,LCA_E>seg;
+	vector<vector<T>>e;
+	vector<int>visit,vs1st,depth;
+	void dfs(int now,int pre,int&cnt,int dep){
+		depth[now]=min(depth[now],dep);
+		vs1st[now]=visit.size();
+		visit.push_back(now);
+		for(const auto&to:e[now])if(to!=pre){
+			cnt++;
+			dfs(to,now,cnt,dep+1);
+			visit.push_back(now);
+		}
 	}
 	public:
-	LCA(vector<vector<int>>edge,int root){
+	LCA(vector<vector<T>>edge,int root){
 		e=move(edge);
+		visit.reserve(e.size()*2);
+		vs1st.resize(e.size(),LCA_INF);
+		depth.resize(e.size(),LCA_INF);
 		int cnt=0;
-		dfs(root,cnt);
-		for(int i=0;i<e.size();i++)
-			cout<<seg.get(i)<<" \n"[i==e.size()-1];
+		dfs(root,-1,cnt,0);
+		seg=segtree<idx_depth,LCA_OP,LCA_E>(visit.size());
+		for(int i=0;i<visit.size();i++)
+			seg.set(i,idx_depth(visit[i],depth[visit[i]]));
+	}
+	int get(int u,int v){
+		int f=vs1st[u];
+		int e=vs1st[v];
+		if(f>e)swap(f,e);
+		return seg.prod(f,e+1).idx;
 	}
 };
+}
+template<integral T>
+using LCA = elsie::LCA<T>;
