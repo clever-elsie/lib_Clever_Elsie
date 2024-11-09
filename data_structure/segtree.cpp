@@ -1,7 +1,7 @@
 #include<vector>
 
 template<class S,S(*op)(S,S),S e>
-class segment_tree{
+class segtree{
 private: // don't write
 	std::vector<S> v;
 	size_t n,tl,tr;
@@ -17,11 +17,11 @@ private: // don't write
 		return ret;
 	}
 public:
-	segment_tree(int N):n(1){
+	segtree(int N):n(1){
 		while(n<N)n<<=1;
 		v.resize(n+n,e);
 	}
-	segment_tree(std::vector<S>&V):n(1){
+	segtree(std::vector<S>&V):n(1){
 		while(n<V.size())n<<=1;
 		v.resize(n+n,e);
 		for(size_t i=n,j=0;i<V.size();i++)
