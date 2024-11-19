@@ -13,13 +13,13 @@ class kmp{
 	kmp(const string&SRC,const string&tar):src(SRC){ make_match(tar); }
 	void make_match(const string&tar){
 		word=tar;
-		size_t i=2,j=0;
-		t.resize(tar.size());
-		t[0]=-1,t[1]=0;
-		while(i<tar.size()){
-			if(tar[i-1]==tar[j]) t[i++]=++j;
-			else if(j) j=t[j];
-			else t[i++]=0;
+		size_t n=tar.size();
+		ssize_t j=-1;
+		t.resize(n+1);
+		t[0]=-1;
+		for(size_t i=0;i<n;i++){
+			while(j>=0&&tar[i]!=tar[j])j=t[j];
+			t[i+1]=++j;
 		}
 	}
 	vector<ssize_t> find(){
@@ -27,11 +27,10 @@ class kmp{
 		size_t i=0,j=0;
 		while(i+j<src.size()){
 			if(src[i+j]==word[j]){
-				j++;
-				if(j==word.size()){
+				if(++j==word.size()){
 					ret.push_back(i);
-					i=i+j;
-					j=0;
+					i=i+j-t[j];
+					j=t[j];
 				}
 			}else{
 				i=i+j-t[j];
