@@ -3,7 +3,7 @@
 template<class S,S(*op)(S,S),S e>
 class segtree{
 private: // don't write
-	std::vector<S> v;
+	vector<S> v;
 	size_t n,tl,tr;
 	S prod_internal(size_t l,size_t r,size_t idx){
 		if(tr<=l||r<=tl)return e;
@@ -21,7 +21,7 @@ public:
 		while(n<N)n<<=1;
 		v.resize(n+n,e);
 	}
-	segtree(std::vector<S>&V):n(1){
+	segtree(vector<S>&V):n(1){
 		while(n<V.size())n<<=1;
 		v.resize(n+n,e);
 		for(size_t i=n,j=0;i<V.size();i++)

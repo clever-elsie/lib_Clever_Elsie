@@ -2,10 +2,10 @@
 #include <numeric>
 #include <vector>
 
-class union_find {
-	std::vector<int> par, rank;
+class unionFind {
+	vector<int> par, rank;
 public:
-	union_find(int n) { par.resize(n), rank.resize(n,0), std::iota(begin(par), end(par), 0); }
+	union_find(int n) { par.resize(n), rank.resize(n,0), iota(begin(par), end(par), 0); }
 	int root(int i) { return (i==par[i]?i:par[i]=root(par[i])); }
 	bool same(int i, int j) { return root(i) == root(j); }
 	void unite(int i, int j) {
