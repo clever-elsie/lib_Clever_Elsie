@@ -7,20 +7,19 @@ using namespace std;
 
 class unionFind{
 	private:const int _order;
-	protected:vector<int>pr,rk,sz;
+	protected:vector<int>pr;
 	public:
-		unionFind(int n):_order(n),pr(n),rk(n,0),sz(n,1){iota(begin(pr),end(pr),0u);}
+		unionFind(int n):_order(n),pr(n,-1){}
 		int ord(){return _order;}
-		int size(int u){return sz[root(u)];}
-		int root(int u){return(u==pr[u]?u:pr[u]=root(pr[u]));}
+		int size(int u){return -pr[root(u)];}
+		int root(int u){return(pr[u]<0?u:pr[u]=root(pr[u]));}
 		bool same(int u,int v){return root(u)==root(v);}
 		void unite(int u,int v) {
 			u=root(u),v=root(v);
 			if(u==v)return;
-			rk[u]+=rk[u]==rk[v];
-			if(rk[u]>rk[v])swap(u,v);
+			if(pr[u]<pr[v])swap(u,v);
+			pr[v]+=pr[u];
 			pr[u]=v;
-			sz[v]+=sz[u];
 		}
 };
 
