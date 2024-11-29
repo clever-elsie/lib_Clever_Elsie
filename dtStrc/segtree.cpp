@@ -1,6 +1,6 @@
 #include<vector>
 
-template<class S,S(*op)(S,S),S e>
+template<class S,S(*op)(S,S),S(*e)()>
 class segtree{
 private: // don't write
 	vector<S> v;
@@ -9,7 +9,7 @@ private: // don't write
 		if(tr<=l||r<=tl)return e;
 		if(tl<=l&&r<=tr)return v[idx];
 		size_t mid=l+(r-l)/2;
-		S ret=e;
+		S ret=e();
 		if(tl<=mid||mid<=tr){
 			ret=op(ret,prod_internal(l,mid,idx*2));
 			ret=op(ret,prod_internal(mid,r,idx*2+1));
@@ -21,7 +21,7 @@ public:
 		while(n<N)n<<=1;
 		v.resize(n+n,e);
 	}
-	segtree(vector<S>&V):n(1){
+	segtree(const vector<S>&V):n(1){
 		while(n<V.size())n<<=1;
 		v.resize(n+n,e);
 		for(size_t i=n,j=0;i<V.size();i++)

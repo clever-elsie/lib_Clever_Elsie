@@ -1,10 +1,12 @@
 #include<vector>
 #include<algorithm>
 using namespace std;
-vector<int> LIS(vector<int>&a){
+template<class T>
+vector<int> LIS(const vector<T>&a){
 	int len=0;
-	vector<int>dp(a.size()),L(a.size()+1,1ll<<60);
-	vector<int>::iterator B=L.begin();
+	vector<int>dp(a.size());
+	vector<T>L(a.size()+1,1ll<<60);
+	auto B=L.begin();
 	for(size_t i=0;i<a.size();i++){
 		int p=lower_bound(B,B+len+1,a[i])-B;
 		dp[i]=p;
@@ -15,7 +17,8 @@ vector<int> LIS(vector<int>&a){
 	return len+1;
 }
 
-int LIS(vector<int>&a){
+template<class T>
+int LIS(const vector<T>&a){
 	vector<int> dp(a.size()+1,1ll<<60);
 	dp[0]=0;
 	int ans=0;

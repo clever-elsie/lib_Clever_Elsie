@@ -5,9 +5,9 @@
 #include <vector>
 using namespace std;
 
-pair<int, string> LCS(string &s, string &t, int return_lenght_or_string = 0) {
+pair<size_t, string> LCS(const string &s,const string &t, int return_lenght_or_string = 0) {
 	size_t ss = s.size(), ts = t.size();
-	vector<vector<int>> dp(ss + 1, vector<int>(ts + 1, 0));
+	vector<vector<size_t>> dp(ss + 1, vector<int>(ts + 1, 0));
 	auto chmax = [&](int A, int B) -> int { return A > B ? A : B; };
 	for (size_t i = 1; i <= ss; i++) // O(st*tt)
 		for (size_t j = 1; j <= ts; j++)

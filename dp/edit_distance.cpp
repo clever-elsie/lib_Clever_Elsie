@@ -3,7 +3,7 @@
 #include<cstddef>
 using namespace std;
 
-int edit_dist(string&s,string&t){
+size_t edit_dist(const string&s,const string&t){
 	vector dp(s.size()+1,vector<size_t>(t.size()+1,1ll<<60));
 	dp[0][0]=0;
 	for(size_t i=0;i<dp.size();i++){
