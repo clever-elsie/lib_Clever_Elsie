@@ -113,6 +113,10 @@ f+-*/=g // 四則演算では内部的に約分
 `void add(u,v,cost)`  
 `int64_t flow(s,t)`
 
+### MST (Minimum Spanning Tree)
+`kruskal(int,vv)`:値だけと辺id構築  
+`prim(vv)`
+
 ### LCA
 `LCA(vv<integral>)edge,root)`  
 `int get(u,v)`
