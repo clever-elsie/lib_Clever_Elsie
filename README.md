@@ -72,6 +72,11 @@ obj.insert(string)で挿入できますが、コンストラクタで渡され�
 count_prefix_sum()で共通接頭辞の総和を返します。
 count_longest_prefix()で最長共通接頭辞を返します。
 
+### mex
+数列に含まれる最小の非負整数を求めるためのデータ構造
+addで追加し、eraseで削除、findでmexを返す。
+重複を考慮した区間[l,r)の管理をしているだけ。
+
 ### atcoder_lazy_segtree
 AtCoder Libraryのlazy_segtreeを区間変更、区間加算の遅延演算で区間和、区間最小、区間最大が取れるように用意しているテンプレ。
 
