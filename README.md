@@ -26,7 +26,6 @@ pair<size_t,string>LCS(const string&,const string&,int=0);
 最長部分増加列を求め、その長さを返す。  
 最長部分増加列とは、連続とは限らない配列の要素 $i,j$ について`A_i< A_j`が成り立つ部分列の事である。
 ```
-vector<int>LIS(const vector<T>&);
 int LIS(const vector<T>&);
 ```
 
