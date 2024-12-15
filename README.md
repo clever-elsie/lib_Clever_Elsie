@@ -1,6 +1,5 @@
 # お手抜きライブラリ
 ## 現在作成(放置)中
-ロリハ  
 modint  
 畳み込み
 シンプレックス法
@@ -183,6 +182,13 @@ kmp法により $O(|S|+|T|)$で`T`が現れる先頭位置を全列挙。
 `kmp(const string&,const string&)`: Sを登録し、Tの移動テーブル作成
 `void make_match(const string&tar)`: Tの移動テーブルを作成
 `vector<ssize_t>find()`: Tの位置を全列挙.
+
+### rolling hash
+`rollingHash(string&&)`
+`rollingHash(const string&)` コンストラクタで検索元の文字列を設定。
+`.set(const string&)`
+`.set(string&&)` 検索元の文字列を再設定するときに使う。
+`.find(const string&)` 対象の文字列を検索する。
 
 ## tree
 ### inversion_number
