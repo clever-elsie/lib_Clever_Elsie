@@ -1,4 +1,5 @@
 #include<vector>
+using namespace std;
 
 template<class S,S(*op)(S,S),S(*e)()>
 class segtree{
@@ -6,7 +7,7 @@ private: // don't write
 	vector<S> v;
 	size_t n,tl,tr;
 	S prod_internal(size_t l,size_t r,size_t idx){
-		if(tr<=l||r<=tl)return e;
+		if(tr<=l||r<=tl)return e();
 		if(tl<=l&&r<=tr)return v[idx];
 		size_t mid=l+(r-l)/2;
 		S ret=e();
@@ -19,11 +20,11 @@ private: // don't write
 public:
 	segtree(int N):n(1){
 		while(n<N)n<<=1;
-		v.resize(n+n,e);
+		v.resize(n+n,e());
 	}
 	segtree(const vector<S>&V):n(1){
 		while(n<V.size())n<<=1;
-		v.resize(n+n,e);
+		v.resize(n+n,e());
 		for(size_t i=n,j=0;i<V.size();i++)
 			v[i]=V[j++];
 		for(size_t i=n-1;i;i--){
