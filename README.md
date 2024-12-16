@@ -184,11 +184,10 @@ kmp法により $O(|S|+|T|)$で`T`が現れる先頭位置を全列挙。
 `vector<ssize_t>find()`: Tの位置を全列挙.
 
 ### rolling hash
-`rollingHash(string&&)`
 `rollingHash(const string&)` コンストラクタで検索元の文字列を設定。
-`.set(const string&)`
 `.set(string&&)` 検索元の文字列を再設定するときに使う。
 `.find(const string&)` 対象の文字列を検索する。
+`.same(int,int,int,int)` 区間の文字列一致判定 $[L1,R1), [L2,R2)$
 
 ## tree
 ### inversion_number
