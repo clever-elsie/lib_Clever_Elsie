@@ -122,4 +122,8 @@ class dynamicRollingHash{
 				return false;
 		return true;
 	}
+	void set(size_t idx,char c){
+		for(int i=0;i<psz;i++)
+			seg[i].set(idx,c);
+	}
 };

@@ -61,7 +61,6 @@ class rollingHash{
 	public:
 	rollingHash():src(""){gen_rand();}
 	rollingHash(const str&SRC):src(SRC){gen_rand(),make_hash(src,hash);}
-	void set(const str&SRC){src=SRC,make_hash(src,hash);}
 	pair<arl,size_t>hassing(const str&tar){
 		arl h;
 		make_hash(tar,thash);
