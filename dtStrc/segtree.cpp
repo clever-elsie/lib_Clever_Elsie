@@ -3,7 +3,7 @@ using namespace std;
 
 template<class S,S(*op)(S,S),S(*e)()>
 class segtree{
-private: // don't write
+protected: // don't write
 	vector<S> v;
 	size_t n,tl,tr;
 	S prod_internal(size_t l,size_t r,size_t idx){
@@ -25,23 +25,17 @@ public:
 	segtree(const vector<S>&V):n(1){
 		while(n<V.size())n<<=1;
 		v.resize(n+n,e());
-		for(size_t i=n,j=0;i<V.size();i++)
-			v[i]=V[j++];
-		for(size_t i=n-1;i;i--){
-			int ch1=i<<1,ch2=ch1+1;
-			v[i]=op(v[ch1],v[ch2]);
-		}
+		for(size_t i=n;auto&x:V)v[i++]=x;
+		for(size_t i=n-1;i;i--)v[i]=op(v[2*i],v[2*i+1]);
 	}
 	void set(size_t p,S val){
 		v[n+p]=val;
-		for(size_t i=(n+p)>>1;i;i>>=1){
-			int ch1=i<<1,ch2=ch1+1;
-			v[i]=op(v[ch1],v[ch2]);
-		}
+		for(size_t i=(n+p)>>1;i;i>>=1)
+			v[i]=op(v[2*i],v[2*i+1]);
 	}
 	S get(size_t p){ return v.at(n+p);}
-	S prod(size_t l, size_t r) {
-		tl = l, tr = r;
+	S prod(size_t l,size_t r){
+		tl=l,tr=r;
 		return prod_internal(0, n, 1);
 	}
 };
