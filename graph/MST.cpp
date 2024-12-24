@@ -31,7 +31,7 @@ class unionFind{
 };
 
 // vector<cost,{from,to}> |E|!=n
-size_t kruskal(const int n,vc<pair<int,pi>&e){
+size_t kruskal(const int n,vc<pair<int,pi>>&e){
 	unionFind uf(n);
 	sort(e.begin(),e.end());
 	size_t ans=0;
@@ -42,7 +42,7 @@ size_t kruskal(const int n,vc<pair<int,pi>&e){
 			ans+=cost;
 		}
 	}
-	return cost;
+	return ans;
 }
 pair<size_t,vi> kruskal(const int n,const vc<pair<int,pi>>&e){
 	unionFind uf(n);
