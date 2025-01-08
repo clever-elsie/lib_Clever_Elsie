@@ -20,9 +20,9 @@ vi dijkstra(const vv<pi>&edge,int start=0){
 	dist[start]=0;
 	q.push(make_pair(dist[start], start));
 	while (!q.empty()) {
-		auto[now_dist,here]=q.top();q.pop();
-		if(now_dist>dist[here])continue;
-		for(auto[e_cost,to]:edge[here]){
+		auto[now_dist,now]=q.top();q.pop();
+		if(now_dist>dist[now])continue;
+		for(auto[e_cost,to]:edge[now]){
 			if(e_cost+now_dist<dist[to]){
 				dist[to]=e_cost+now_dist;
 				q.push(make_pair(dist[to],to));
@@ -32,7 +32,7 @@ vi dijkstra(const vv<pi>&edge,int start=0){
 	return move(dist);
 }
 // [dist,path]
-pair<vi,vi> dijkstra(const vv<pi>&edge,int start=0,int t){
+pair<vi,vi> dijkstra(const vv<pi>&edge,int start,int t){
 	constexpr size_t int_width=sizeof(int);
 	vi dist(edge.size(),1ll<<int_width*8-int_width/2);//16->15, 32->30, 64->60
 	vi pre(edge.size(),-1);
@@ -40,12 +40,12 @@ pair<vi,vi> dijkstra(const vv<pi>&edge,int start=0,int t){
 	dist[start]=0;
 	q.push(make_pair(dist[start], start));
 	while (!q.empty()) {
-		auto[now_dist,here]=q.top();q.pop();
-		if(now_dist>dist[here])continue;
-		for(auto[e_cost,to]:edge[here]){
+		auto[now_dist,now]=q.top();q.pop();
+		if(now_dist>dist[now])continue;
+		for(auto[e_cost,to]:edge[now]){
 			if(e_cost+now_dist<dist[to]){
 				dist[to]=e_cost+now_dist;
-				pre[to]=here;
+				pre[to]=now;
 				q.push(make_pair(dist[to],to));
 			}
 		}
@@ -56,7 +56,7 @@ pair<vi,vi> dijkstra(const vv<pi>&edge,int start=0,int t){
 		p.push_back(t);
 	}
 	reverse(p.begin(),p.end());
-	return move(dist);
+	return move(pair<vi,vi>(dist,p));
 }
 
 // weight matrix dijkstra
@@ -67,11 +67,11 @@ vi dijkstra(const vv<int>&edge,int start=0){
 	dist[start] = 0;
 	q.push(make_pair(dist[start],start));
 	while(q.size()){
-		auto[cost,here]=q.top();
+		auto[cost,now]=q.top();
 		q.pop();
-		if(cost>dist[here])continue;
+		if(cost>dist[now])continue;
 		for(int to=0;to<edge.size();to++){
-			int next_cost=dist[here]+edge[here][to];
+			int next_cost=dist[now]+edge[now][to];
 			if(next_cost<dist[to]){
 				dist[to]=next_cost;
 				q.push(make_pair(dist[to],to));
