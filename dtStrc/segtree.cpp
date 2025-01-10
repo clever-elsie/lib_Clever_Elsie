@@ -3,19 +3,14 @@ using namespace std;
 
 template<class S,S(*op)(S,S),S(*e)()>
 class segtree{
-protected: // don't write
+protected: // 1-indexed [l,r)
 	vector<S> v;
 	size_t n,tl,tr;
-	S prod_internal(size_t l,size_t r,size_t idx){
-		if(tr<=l||r<=tl)return e();
+	S prod(size_t l,size_t r,size_t idx){
 		if(tl<=l&&r<=tr)return v[idx];
-		size_t mid=l+(r-l)/2;
-		S ret=e();
-		if(tl<=mid||mid<=tr){
-			ret=op(ret,prod_internal(l,mid,idx*2));
-			ret=op(ret,prod_internal(mid,r,idx*2+1));
-		}
-		return ret;
+		size_t m=l+(r-l)/2;
+		if((tr<=l||r<=tl)||!(tl<=m||m<=tr))return e();
+		return op(prod(l,m,idx*2),prod(m,r,idx*2+1));
 	}
 public:
 	segtree(int N):n(1){
@@ -36,6 +31,6 @@ public:
 	S get(size_t p){ return v.at(n+p);}
 	S prod(size_t l,size_t r){
 		tl=l,tr=r;
-		return prod_internal(0, n, 1);
+		return prod(0,n,1);
 	}
 };
