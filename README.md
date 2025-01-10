@@ -1,9 +1,9 @@
 # お手抜きライブラリ
 ## 現在作成(放置)中
-modint  
-畳み込み
-シンプレックス法
-wavelet行列
+畳み込み  
+シンプレックス法  
+wavelet行列  
+遅延セグ木  
 
 ## dp
 ### edit_distance (編集距離)
@@ -173,6 +173,15 @@ vector or dequeの2次元配列
 * Mpower  
 	`vv<S> Mpower(vv<S>&,int)`の行列累乗。  
 	`S`は乗算が定義されている必要がある。
+
+### modint
+* `modint(N)`で使う．`N`は省略時 $0$
+* 四則演算が`modint`と整数型でできる．
+* `pow(B)`で繰り返し二乗法で $n^B$ を $O(\log_2 B)$で計算．
+* `inv()`で逆元を計算．
+* `val()`で整数値を取得．
+* でも実は`operator size_t()`があるので整数値として扱える．(ただしprintfみたいな場合を除く)
+* でも実は`cout,cin`では直接使える．
 
 ### combination
 * `combination<modint>(max)`のコンストラクタで，`modint`型と`N`の最大値を渡す．両方省略可．デフォルトでは`atcoder/modint998244353`.
