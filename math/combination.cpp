@@ -9,7 +9,7 @@ class combination{
 	private:
 		vector<mint>invprod,prod;
 	public:
-	combination(int n=1):invprod(n,1),prod(n,1){}
+	combination(int n=1):invprod(n+1,1),prod(n+1,1){}
 	void PreCalc(int n){
 		int presize=prod.size();
 		prod.resize(n+1);
