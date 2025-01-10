@@ -20,8 +20,8 @@ class modint{
 	modint operator-(){return modint(-x);}
 	modint&operator++(){if(++x==M)x=0;return*this;}
 	modint&operator--(){if(--x==-1)x=M-1;return*this;}
-	modint operator++(int){modint r=*this;++*this;return r;}
-	modint operator--(int){modint r=*this;--*this;return r;}
+	modint operator++(int32_t){modint r=*this;++*this;return r;}
+	modint operator--(int32_t){modint r=*this;--*this;return r;}
 	modint&operator+=(const modint&a){x+=a.x;if(x>=M)x-=M;return*this;}
 	modint&operator-=(const modint&a){x-=a.x;if(x<0)x+=M;return*this;}
 	modint&operator*=(const modint&a){x=(x*a.x)%M;return*this;}
@@ -50,7 +50,7 @@ class modint{
 	modint pow(long long n)const{
 		if(n<0)return pow(-n).inv();
 		modint v=*this,r=1;
-		for(;n;x*=x,n>>=1)if(n&1)r*=x;
+		for(;n;v*=v,n>>=1)if(n&1)r*=x;
 		return r;
 	}
 	modint inv()const{
