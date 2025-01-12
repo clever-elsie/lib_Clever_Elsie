@@ -3,8 +3,9 @@
 #include <list>
 #include <vector>
 using namespace std;
+// 直径パスの構築はdijkstraのpathの構成に始点と終点を入れればよい．
 
-int diameter(vector<vector<pair<int, int>>> &edge, int start = 0) {
+pair<int,pair<int,int>> diameter(vector<vector<pair<int, int>>> &edge, int start = 0) {
 	auto farthest = [&](vector<vector<pair<int, int>>> &Edge, int Start) -> pair<int, int> {
 		int inf = INT32_MAX;
 		vector<int> dist(Edge.size(), -1);
@@ -24,7 +25,9 @@ int diameter(vector<vector<pair<int, int>>> &edge, int start = 0) {
 		vector<int>::iterator res = max_element(begin(dist), end(dist));
 		return pair<int, int>(*res, res - dist.begin());
 	};
-	return farthest(edge, farthest(edge, start).second).first;
+	auto st=farthest(edge,start).second;
+	auto[cost,gl]=farthest(edge,st);
+	return make_pair(cost,make_pair(st,gl));
 }
 
 int diameter(vector<vector<int>> &edge, int start = 0) {
