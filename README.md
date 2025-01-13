@@ -226,6 +226,25 @@ vector or dequeの2次元配列
 * そうでない場合は，`N`が更新される度に追加される要素数分だけ計算が必要になり，逆数の階乗(?)の計算は線形時間
 * 前計算は`O(N)`．
 
+### convolution
+畳み込み演算ができる．
+```C++
+convolution<size_t M,auto op,auto e>();
+vector<int32_t>.prod(vector<int32_t>,vector<int32_t>);
+```
+具体的に積以外で何ができるかは知らないが，演算`op`と単位元`e()`が定義できれば大丈夫でしょ知らんけど．  
+`e()`は余った部分を埋めるための値を返す関数．  
+$M$は法となる素数．
+デフォルト引数は以下．
+```C++
+M=998244353
+op=[](int64_t a,int64_t b){return a*b;}
+e=[](){return 0;}
+```
+原始根は存在するなら勝手に見つけるので必要ない．
+任意の素数を入れてもいいが，Garnerで復元できるとは言ってない．
+
+
 ### floor_quotients (商の切り捨て列挙)
 ```C++
 vector<uint64_t>quotients(uint64_t n);

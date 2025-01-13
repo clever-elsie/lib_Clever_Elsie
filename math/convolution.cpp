@@ -1,32 +1,81 @@
 #include <vector>
-#include <type_traits>
-#include <concepts>
 #include <cstdint>
-#include <cstring>
 using namespace std;
 
-template<class S,auto op=[](const S&a,const T&b){return a*b;},unsigned_integral M=998244353>
+template<size_t M=998244353,auto op=[](const int64_t&a,const int64_t&b){return a*b;},auto e=[](){return 0ll;}>
 class convolution{
-	using VS=vector<S>;
-	using vtr=vector<S>::iterator;
 	private:
-	VS a,b,c;
-	int64_t mpow(int64_t x,int64_t n){
-		int64_t m=x%M,r=1;
-		for(;n;n>>=1){
-			if(n&1)r*=m;
-			m=(m*m)%M;
+	using ll = int64_t;
+	using it = int32_t;
+	vector<ll> root,invroot;
+	ll modpow(ll a,it b,it mod){
+		ll k=a%mod,ret=1;
+		if(k<0)k+=mod;
+		while(b){
+			if(b&1)ret=ret*k%mod;
+			k=(k*k)%mod;
+			b>>=1;
 		}
-		return r;
+		return ret;
 	}
-	void calc(){
+	constexpr it find_primitive_root(){
+		vector<it>factor;{
+			it p=M-1;
+			for(ll i=2;i<=p;i++)
+				if(p%i==0){
+					factor.push_back(i);
+					while(p%i==0)p/=i;
+				}
+		}
+		for(it g=2;g<M;g++){
+			bool ok=true;
+			for(const auto&q:factor){
+				if(modpow(g,(M-1)/q,M)==1){
+					ok=false;
+					break;
+				}
+			}
+			if(ok)return g;
+		}
+		return -1;
+	}
+	void ntt(vector<it>&s,bool sign,int id){
+		if(id==0)return;
+		it N=1<<id-1;
+		vector<it>f(N),g(N);
+		for(int i=0;i<N;i++){
+			f[i]=s[i<<1];
+			g[i]=s[i<<1|1];
+		}
+		ntt(f,sign,id-1);
+		ntt(g,sign,id-1);
+		ll z=(sign?invroot:root)[id],p=1;
+		for(int i=0;i<N;i++){
+			s[i]=(f[i]+p*g[i]%M)%M;
+			s[i+N]=(f[i]-p*g[i]%M+M)%M;
+			p=p*z%M;
+		}
 	}
 	public:
-	convolution(const VS&s,const VS&t){
-		size_t u=1,m=max(s.size(),t.size()),i;
-		while(u<m)u<<=1;
-		a.resize(u,0),b.resize(u,0),c.resize(u*2,0);
-		for(i=0;i<s.size();i++)a[i]=s[i];
-		for(i=0;i<t.size();i++)b[i]=t[i];
+	convolution(){}
+	vector<it>prod(vector<it>a,vector<it>b){
+		if(a.empty()||b.empty()) return vector<it>(0);
+		it u=1,sz=0,m=a.size()+b.size()-1;
+		while(u<m)u<<=1,sz++;
+		root.resize(sz+1),invroot.resize(sz+1);
+		root[sz]=modpow(find_primitive_root(),M-1>>sz,M);
+		invroot[sz]=modpow(root[sz],M-2,M);
+		for(int i=sz-1;i>0;i--){
+			root[i]=root[i+1]*root[i+1]%M;
+			invroot[i]=invroot[i+1]*invroot[i+1]%M;
+		}
+		a.resize(u,e()),b.resize(u,e());
+		vector<it>ret(m,e());
+		ntt(a,false,sz),ntt(b,false,sz);
+		for(int i=0;i<u;i++)a[i]=op(a[i],b[i])%M;
+		ntt(a,1,sz);
+		ll invN=modpow(u,M-2,M);
+		for(int i=0;i<m;i++)ret[i]=invN*a[i]%M;
+		return ret;
 	}
-}
+};
