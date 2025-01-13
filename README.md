@@ -9,7 +9,7 @@ wavelet行列
 ### edit_distance (編集距離)
 `string S,T`の編集距離を求める。
 $O(|S||T|)$
-```
+```C++
 size_t edit_distance(const string&,const string&);
 ```
 ### LCS (最長共通部分列)
@@ -17,14 +17,13 @@ size_t edit_distance(const string&,const string&);
 $O(|S||T|)$  
 第3引数に0以外を与えた場合はLCSの長さを求めた後BFSでLCSとなる文字列の1つを探索して返す。  
 数値だけが欲しいときは省略可。
-```
+```C++
 pair<size_t,string>LCS(const string&,const string&,int=0);
-
 ```
 ### LIS (最長部分増加列)
 最長部分増加列を求め、その長さを返す。  
 最長部分増加列とは、連続とは限らない配列の要素 $i,j$ について`A_i< A_j`が成り立つ部分列の事である。
-```
+```C++
 int LIS(const vector<T>&);
 ```
 
@@ -82,7 +81,7 @@ AtCoder Libraryのlazy_segtreeを区間変更、区間加算の遅延演算で�
 分母分子が`unsigned long long`で管理される符号付き分数。  
 比較と四則演算と代入演算子がオーバーロードされている。
 整数値は分母省略可。
-```
+```C++
 frac(); // 0/1
 frac(bool,ull,ull=1ULL); // 符号、分子、分母
 frac(ull,ull=1ULL); // 分子、分母
@@ -103,7 +102,7 @@ f+-*/=g // 四則演算では内部的に約分
 	隣接行列の場合は`edge[from][to]=w`となる隣接行列と、第二引数に開始点を渡す。  
 	0からスタートするなら省略可能。  
 	戻り値は`vector<int>`で最初の頂点からの距離を持っている。
-	```
+	```C++
 	vector<int> dist=dijkstra(edge,n);
 	```
 * bellmanford
@@ -131,7 +130,7 @@ f+-*/=g // 四則演算では内部的に約分
 頂点数が`n`のとき頂点は`0`から`n-1`までとする。  
 連結な木を想定しているが、非連結でも最初の頂点と連結な木の直径が戻り値になるはず。  
 連結であるか、頂点`0`の連結成分の直径を求めたい場合は初期値の引数は省略できる。
-```
+```C++
 vector<vector<pair<int,int>>>edge(n);
 for(int i=0;i<n-1;i++){
 	int a,b,c;
@@ -142,7 +141,7 @@ for(int i=0;i<n-1;i++){
 }
 int D=diameter(e,0);
 ```
-```
+```C++
 vector<vector<int>>edge(n);
 for(int i=0;i<n-1;i++){
 	int a,b;
@@ -153,6 +152,43 @@ for(int i=0;i<n-1;i++){
 }
 int D=diameter(e);
 ```
+
+### SCC (強連結成分分解)
+頂点数 $n$, 頂点番号 $[0,n)$.  
+トポロジカルソートされた強連結成分の集合を返す．
+強連結成分中の順序は不定
+```C++
+scc_graph(n);
+void .add_edge(u,v);
+vector<vector<size_t>> .scc();
+```
+
+### DAGsort (トポロジカルソート)
+辺集合`vector<vector<T>>`を渡すとトポロジカルソート順の配列を返す.  
+ただし，`T`は整数型で`n=edge.size()`として $[0,n)$を要素として持つものとする．  
+有向サイクルを持つ辺集合を渡したときは未定義．
+
+`vector<size_t>DAGsort(const vv<T>&edge)`
+
+### detect_cycle (サイクル検出と辺集合構築)
+#### 有向グラフのサイクル検出
+```C++
+vector<int>find_cycle_directed(const vv<int>&e)
+```
+有向グラフのサイクルを一つ検出してその経路上の頂点を通る順に並べた`vector`を返す．  
+ただし，この配列中の最初の要素と最後の要素は同じ．すなわちサイクルに含まれる重複有りの頂点の数を $n$ ，配列を $v$ としたときに $v[0]=v[n-1]$が成り立つ．
+#### サイクルの辺構築
+```C++
+vector<int>
+	reconstruct_edge_id_from_to(
+		const vector<int>&v,
+		const vector<map<int,int>>&e_id
+	)
+```
+では，`find_cycle_directed()`で求めた頂点集合 $v$ と辺集合を渡すと，通る辺を順に辺の番号を構築して返す．  
+ただし，多重辺があってはならないため，多重辺はどれか一つのみを入れること．  
+
+`e_id`は`e_id[from][to]=id`となるようにする．
 
 ## misc
 ### rotate
@@ -187,9 +223,26 @@ vector or dequeの2次元配列
 * `combination<modint>(max)`のコンストラクタで，`modint`型と`N`の最大値を渡す．両方省略可．デフォルトでは`atcoder/modint998244353`.
 * `P`,`C`,`H`,`factorial`,`invfact`で順列，組合せ，重複組合せ，階乗，逆数の階乗(?)を求めることができる．
 * 前計算で最大値を渡していれば計算量は`O(1)`．
-* そうでない場合は，`N`が更新される度に追加される要素数分だけ計算が必要になり，逆数の階乗(?)を計算は拡張ユークリッドの互除法の計算量を掛ける必要がある．
-* 前計算は`O(N max\{f(i)\})`．`f`は拡張ユークリッドの互除法の計算量．
-* ユークリッドの互除法の計算量はラメの定理で知られており，`a<b`のとき`a`の桁数を`m`として`5m`以下となる(らしい)．
+* そうでない場合は，`N`が更新される度に追加される要素数分だけ計算が必要になり，逆数の階乗(?)の計算は線形時間
+* 前計算は`O(N)`．
+
+### floor_quotients (商の切り捨て列挙)
+```C++
+vector<uint64_t>quotients(uint64_t n);
+```
+$n$ を $\forall x\in [1,n]$で割ったときの商の切り捨てとして有り得るすべてを列挙する．
+計算時間は多分 $O(\sqrt{N})$
+
+### factorize (素因数分解)
+```C++
+factorize(upperlimit);
+vector<int64_t>.factor_vi(int64_t x);
+vector<pair<int64_t,uint32_t>>.factor_vp(int64_t x);
+map<int64_t,uint32_t>factor(int64_t x);
+```
+計算量は $O(\sqrt{N})$．  
+素因数を全列挙する`vi`，同じ物の数をまとめる`vp`，面倒なので`map`にした`factor`がある．
+ミラーラビンではないので別に速くない．
 
 ## string
 ### kmp
@@ -217,6 +270,6 @@ kmp法により $O(|S|+|T|)$で`T`が現れる先頭位置を全列挙。
 atcoder::fenwicktreeが必要.  
 配列を渡すとその転倒数を求める。
 配列は比較が定義されている必要がある。
-```
+```C++
 int inversion_number(vector<class f>&v);
 ```
