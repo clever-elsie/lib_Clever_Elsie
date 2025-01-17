@@ -33,22 +33,20 @@ int64_t modpow(int64_t a,uint64_t b,uint64_t mod){
 	return int64_t(ret);
 }
 
-template<class f>
-vector<vector<f>>Mpower(vector<vector<f>>&A,uint64_t b) {
-	auto mul=[&](vector<vector<f>>&a,vector<vector<f>>&b)->vector<vector<f>> {
-		size_t rank=a.size();
-		vector<vector<f>>res(rank,vector<f>(rank,0));
-		for(size_t i=0;i<rank;i++)
-		for(size_t j=0;j<rank;j++)
-		for(size_t k=0;k<rank;k++)
-			res[i][j]+=a[i][k]*b[k][j];
+template<class f>vector<vector<f>> Mpower(const vector<vector<f>>&A,uint64_t b){
+	using vc=vector<f>;
+	using vv=vector<vc>;
+	using szt=size_t;
+	auto mul=[&](vv&a,vv&b)->vv {
+		szt r=a.size();
+		vv res(r,vc(r,0));
+		for(szt i=0;i<r;i++)for(szt j=0;j<r;j++)
+			for(szt k=0;k<r;k++)res[i][j]+=a[i][k]*b[k][j];
 		return res;
 	};
-	size_t rank=A.size();
-	vector<vector<f>>I=A;
-	vector<vector<f>>res(rank,vector<f>(rank,0));
-	for(int i=0;i<rank;i++)
-		res[i][i]=1;
+	szt r=A.size();
+	vv I=A,res(r,vc(r,0));
+	for(szt i=0;i<r;i++) res[i][i]=1;
 	while(b){
 		if(b&1)res=mul(res,I);
 		I=mul(I,I);
