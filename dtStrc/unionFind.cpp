@@ -24,17 +24,11 @@ class unionFind{
 			pr[v]+=pr[u];
 			pr[u]=v;
 		}
-		unionFind&operator=(const unionFind&other){
+		unionFind&operator=(auto&&other){
 			if(this!=&other){
 				_order=other._order;
-				pr=other.pr;
-			} return*this;
-		}
-		unionFind&operator=(unionFind&&other){
-			if(this!=&other){
-				_order=other._order;
-				pr=move(other.pr);
-			} return*this;
+				pr=forward(other.pr);
+			}return*this;
 		}
 };
 
@@ -50,4 +44,39 @@ class dsu:public unionFind{
 			unionFind::unite(u,v);
 			_mset[(ru==root(u)?ru:rv)]=op(_mset[ru],_mset[rv]);
 		}
+};
+
+template<class S>class unionFindP{
+	using it=int32_t;
+	it _order;
+	mutable vector<it>pr;
+	mutable vector<S>pot;
+	public:
+	unionFindP():_order(0),pr(0),pot(0){}
+	unionFindP(it n):_order(n),pr(n,-1),pot(n,S()){}
+	it ord()const{return _order;}
+	it size(it u)const{return -pr[root(u)];}
+	bool same(it u,it v)const{return root(u)==root(v);}
+	S potential(it u)const{root(u);return pot[u];}
+	S diff(it u,it v)const{return potential(u)-potential(v);}
+	it root(it u)const{
+		if(pr[u]<0)return u;
+		it r=root(pr[u]);
+		pot[u]+=pot[pr[u]];
+		return pr[u]=r;
+	}
+	bool unite(it u,it v,S w)const{
+		w+=potential(v)-potential(u);
+		u=root(u),v=root(v);
+		if(u==v)return w==S();
+		if(pr[u]<pr[v])swap(u,v),w=-w;
+		pr[v]+=pr[u];pr[u]=v;pot[u]=w;return 1;
+	}
+	unionFindP&operator=(auto&&other){
+		if(this!=&other){
+			_order=other._order;
+			pr=forward(other.pr);
+			pot=forward(other.pot);
+		}return*this;
+	}
 };
