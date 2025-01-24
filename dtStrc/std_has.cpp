@@ -7,30 +7,43 @@
 
 template<class key_t,class val_t,class cmp=std::less<key_t>>
 class tree{
-	pubilc:
-	using std::size_t;
-	using value_type=std::pair<const key_t,val_t>;
 	protected:
-	struct node{
-		node *l,*r,*par,*nxt,*prv;
-		value_type*v;
-		size_t h,sz;
-		node(value_type*val,node*p=nullptr,node*nx=nullptr,node*pr=nullptr):v(val),par(p),nxt(nx),prv(pr){}
-		~node(){ delete v; }
-	};
-	size_t cur_size;
-	node*root;
-	iterator insert(value_type*p){
-		if(root==nullptr){
-			root=new node(p);
-			cur_size=1;
-			return iterator(node);
-		}
-	}
+	using szt=std::size_t;
+	using std::uint64_t;
+	using value_type=std::pair<const key_t,val_t>;
+	constexpr static std::nullptr_t nl = nullptr;
+	constexpr static std::int8_t NIL=0, RED=1, BLK=2;
 	public:
+	union cs{
+		uint64_t raw;
+		struct{
+			uint64_t s:62; // size
+			uint64_t c:2; // color
+		};
+		cs(std::int8_t C,uint64_t S):c(C),s(S){}
+		cs(uint64_t r):raw(r){}cs(cs c):cs(c.raw){}
+	};
 	class iterator{
-		private:node*rf;
-		public:iterator(node*x=nullptr):rf(x){}
+		private:
+		using ip=iterator*;
+		ip l,r,p,nxt,prv;
+		value_type*v;
+		cs attr;
+		iterator(value_type*V=nl,ip P=nl,ip pr=nl,ip nx=nl,ip L=nl,ip R=nl,cs att=cs(BLK,1))
+			:v(V),p(P),prv(pr),nxt(nx),l(L),r(R),attr(att){}
+		public:
+		iterator&operator=(const iterator&o){return*this=iterator(o.v,o.p,o.prv,o.nxt,o.l,o.r);}
+		bool operator==(iterator o){}
+		bool operator!=(iterator o){}
+		iterator&operator++(){}
+		iterator operator++(std::int32_t){}
+		iterator&operator--(){}
+		iterator operator--(std::int32_t){}
+	};
+	class reverse_iterator{
+		iterator p;
+		public:
+		iterator&operator=(const iterator&p){ return*this=iterator(p.v,p.par,p.prv,p.nxt,p.l,p.r,p.h,p.sz); }
 		bool operator==(iterator p){}
 		bool operator!=(iterator p){}
 		iterator&operator++(){}
@@ -38,14 +51,35 @@ class tree{
 		iterator&operator--(){}
 		iterator operator--(int32_t){}
 	};
+	protected:
+	constexpr static iterator nil; // nil_sentinel
+	size_t cur_size;
+	iterator*root,*bsent,*esent;//begin_sentinel,end_sentinel
+	iterator insert(value_type*p){
+		if(root==nullptr){
+			root=new iterator(p,nl,bsent,esent);/*no LR*/
+			cur_size=1;
+			return*root;
+		}
+		iterator*itr=new iterator(p);
+	}
+	public:
 	// constructor
-	tree():root(nullptr),cur_size(0){}
-	tree(std::initializer_list<value_type>init){}
+	tree():root(nullptr),cur_size(0){
+		bsent
+	}
+	tree(std::initializer_list<value_type>init):tree(){
+
+	}
 	// access
 	iterator find(const key_t&key){}
 	bool contains(const key_t&key){return find(key)!=end();}
 	size_t count(const key_t&key){return contains(key);}
-	val_t&operator[](const key_t&key){}
+	val_t&operator[](const key_t&key){
+		iterator itr=find(key);
+		if(itr==end())itr=emplace(key,val_t());
+		return itr->v->first;
+	}
 	iterator lower_bound(const key_t&key){}
 	iterator upper_bound(const key_t&key){}
 	size_t order_of_key(const key_t&key){}
@@ -66,38 +100,30 @@ class tree{
 		return r;
 	}
 	iterator erase(iterator&itr){
+		if(itr==end())return end();
+		iterator r=itr;
+		++r;
 
+		return r;
 	}
 	void clear(){
-		node*p=root;
-		while(p!=nullptr){
-			node*nx=nullptr;
-			if(p->l==nullptr&&p->r==nullptr){
-				nx=p->par;
-				delete p;
-			}else if(p->l!=nullptr) nx=p->l;
-			else if(p->r!=nullptr) nx=p->r;
-			p=nx;
+		iterator*p=bsent->nxt;
+		while(p!=esent){
+			delete p->v;
+			iterator*q=p;
+			p=p->nxt;
+			delete q;
 		}
-		root=nullptr;
-		cur_size=0;
+		root=nullptr,cur_size=0,bsent->nxt=esent,esent->prv=bsent;
 	}
-	friend void swap(tree&x){
-		swap(cur_size,x.cur_size);
-		swpa(root,x.root);
-	}
+	friend void swap(tree&x){}
 	void merge(tree&x){}
 	//iterator
-	iterator begin(){}
+	iterator begin(){return(first!=nullptr?*first:iterator());}
 	constexpr iterator end(){return iterator();}
-	iterator rbegin(){}
-	iterator rend(){}
+	reverse_iterator rbegin(){}
+	reverse_iterator rend(){}
 	//memory
-	bool empty(){}
-	size_t size(){}
-
-};
-
-template<class key_t,class val_t,class hash_t=std::hash<key_t>>
-class hashmap{
+	bool empty(){return cur_size==0;}
+	size_t size(){return cur_size;}
 };
