@@ -98,10 +98,12 @@ vi BF(vv<pi>&e,int start=0) noexcept(false) {
 	return move(dist);
 }
 
-void WF(vector<vector<int64_t>>&e){
+void WF(vector<vector<int64_t>>&e)noexcept(false){
 	size_t n=e.size();
-	for(size_t k=0;k<n;k++)
-	for(size_t i=0;i<n;i++)
-	for(size_t j=0;j<n;j++)
+	for(size_t k=0;k<n;++k)
+	for(size_t i=0;i<n;++i)
+	for(size_t j=0;j<n;++j)
 		e[i][j]=min(e[i][j],e[i][k]+e[k][j]);
+	for(size_t i=0;i<n;++i)
+		if(e[i][i]<0)throw(int64_t)(-1);
 }
