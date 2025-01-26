@@ -2,7 +2,7 @@
 #include <iostream>
 using namespace std;
 
-template<size_t M>
+template<size_t M=998244353>
 class modint{
 	private:
 	long long x;

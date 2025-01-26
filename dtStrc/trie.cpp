@@ -39,11 +39,14 @@ public:
 		for (int i = 0; i < size; i++)
 			char_set_press.push_back((char)(first_char + i));
 	}
-	trie(std::vector<char> &char_list) {
-		char_size = char_list.size();
-		tree = new node(char_size);
+	trie(const vector<char>&char_list) {
 		char_set_press = char_list;
 		sort(char_set_press.begin(), char_set_press.end());
+		char_list.erase(
+			unique(char_set_press.begin(),char_set_press.end()),
+			char_set_press.end());
+		char_size = char_list.size();
+		tree = new node(char_size);
 	}
 	void insert(std::string &s) {
 		node *here = tree;
