@@ -42,7 +42,7 @@ public:
 	trie(const vector<char>&char_list) {
 		char_set_press = char_list;
 		sort(char_set_press.begin(), char_set_press.end());
-		char_list.erase(
+		char_set_press.erase(
 			unique(char_set_press.begin(),char_set_press.end()),
 			char_set_press.end());
 		char_size = char_list.size();
