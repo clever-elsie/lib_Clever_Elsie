@@ -11,7 +11,24 @@ namespace elsie{
 	template<class S>using vc=vector<S>;
 	template<class S>using vv=vc<vc<S>>;
 	template<class S,class T,class U=common_type_t<S,T>>
-	vv<U>matrix_mul(const vv<S>&a1,const vv<T>&a2){
+	vv<U>matrix_mul(vv<S>&a,vv<T>&b){
+		assert(a.size()>0&&b.size()&&a[0].size()==b.size());
+		vv<U>c;
+		auto resize=[&](size_t na,size_t ma,size_t nb,size_t mb,size_t nc,size_t mc){
+			for(auto&x:a)x.resize(ma,S());
+			for(auto&x:b)x.resize(mb,T());
+			for(auto&x:c)x.resize(mc,U());
+			a.resize(na,vc<S>(ma,S()));
+			b.resize(nb,vc<S>(mb,T()));
+			c.resize(nc,vc<U>(mc,U()));
+		};
+		size_t N=a.size(),M=b.size(),L=b[0].size();
+		size_t n=[&]()->size_t {
+			size_t p=1,P=max(N,max(M,L));
+			while(p<N)p<<=1;
+			return p;
+		}();
+		resize(n,n,n,n,n,n);
 		auto add=[&](ps alu,ps blu,size_t sz){
 			for(size_t i=0;i<sz;++i)
 			for(size_t j=0;j<sz;++j);
@@ -24,12 +41,5 @@ namespace elsie{
 			}else{ // O(n^lg 7)
 			}
 		};
-		vv<U>a,b;
-		size_t n=1;{
-			size_t N=max(a.size(),max(b.size(),b[0].size()));
-			while(n<N)n<<=1;
-			a=b=vv<U>(n,vc<U>(n,U()));
-		}
-		return mul(ps(0,0),ps(0,0),n);
 	}
 };
