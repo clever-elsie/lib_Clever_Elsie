@@ -1,5 +1,6 @@
 #include <concepts>
 #include <type_traits>
+#include "power.cpp"
 using namespace std;
 
 int gcd_(int a,int b){
@@ -21,18 +22,27 @@ int egcd(int a,int b,int&x,int&y){
 }
 
 template<integral T>T exgcd(T a,T b,T&x,T&y){
-	auto eq=[](T&s,T&t,T u,T v)->void {s=u,t=v;};
+	auto assign=[&](T&s,T&t,T u,T v)->void {s=u,t=v;};
 	x=1,y=0;
 	T u=0,v=1;
 	while(b){
 		T k=a/b;
-		eq(x,u,u,x-k*u);
-		eq(y,v,v,y-k*v);
-		eq(a,b,b,a%b);
-	}return a;
+		T r=a%b;
+		assign(a,b,b,r);
+		assign(x,u,u,x-u*k);
+		assign(y,v,v,y-v*k);
+	}
+	if(a<0)a=-a,x=-x,y=-y;
+	return a;
 }
 
 template<integral T>T mod_inv(T a,T m){
 	T x,y,g=exgcd(a,m,x,y);
-	return(g!=1?-1:x+(x<0?m:0));
+	if(g!=1)return -1;
+	return(x%m+m)%m;
+}
+
+// ./power.cpp::modpow
+template<integral T>T mod_inv(T a,T p){
+	return modpow(a,p-2,p);
 }

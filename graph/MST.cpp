@@ -12,24 +12,8 @@ using pi = pair<int,int>;
 template<class f>
 using pqg=priority_queue<f,vc<f>,greater<f>>;
 
-class unionFind{
-	private:const int _order;
-	protected:vector<int>pr;
-	public:
-		unionFind(int n):_order(n),pr(n,-1){}
-		int ord(){return _order;}
-		int size(int u){return -pr[root(u)];}
-		int root(int u){return(pr[u]<0?u:pr[u]=root(pr[u]));}
-		bool same(int u,int v){return root(u)==root(v);}
-		void unite(int u,int v) {
-			u=root(u),v=root(v);
-			if(u==v)return;
-			if(pr[u]<pr[v])swap(u,v);
-			pr[v]+=pr[u];
-			pr[u]=v;
-		}
-};
 
+#include "../dtStrc/unionFind.cpp"
 // vector<cost,{from,to}> |E|!=n
 size_t kruskal(const int n,vc<pair<int,pi>>&e){
 	unionFind uf(n);
