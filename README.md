@@ -9,7 +9,6 @@ $N$ は配列の長さとする． $2$ つ以上の配列について論じる�
 
 
 ## 現在作成(放置)中
-- 遅延セグ木  
 - 赤黒木  
 - suffix array  
 - wavelet matrix  
@@ -74,7 +73,7 @@ int inversion_number(vector<class f>&v);
 `S sum(size_t,size_t)` : $[l,r)$ の和を求める。 $O(\lg N)$  
 
 ## segtree
-`template<class S, S(*op)(), S(*e)()> segtree`  
+`template<class S, S(*op)(S,S), S(*e)()> segtree`  
 単位元`e`,演算`op`が定義された型`S`を渡して使う。 $[0,N)$
 
 `segtree<>(const vc<S>&)` : 配列からセグ木を構築する。 $O(N\lg N)$  
@@ -82,6 +81,28 @@ int inversion_number(vector<class f>&v);
 `void set(size_t,S)` : 1点更新。 $O(\lg N)$  
 `S get(size_t)` : 1点取得。 $O(1)$  
 `S prod(size_t,size_t)` : 区間取得 $[l,r)$ 。 $O(\lg N)$
+
+## lazy_segtree
+`template<class S,S(*op),S(*e),class F,S(*mapping)(F,S),F(*composition)(F,F),F(*id)()>lst(n);`
+
+|template|説明|
+|-|-|
+|型`S`|元の配列|
+|型`F`|遅延の型|
+|`op`|`S(S,S)`|
+|`e`| $e\in S$ となる`op`の単位元|
+|`mapping`|遅延要素を元の配列に対して適用するための関数`S(F,S)`|
+|`composition`|遅延要素の計算 `F(F f,F g)`のとき，`f`が後から追加される遅延要素|
+|`id`| $\text{id}\in F$となる`composition`の単位元|
+
+```C++
+lazy_segtree(u32 n);
+lazy_segtree(const vector<S>&v);
+void set(u32 idx, S val);
+S get(u32 idx);
+void apply(u32 l,u32 r,F f);
+S prod(u32 l,u32 r);
+```
 
 ## trie
 trie木のオブジェクトを生成し、その時に文字集合を決定する．重複は取り除く．  
