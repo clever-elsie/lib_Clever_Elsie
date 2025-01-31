@@ -2,7 +2,9 @@
 #include<concepts>
 #include<type_traits>
 #include<numeric>
-
+#ifndef ELSIE_FRAC
+#define ELSIE_FRAC
+namespace elsie{
 using namespace std;
 class frac{
 	using ul=uint64_t;
@@ -78,3 +80,5 @@ public:
 		return dst;
 	}
 };
+}
+#endif

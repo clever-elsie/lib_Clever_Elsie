@@ -1,8 +1,10 @@
 #include<string>
 #include<vector>
 #include<cstddef>
+#ifndef ELSIE_EDIT_DISTANCE
+#define ELSIE_EDIT_DISTANCE
+namespace elsie{
 using namespace std;
-
 size_t edit_dist(const string&s,const string&t){
 	vector dp(s.size()+1,vector<size_t>(t.size()+1,1ll<<60));
 	dp[0][0]=0;
@@ -15,3 +17,5 @@ size_t edit_dist(const string&s,const string&t){
 	}
 	return dp.back().back();
 }
+}
+#endif

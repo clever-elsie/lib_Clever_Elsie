@@ -3,8 +3,10 @@
 #include <unordered_map>
 #include <numeric>
 #include "gcd_lcm.cpp"
+#ifndef ELSIE_CRT_GARNER
+#define ELSIE_CRT_GARNER
+namespace elsie{
 using namespace std;
-
 // gcd_lcm.cpp::exgcd();
 template<integral T>pair<T,T>crt(const vector<T>&b,const vector<T>&m){
 	T r=0,M=1;
@@ -58,3 +60,5 @@ template<integral T>T decomposite_garner(vector<T>&b,vector<T>&m,T mod)noexcept(
 	if(zerocnt==b.size())return ret;
 	return garner(b,m,mod);
 }
+}
+#endif

@@ -1,8 +1,10 @@
 #include <map>
 #include <vector>
 #include <cstdint>
+#ifndef ELSIE_FACTORIZE
+#define ELSIE_FACTORIZE
+namespace elsie{
 using namespace std;
-
 class factorize{
 	const uint64_t upper_limit;
 	vector<unsigned>p;
@@ -57,3 +59,5 @@ class factorize{
 		return move(ret);
 	}
 };
+}
+#endif

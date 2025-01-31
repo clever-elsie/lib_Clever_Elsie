@@ -1,10 +1,11 @@
 #include <algorithm>
 #include <numeric>
 #include <vector>
-#include <functional>
 #include <cstdint>
+#ifndef ELSIE_UNIONFIND
+#define ELSIE_UNIONFIND
+namespace elsie{
 using namespace std;
-
 class unionFind{
 	protected:
 		using it=int32_t;
@@ -80,3 +81,5 @@ template<class S>class unionFindP{
 		}return*this;
 	}
 };
+}
+#endif

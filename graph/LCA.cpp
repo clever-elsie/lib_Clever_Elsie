@@ -2,13 +2,11 @@
 #include<vector>
 #include<cstdint>
 #include<atcoder/segtree>
+#ifndef ELSIE_LCA
+#define ELSIE_LCA
+namespace elsie{
 using namespace std;
 using namespace atcoder;
-
-// cntはその頂点が最初に現れるときにのみ更新
-// LCAはLCA(u,v)= min_{depth_i} RMinQ(cnt_u,cnt_v)
-
-namespace elsie{
 static constexpr int LCA_INF = INT32_MAX;
 struct idx_depth {
 	int idx,depth;
@@ -55,3 +53,4 @@ class LCA{
 }
 template<integral T>
 using LCA = elsie::LCA<T>;
+#endif

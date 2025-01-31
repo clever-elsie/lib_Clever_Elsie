@@ -1,7 +1,9 @@
 #include <cstdint>
 #include <iostream>
+#ifndef ELSIE_MODINT
+#define ELSIE_MODINT
+namespace elsie{
 using namespace std;
-
 template<size_t M=998244353>
 class modint{
 	private:
@@ -65,3 +67,5 @@ class modint{
 		return modint(v);
 	}
 };
+}
+#endif

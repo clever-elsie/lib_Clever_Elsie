@@ -1,9 +1,13 @@
+#include <cstddef>
 #include <map>
 #include <unordered_map>
-
+#ifndef ELSIE_MEX
+#define ELSIE_MEX
+namespace elsie{
+	using namespace std;
 struct mex{
-	std::map<int,int>v; // [l,r)
-	std::unordered_map<int,int>c; // {val,cnt}
+	map<int,int>v; // [l,r)
+	unordered_map<int,int>c; // {val,cnt}
 	mex(){v[-1]=0;}
 	void add(int a){
 		{ // count phase
@@ -54,3 +58,5 @@ struct mex{
 		return(itr==c.end()?0ull:itr->se);
 	}
 };
+}
+#endif

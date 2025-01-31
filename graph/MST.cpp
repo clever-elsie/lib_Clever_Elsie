@@ -2,20 +2,17 @@
 #include <queue>
 #include <algorithm>
 #include <utility>
+#include "dtStrc/unionFind.cpp"
+#ifndef ELSIE_MST
+#define ELSIE_MST
+namespace elsie{
 using namespace std;
-#define int long long
-template <class f> using vc=vector<f>;
-template <class f> using vv=vc<vc<f>>;
-using vi = vc<int>;
-using vb = vc<bool>;
-using pi = pair<int,int>;
-template<class f>
-using pqg=priority_queue<f,vc<f>,greater<f>>;
-
-
-#include "../dtStrc/unionFind.cpp"
+template<class f>using vc=vector<f>;
+template<class f>using vv=vc<vc<f>>;
+template<class f>using pqg=priority_queue<f,vc<f>,greater<f>>;
 // vector<cost,{from,to}> |E|!=n
-size_t kruskal(const int n,vc<pair<int,pi>>&e){
+template<class S,class T,class U>
+size_t kruskal(const int n,vc<pair<S,pair<T,U>>>&e){
 	unionFind uf(n);
 	sort(e.begin(),e.end());
 	size_t ans=0;
@@ -28,14 +25,15 @@ size_t kruskal(const int n,vc<pair<int,pi>>&e){
 	}
 	return ans;
 }
-pair<size_t,vi> kruskal(const int n,const vc<pair<int,pi>>&e){
+template<class S,class T,class U>
+pair<size_t,vc<int32_t>>kruskal(const int n,const vc<pair<S,pair<T,U>>>&e){ // cost, from, to
 	unionFind uf(n);
-	vc<pair<int,pair<int,pi>>>p(e.size());
-	for(int i=0;i<e.size();i++)
+	vc<pair<S,pair<int32_t,pair<T,U>>>>p(e.size());
+	for(int i=0;i<e.size();i++) // cost, id, from, to
 		p[i]=make_pair(e[i].first,make_pair(i,e[i].second));
 	sort(p.begin(),p.end());
 	size_t ans=0;
-	vi ansv;
+	vc<int32_t> ansv;
 	for(const auto&[cost,ift]:p){
 		auto [id,ft]=ift;
 		auto [u,v]=ft;
@@ -45,18 +43,19 @@ pair<size_t,vi> kruskal(const int n,const vc<pair<int,pi>>&e){
 			ansv.push_back(id);
 		}
 	}
-	return move(make_pair(ans,ansv));
+	return {ans,ansv};
 }
 
 // v[from]={cost,to}
-size_t prim(const vv<pi>&e){
+template<class S,class T>
+size_t prim(const vv<pair<S,T>>&e){
 	size_t ans=0;
-	vb seen(e.size(),0);
+	vc<bool>seen(e.size(),0);
 	seen[0]=1;
-	pqg<pi>q;
+	pqg<pair<S,T>>q;
 	for(const auto&edge:e[0])q.push(edge);
 	while(q.size()){
-		auto [cost,to]=q.top();q.pop();
+		auto[cost,to]=q.top();q.pop();
 		if(seen[to])continue;
 		seen[to]=1;
 		ans+=cost;
@@ -65,12 +64,13 @@ size_t prim(const vv<pi>&e){
 	return ans;
 }
 // v[from]={cost,to,id}
-pair<size_t,vi> prim(const vv<pair<pi,int>>&e){
+template<class S,class T,class U>
+pair<size_t,vc<int32_t>>prim(const vv<pair<pair<S,T>,U>>&e){
 	size_t ans=0;
-	vi ansv;
-	vb seen(e.size(),0);
+	vc<int32_t>ansv;
+	vc<bool>seen(e.size(),0);
 	seen[0]=1;
-	pqg<pair<pi,int>>q;
+	pqg<pair<pair<S,T>,int>>q;// cost,to,id
 	for(const auto&edge:e[0])q.push(edge);
 	while(q.size()){
 		auto [E,id]=q.top();q.pop();
@@ -81,5 +81,7 @@ pair<size_t,vi> prim(const vv<pair<pi,int>>&e){
 		ansv.push_back(id);
 		for(const auto&edge:e[to])q.push(edge);
 	}
-	return move(make_pair(ans,ansv));
+	return {ans,ansv};
 }
+}
+#endif

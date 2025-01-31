@@ -1,27 +1,29 @@
 #include <concepts>
 #include <type_traits>
-#include "power.cpp"
+#include "math/power.cpp"
+#ifndef ELSIE_GCD_LCM
+#define ELSIE_GCD_LCM
+namespace elsie{
 using namespace std;
-
-int gcd_(int a,int b){
+template<class S>S gcd(S a,S b){
 	if(b==0) return a;
-	int r=1;if(a<0)a=-a;if(b<0)b=-b;
+	S r=1;if(a<0)a=-a;if(b<0)b=-b;
 	while(r) r=a%b,a=b,b=r;
 	return a;
 }
-int lcm_(int a,int b){ return a/gcd_(a,b)*b; }
+template<class S>S lcm(S a,S b){return a/gcd(a,b)*b;}
 
-int egcd(int a,int b,int&x,int&y){
+template<class S>S egcd(S a,S b,S&x,S&y){
 	if(b==0){
 		x=1,y=0;
 		return a;
 	}
-	int d=egcd(b,a%b,y,x);
-	y-=a/b * x;
+	S d=egcd(b,a%b,y,x);
+	y-=a/b*x;
 	return d;
 }
 
-template<integral T>T exgcd(T a,T b,T&x,T&y){
+template<class T>T exgcd(T a,T b,T&x,T&y){
 	auto assign=[&](T&s,T&t,T u,T v)->void {s=u,t=v;};
 	x=1,y=0;
 	T u=0,v=1;
@@ -36,13 +38,14 @@ template<integral T>T exgcd(T a,T b,T&x,T&y){
 	return a;
 }
 
-template<integral T>T mod_inv(T a,T m){
+template<class T>T mod_inv(T a,T m){
 	T x,y,g=exgcd(a,m,x,y);
 	if(g!=1)return -1;
 	return(x%m+m)%m;
 }
 
-// ./power.cpp::modpow
-template<integral T>T mod_inv(T a,T p){
+template<class T>T mod_inv_prime(T a,T p){
 	return modpow(a,p-2,p);
 }
+}
+#endif

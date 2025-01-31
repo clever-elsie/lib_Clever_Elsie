@@ -1,8 +1,10 @@
 #include <cstdint>
 #include <vector>
 #include <utility>
+#ifndef ELSIE_CONVEXHULL
+#define ELSIE_CONVEXHULL
+namespace elsie{
 using namespace std;
-
 class convex_hull{
 	using it=int32_t;
 	using ll=int64_t;
@@ -29,3 +31,5 @@ class convex_hull{
 		return h;
 	}
 };
+}
+#endif

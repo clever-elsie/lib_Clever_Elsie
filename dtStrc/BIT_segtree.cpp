@@ -1,10 +1,10 @@
-#include <atcoder/lazysegtree>
 #include<vector>
 #include<cstddef>
+#ifndef ELSIE_BIT_SEGTREE
+#define ELSIE_BIT_SEGTREE
+namespace elsie{
 using namespace std;
 using namespace atcoder;
-#define int long long
-
 template<class type>class BIT{// 0-indexed [l,r)
 	vector<type>v;
 	size_t _size;
@@ -57,3 +57,5 @@ public:
 		return prod(0,n,1);
 	}
 };
+}
+#endif

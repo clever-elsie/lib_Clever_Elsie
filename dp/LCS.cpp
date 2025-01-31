@@ -3,8 +3,10 @@
 #include <string>
 #include <utility>
 #include <vector>
+#ifndef ELSIE_LCS
+#define ELSIE_LCS
+namespace elsie{
 using namespace std;
-
 pair<size_t, string> LCS(const string &s,const string &t, int return_lenght_or_string = 0) {
 	size_t ss = s.size(), ts = t.size();
 	vector<vector<size_t>> dp(ss + 1, vector<int>(ts + 1, 0));
@@ -36,3 +38,5 @@ pair<size_t, string> LCS(const string &s,const string &t, int return_lenght_or_s
 			res.push_back(s[i]);
 	return make_pair(dp[ss][ts], res);
 }
+}
+#endif

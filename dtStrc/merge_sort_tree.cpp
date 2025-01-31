@@ -2,8 +2,10 @@
 #include <algorithm>
 #include <cstdint>
 #include <cassert>
+#ifndef ELSIE_MERGESORT_TREE
+#define ELSIE_MERGESORT_TREE
+namespace elsie{
 using namespace std;
-
 template<class T,size_t max_log=21>
 class merge_sort_tree{
 	using vc=vector<T>;
@@ -51,3 +53,5 @@ class merge_sort_tree{
 		return*this;
 	}
 };
+}
+#endif

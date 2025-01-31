@@ -1,7 +1,9 @@
 #include<vector>
 #include<cstdint>
 #include<limits>
-
+#ifndef ELSIE_POWER
+#define ELSIE_POWER
+namespace elsie{
 int64_t safepow(int64_t a,uint64_t b){
 	int64_t ret=1;
 	int64_t k=a;
@@ -54,3 +56,5 @@ template<class f>vector<vector<f>> Mpower(const vector<vector<f>>&A,uint64_t b){
 	}
 	return res;
 }
+}
+#endif

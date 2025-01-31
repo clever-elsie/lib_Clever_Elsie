@@ -4,14 +4,18 @@
 #include <map>
 #include <algorithm>
 #include <cstddef>
+#ifndef ELSIE_DETECT_CYCLE
+#define ELSIE_DETECT_CYCLE
+namespace elsie{
 using namespace std;
-
-vector<int> find_cycle_directed(const vector<vector<int>>&e){
+template<class S>using vc=vector<S>;
+template<class S>using vv=vc<vc<S>>;
+template<class S>vc<int32_t>find_cycle_directed(const vv<S>&e){
 	size_t n=e.size();
-	vector<bool> seen(n,false);
-	set<int>now_path;
-	vector<int> cycle(0);cycle.reserve(n);
-	function<int(int)> dfs=[&](int now)->int {
+	vc<bool> seen(n,false);
+	set<int32_t>now_path;
+	vc<int32_t>cycle(0);cycle.reserve(n);
+	auto dfs=[&](auto dfs,int32_t now)->int {
 		for(const auto&to:e[now]){
 			if(now_path.contains(to)){
 				cycle.push_back(to);
@@ -20,7 +24,7 @@ vector<int> find_cycle_directed(const vector<vector<int>>&e){
 			}else if(!seen[to]){
 				now_path.ins(to);
 				seen[to]=true;
-				int v=dfs(to);
+				int v=dfs(dfs,to);
 				if(v!=-1){
 					if(v<-1)return v;
 					cycle.push_back(now);
@@ -31,22 +35,24 @@ vector<int> find_cycle_directed(const vector<vector<int>>&e){
 		now_path.erase(now);
 		return -1;
 	};
-	for(size_t i=0;i<n;i++)if(!seen[i]){
+	for(int32_t i=0;i<n;++i)if(!seen[i]){
 		now_path.clear();
 		now_path.insert(i);
 		seen[i]=true;
-		dfs(i);
+		dfs(dfs,i);
 		if(cycle.size())break;
 	}
 	if(cycle.size())reverse(cycle.begin(),cycle.end());
 	return move(cycle);
 }
 
-vector<int> reconstruct_edge_id_from_to(const vector<int>&v,const vc<map<int,int>>&e_id){
-	vector<int> ans(v.size()-1);
-	for(size_t i=0;i+1<v.size();i++){
-		auto itr=e_id[v[i]].find(v[i+1]);
-		ans[i]=itr->second;
-	}
+// e_id[id]={from,to}
+template<class S,class T,class U>
+vc<int32_t>reconstruct_edge(const vc<U>&v,const vc<map<S,T>>&e_id){
+	vc<int32_t>ans(v.size()-1);
+	for(int32_t i=0;i+1<v.size();++i)
+		ans[i]=e_id[v[i]].find(v[i+1])->second;
 	return move(ans);
 }
+}
+#endif

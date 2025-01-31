@@ -1,8 +1,9 @@
 #include <vector>
 #include <array>
 #include <random>
+#ifndef ELSIE_ROLLINGHASH_SEGTREE
+#define ELSIE_ROLLINGHASH_SEGTREE
 using namespace std;
-
 class rolHashSeg{
 private: // don't write
 	using ll = long long;
@@ -127,3 +128,4 @@ class dynamicRollingHash{
 			seg[i].set(idx,c);
 	}
 };
+#endif

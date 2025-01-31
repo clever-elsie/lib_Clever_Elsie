@@ -1,8 +1,10 @@
 #include <vector>
 #include <deque>
-
+#include <set>
+#ifndef ELSIE_DAGSORT
+#define ELSIE_DAGSORT
+namespace elsie{
 using namespace std;
-
 template<class T>vector<size_t>DAGsort(const vector<vector<T>>&edge){
 	size_t n=edge.size();
 	vector<set<T>>e(n);
@@ -33,3 +35,5 @@ template<class T>vector<size_t>DAGsort(const vector<vector<T>>&edge){
 	}
 	return move(ans);
 }
+}
+#endif

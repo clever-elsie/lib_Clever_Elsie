@@ -1,8 +1,10 @@
 #include<cstddef>
 #include<cstdint>
 #include<vector>
+#ifndef ELSIE_MAXFLOW
+#define ELSIE_MAXFLOW
+namespace elsie{
 using namespace std;
-
 template<class type>
 class max_flow{
 	class edge {
@@ -45,3 +47,5 @@ class max_flow{
 			return r;
 		}
 };
+}
+#endif

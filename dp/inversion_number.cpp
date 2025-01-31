@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <atcoder/fenwicktree>
 #include <vector>
+#ifndef ELSIE_INVERSION_NUMBER
+#define ELSIE_INVERSION_NUMBER
+namespace elsie{
 using namespace std;
 using namespace atcoder;
-
 template<class f>
 int inversion_number(const vector<f>&tar){
 	int res=0;
@@ -20,3 +22,5 @@ int inversion_number(const vector<f>&tar){
 	}
 	return res;
 }
+}
+#endif

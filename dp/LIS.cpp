@@ -1,9 +1,10 @@
 #include<vector>
 #include<algorithm>
+#ifndef ELSIE_LIS
+#define ELSIE_LIS
+namespace elsie{
 using namespace std;
-
-template<class T>
-int LIS(const vector<T>&a){
+template<class T>int LIS(const vector<T>&a){
 	vector<int> dp(a.size()+1,1ll<<60);
 	dp[0]=-(1ll<<60);
 	int ans=0;
@@ -16,3 +17,5 @@ int LIS(const vector<T>&a){
 	}
 	return ans;
 }
+}
+#endif

@@ -2,8 +2,10 @@
 #include<vector>
 #include<cstdint>
 #include<cstdlib>
+#ifndef ELSIE_KMP
+#define ELSIE_KMP
+namespace elsie{
 using namespace std;
-
 class kmp{
 	private:
 	string src,word;
@@ -41,3 +43,5 @@ class kmp{
 		return move(ret);
 	}
 };
+}
+#endif

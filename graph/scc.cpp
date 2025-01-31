@@ -1,10 +1,11 @@
 #include <cstdint>
 #include <vector>
 #include <set>
+#ifndef ELSIE_SCC
+#define ELSIE_SCC
+namespace elsie{
 using namespace std;
-
 class scc_graph{
-	// strongly connected components
 	using vi=vector<int32_t>;
 	using vvi=vector<vi>;
 	size_t n,cnt;
@@ -45,3 +46,5 @@ class scc_graph{
 		return move(ans);
 	}
 };
+}
+#endif

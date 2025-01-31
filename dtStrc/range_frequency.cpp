@@ -1,10 +1,12 @@
 #include <algorithm>
 #include <vector>
 #include <unordered_map>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+#ifndef ELSIE_RANGE_FREQUENCY
+#define ELSIE_RANGE_FREQUENCY
+namespace elsie{
 using namespace std;
-#define umap unordered_map
-#include<ext/pb_ds/assoc_container.hpp>
-#include<ext/pb_ds/tree_policy.hpp>
 using namespace __gnu_pbds;
 template<class s,class t>using __gnu_map=tree<s,t,std::less<s>,rb_tree_tag,tree_order_statistics_node_update>;
 template<class s,class t>struct gnu_map:public __gnu_map<s,t>{
@@ -16,7 +18,7 @@ template<class s>struct gnu_set:public gnu_map<s,null_type>{gnu_map<s,null_type>
 
 template<class S>class range_frequency{
 	using it=int32_t;
-	umap<S,gnu_set<it>>v_idx;
+	unordered_map<S,gnu_set<it>>v_idx;
 	vector<S>va;
 	public:
 	range_frequency():va(0){}
@@ -38,7 +40,7 @@ template<class S>class range_frequency{
 };
 template<class S>class range_frequency_static{
 	using it=int32_t;
-	umap<S,vector<it>>v_idx;
+	unordered_map<S,vector<it>>v_idx;
 	public:
 	range_frequency_static(){}
 	range_frequency_static(const vector<S> &v){
@@ -54,3 +56,5 @@ template<class S>class range_frequency_static{
 	}
 	it cnt(it l,it r,const S&x){return cnt(r,x)-cnt(l,x); }
 };
+}
+#endif

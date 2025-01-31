@@ -1,4 +1,3 @@
-#include <atcoder/segtree>
 #include <array>
 #include <cstdint>
 #include <cstdlib>
@@ -6,8 +5,10 @@
 #include <random>
 #include <string>
 #include <vector>
+#ifndef ELSIE_ROLLINGHASH
+#define ELSIE_ROLLINGHASH
+namespace elsie{
 using namespace std;
-
 template<size_t psz>
 class rollingHash{
 	protected:
@@ -97,3 +98,5 @@ class rollingHash{
 		return true;
 	}
 };
+}
+#endif

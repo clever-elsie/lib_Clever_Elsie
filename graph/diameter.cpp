@@ -2,40 +2,47 @@
 #include <cstdint>
 #include <list>
 #include <vector>
+#ifndef ELSIE_DIAMETER
+#define ELSIE_DIAMETER
+namespace elsie{
 using namespace std;
-// 直径パスの構築はdijkstraのpathの構成に始点と終点を入れればよい．
-
-pair<int,pair<int,int>> diameter(vector<vector<pair<int, int>>> &edge, int start = 0) {
-	auto farthest = [&](vector<vector<pair<int, int>>> &Edge, int Start) -> pair<int, int> {
-		int inf = INT32_MAX;
-		vector<int> dist(Edge.size(), -1);
-		list<int> q;
+template<class S>using vc=vector<S>;
+template<class S>using vv=vc<vc<S>>;
+// e:cost,to
+// ret:|diameter|,from,to
+template<class S,class T>
+pair<int32_t,pair<int32_t,int32_t>> diameter(vv<pair<S,T>>&edge,int start=0){
+	auto farthest=[&](vv<pair<S,T>>&Edge,intStart)->pair<int32_t,int32_t> {
+		int32_t inf=INT32_MAX;
+		vc<int32_t>dist(Edge.size(),-1);
+		list<int32_t>q;
 		q.push_back(Start);
-		dist[Start] = 0;
-		while (!q.empty()) {
-			int here = q.front();
-			q.pop_front();
-			for (auto [to_cost, to_id] : Edge[here]) {
-				if (dist[to_id] == -1) {
-					dist[to_id] = dist[here] + to_cost;
+		dist[Start]=0;
+		while(!q.empty()){
+			int32_t here=q.front();q.pop_front();
+			for(const auto&[to_cost,to_id]:Edge[here]){
+				if(dist[to_id]==-1){
+					dist[to_id]=dist[here]+to_cost;
 					q.push_back(to_id);
 				}
 			}
 		}
-		vector<int>::iterator res = max_element(begin(dist), end(dist));
-		return pair<int, int>(*res, res - dist.begin());
+		vector<int32_t>::iterator res=max_element(begin(dist),end(dist));
+		return {*res,res-dist.begin()};
 	};
 	auto st=farthest(edge,start).second;
 	auto[cost,gl]=farthest(edge,st);
-	return make_pair(cost,make_pair(st,gl));
+	return {cost,{st,gl}};
 }
 
-int diameter(vector<vector<int>> &edge, int start = 0) {
-	vector<vector<pair<int, int>>> weighted_edge(edge.size());
-	for (size_t i = 0; i < edge.size(); i++) {
+int32_t diameter(vv<int>&edge,int start=0){
+	vv<pair<int32_t,int32_t>>weighted_edge(edge.size());
+	for(size_t i=0;i<edge.size();++i){
 		weighted_edge[i].resize(edge[i].size());
-		for (size_t j = 0; j < edge[i].size(); j++)
-			weighted_edge[i][j] = make_pair(1, edge[i][j]);
+		for(size_t j=0;j<edge[i].size();++j)
+			weighted_edge[i][j]={1,edge[i][j]};
 	}
-	return diameter(weighted_edge, start);
+	return diameter(weighted_edge,start);
 }
+}
+#endif

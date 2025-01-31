@@ -1,4 +1,7 @@
 #include <cstdint>
+#ifndef ELSIE_EULAR_TOTIENT
+#define ELSIE_EULAR_TOTIENT
+namespace elsie{
 using namespace std;
 // O(\sqrt{n})
 uint64_t eular_totient(uint64_t n){
@@ -12,3 +15,5 @@ uint64_t eular_totient(uint64_t n){
 	if(n>1)r-=r/n;
 	return r;
 }
+}
+#endif

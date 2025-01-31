@@ -2,7 +2,10 @@
 #include <new>
 #include <string>
 #include <vector>
-
+#ifndef ELSIE_TRIE
+#define ELSIE_TRIE
+namespace elsie{
+using namespace std;
 class trie {
 	struct node {
 		int *cnt;
@@ -74,3 +77,5 @@ public:
 		return l;
 	}
 };
+}
+#endif

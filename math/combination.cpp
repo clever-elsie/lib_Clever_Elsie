@@ -1,9 +1,10 @@
 #include <vector>
 #include <atcoder/modint>
-
+#ifndef ELSIE_COMBINATION
+#define ELSIE_COMBINATION
+namespace elsie{
 using namespace std;
 using namespace atcoder;
-
 template<class mint=modint998244353>
 class combination{
 	private:
@@ -52,3 +53,5 @@ class combination{
 		return C(n+k-1,k);
 	}
 };
+}
+#endif

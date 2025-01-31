@@ -1,7 +1,9 @@
 #include <vector>
 #include <cstdint>
+#ifndef ELSIE_CONVOLUTION
+#define ELSIE_CONVOLUTION
+namespace elsie{
 using namespace std;
-
 template<size_t M=998244353,auto op=[](const int64_t&a,const int64_t&b){return a*b;},auto e=[](){return 0ll;}>
 class convolution{
 	private:
@@ -79,3 +81,5 @@ class convolution{
 		return ret;
 	}
 };
+}
+#endif
