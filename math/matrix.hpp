@@ -33,14 +33,14 @@ namespace elsie{
 	template<class S>vv<S>merge_quad_matrix(const vv<S>&c11,const vv<S>&c12,const vv<S>&c21,const vv<S>&c22){
 		size_t n=c11.size();
 		vv<S>c(n*2,vc<S>(n*2,S()));
-		for(size_t i=0,j;i<n;++i)
-		for(j=0;j<n;++j)c[i][j]=c11[i][j];
-		for(size_t i=0,j;i<n;++i)
-		for(j=0;j<n;++j)c[i][j+n]=c12[i][j];
-		for(size_t i=0,j;i<n;++i)
-		for(j=0;j<n;++j)c[i+n][j]=c21[i][j];
-		for(size_t i=0,j;i<n;++i)
-		for(j=0;j<n;++j)c[i+n][j+n]=c22[i][j];
+		for(size_t i=0,j;i<n;++i){
+			for(j=0;j<n;++j)c[i][j]=c11[i][j];
+			for(j=0;j<n;++j)c[i][j+n]=c12[i][j];
+		}
+		for(size_t i=0,j;i<n;++i){
+			for(j=0;j<n;++j)c[i+n][j]=c21[i][j];
+			for(j=0;j<n;++j)c[i+n][j+n]=c22[i][j];
+		}
 		return c;
 	}
 
@@ -82,15 +82,16 @@ namespace elsie{
 				b.resize(M);
 				if(L<n)for(auto&x:b)x.resize(L);
 			}
-			auto s1=matrix_add<true>(bs[1],bs[3]);
 			auto s2=matrix_add      (as[0],as[1]);
-			auto s3=matrix_add      (as[2],as[3]);
-			auto s4=matrix_add<true>(bs[2],bs[0]);
 			auto s5=matrix_add      (as[0],as[3]);
-			auto s6=matrix_add      (bs[0],bs[3]);
+			auto s3=matrix_add      (as[2],as[3]);
 			auto s7=matrix_add<true>(as[1],as[3]);
-			auto s8=matrix_add      (bs[2],bs[3]);
 			auto s9=matrix_add<true>(as[0],as[2]);
+
+			auto s1=matrix_add<true>(bs[1],bs[3]);
+			auto s4=matrix_add<true>(bs[2],bs[0]);
+			auto s6=matrix_add      (bs[0],bs[3]);
+			auto s8=matrix_add      (bs[2],bs[3]);
 			auto sA=matrix_add      (bs[0],bs[1]);
 
 			auto p1=matrix_mul<threshold,false>(as[0],s1);
