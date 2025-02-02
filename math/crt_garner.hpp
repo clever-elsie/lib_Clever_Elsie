@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <numeric>
-#include "gcd_lcm.cpp"
+#include "math/basic_math.hpp"
 #ifndef ELSIE_CRT_GARNER
 #define ELSIE_CRT_GARNER
 namespace elsie{

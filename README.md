@@ -266,22 +266,15 @@ vector<int>
 `e_id`は`e_id[from][to]=id`となるようにする．
 
 # math
-## gcd, lcm, exgcd
+## basic_math
 計算量はすべてラメの定理より $O(5\min(a,b))$.  
 - `gcd_(a,b)` : 最大公約数  
 - `lcm_(a,b)` : 最小公倍数  
 - `egcd(a,b,x,y)` : 再帰拡張ユークリッドの互除法 $ax+by=\text{GCD}(a,b)$  
 - `exgcd(a,b,x,y)` : 非再帰拡張ユークリッドの互除法  
 - `mod_inv(a,m)` : 素数 $m$ を法とする逆元を求める．
-
-## power
 - `safepow(a,b)` オーバーフロー防止。オーバーフロー時INT64_MAX
 - `modpow(a,b,m)` : $x\equiv a^b \pmod m$となる $x$ を求める．
-- `Mpower`  
-	`vv<S> Mpower(vv<S>&A,int b)`の行列累乗。  
-	`S`は乗算が定義されている必要がある。  
-	計算量は $n\times n$ 行列について $O(n^3\lg b)$  
-	通常オーバーフローするため，型には `modint` を入れる．
 
 ## modint
 - `modint<M>(N)` : $N$ は省略時 $0$. $M$ は省略時 $998244353$.
@@ -340,19 +333,26 @@ map<int64_t,uint32_t>factor(int64_t x);
 
 ## matrix
 ```C++
-vv<U>matrix_add<sub=true:false>(const vv<S>&,const vv<T>&);
-vv<U>matrix_mul<threshold,q2>(vv<S>&,vv<T>&);
-v3<S>split_quad_matrix(const vv<S>&);
-vv<S>merge_quad_matrix(const vv<S>&,x4);
+vv<U> matrix_add<sub=true:false>(const vv<S>&,const vv<T>&);
+vv<U> matrix_mul<threshold,q2>(vv<S>&,vv<T>&);
+vv<S> Mpower(vv<S>&A,int b);
+v3<S> split_quad_matrix(const vv<S>&);
+vv<S> merge_quad_matrix(const vv<S>&,x4);
 ```
 
-`matrix_add` : 第一テンプレート引数で引き算を指定．2つの行列は同じサイズである必要がある．
+`matrix_add` : 計算量は $O(n^2)$.
+第一テンプレート引数で引き算を指定．2つの行列は同じサイズである必要がある．
 戻り値の型は`S,T`の両方からキャスト可能な`U`．
 
 `matrix_mul` : `threshold`は $O(n^3)$ と $O(n^{\lg 7})$ を切り替える $n$.
-`q2`は入力される行列が2つとも2冪のときに`true`．
+`q2`は入力される行列が2つとも2冪のときに`false`．
 行列のサイズは $n\times m,\ m\times l$ となるような任意の $n,m,l>0$ となる整数．
 戻り値の型は`S,T`の両方からキャスト可能な`U`．
+
+`Mpower` : 行列累乗．  
+	`S`は乗算が定義されている必要がある。  
+	計算量は $n\times n$ 行列について $O(n^3\lg b)$  
+	通常オーバーフローするため，型には `modint` を入れる．
 
 `split_quad_matrix` : 行列を4分割する．
 
