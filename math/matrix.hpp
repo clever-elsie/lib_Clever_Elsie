@@ -83,15 +83,15 @@ namespace elsie{
 				if(L<n)for(auto&x:b)x.resize(L);
 			}
 			auto s1=matrix_add<true>(bs[1],bs[3]);
-			auto s2=matrix_add(as[0],as[2]);
-			auto s3=matrix_add(as[2],as[3]);
+			auto s2=matrix_add      (as[0],as[1]);
+			auto s3=matrix_add      (as[2],as[3]);
 			auto s4=matrix_add<true>(bs[2],bs[0]);
-			auto s5=matrix_add(as[0],as[3]);
-			auto s6=matrix_add(bs[0],bs[3]);
+			auto s5=matrix_add      (as[0],as[3]);
+			auto s6=matrix_add      (bs[0],bs[3]);
 			auto s7=matrix_add<true>(as[1],as[3]);
-			auto s8=matrix_add(bs[2],bs[3]);
+			auto s8=matrix_add      (bs[2],bs[3]);
 			auto s9=matrix_add<true>(as[0],as[2]);
-			auto sA=matrix_add(bs[0],bs[1]);
+			auto sA=matrix_add      (bs[0],bs[1]);
 
 			auto p1=matrix_mul<threshold,false>(as[0],s1);
 			auto p2=matrix_mul<threshold,false>(s2,bs[3]);
@@ -101,8 +101,8 @@ namespace elsie{
 			auto p6=matrix_mul<threshold,false>(s7,s8);
 			auto p7=matrix_mul<threshold,false>(s9,sA);
 			auto r=merge_quad_matrix(
-				matrix_add(p5,matrix_add(p4,matrix_add<true>(p6,p2))),matrix_add(p1,p2),
-				matrix_add(p3,p4),matrix_add<true>(matrix_add(p5,p1),matrix_add(p3,p7))
+				matrix_add(matrix_add<true>(matrix_add(p5,p4),p2),p6),matrix_add(p1,p2),
+				matrix_add(p3,p4),matrix_add<true>(matrix_add<true>(matrix_add(p5,p1),p3),p7)
 			);
 			if constexpr(q2){
 				r.resize(N);
