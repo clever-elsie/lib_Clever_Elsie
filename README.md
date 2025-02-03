@@ -15,33 +15,6 @@ $N$ は配列の長さとする． $2$ つ以上の配列について論じる�
 - シンプレックス法  
 - meissel Lehmer  
 
-# dp
-## edit_distance (編集距離)
-計算量 $O(ST)$.
-```C++
-size_t edit_distance(const string&,const string&);
-```
-## LCS (最長共通部分列)
-計算量 $O(ST)$.  
-LCSを求めて、その長さと文字列のペアを返す。  
-文字列は第三引数が非 $0$ のときのみ得る．  
-省略時及び $0$ のときは空文字列を得るため無視してよい．
-```C++
-pair<size_t,string>LCS(const string&,const string&,int=0);
-```
-## LIS (最長部分増加列)
-最長部分増加列を求め、その長さを返す。  
-最長部分増加列とは、連続とは限らない配列の要素 $i,j$ について $A_i < A_j$ が成り立つ部分列の事である。
-```C++
-int LIS(const vector<T>&);
-```
-## inversion_number (転倒数)
-計算量 $O(N\lg N)$.  
-`atcoder::fenwicktree`が必要.  
-```C++
-int inversion_number(vector<class f>&v);
-```
-
 # dtStrc (データ構造)
 ## unionFind
 コンストラクタで頂点数を渡し、 $[0,n)$ で管理する。  
@@ -380,3 +353,30 @@ kmp法により $O(S+T)$で`T`が現れる先頭位置を全列挙。
 `.same(int,int,int,int)` 区間の文字列一致判定 $[L1,R1), [L2,R2)$
 
 `.set(int idx,char c)` idxの文字をcに変更する。セグ木版限定。
+
+## dp/edit_distance (編集距離)
+計算量 $O(ST)$.  
+`.begin(),.end()`のあるコンテナクラスには使える．
+```C++
+size_t edit_distance(const Itrabl&,const Itrabl&);
+```
+## dp/LCS (最長共通部分列)
+計算量 $O(ST)$.  
+LCSを求めて、その長さと列のペアを返す。  
+列はテンプレート引数が非 $0$ のときのみ得る．  
+省略時及び $0$ のときは空列を得るため無視してよい．
+```C++
+pair<size_t,Itrabl>LCS<return_Itrabl=0>(const Itrabl&,const Itrabl&);
+```
+## dp/LIS (最長部分増加列)
+最長部分増加列を求め、その長さを返す。  
+最長部分増加列とは、連続とは限らない配列の要素 $i,j$ について $A_i < A_j$ が成り立つ部分列の事である。
+```C++
+size_t LIS(const Itrabl&);
+```
+## dp/inv_num (転倒数)
+計算量 $O(N\lg N)$.  
+`atcoder::fenwicktree`が必要.  
+```C++
+size_t inv_num(Itrabl&v);
+```
