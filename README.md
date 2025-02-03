@@ -157,7 +157,7 @@ vector or dequeの2次元配列
 ## 最短距離
 * dijkstra  
 	辺集合と辺行列のバージョンがある。  
-	辺集合のとき $O(V^2\lg V)$, 辺行列のとき $O((V+E)\lg V)$  
+	辺集合のとき $O((V+E)\lg V)$, 辺行列のとき $O(V^2\lg V)$  
 	ダイクストラ法により、負の重みをもたないグラフの最短距離を求め、その配列を返す。  
 	頂点は $\left[0,n\right)$  
 	重み付き隣接リスト(`vector`)か隣接行列を使う。  
@@ -183,7 +183,7 @@ vector or dequeの2次元配列
 `int64_t flow(s,t)`
 
 ## MST (Minimum Spanning Tree)
-`kruskal(int,vc<{int,pi}>)` : 値だけと辺id構築． $O(E\lg E)$.  
+`kruskal(int,vc<pair<int,pi>>)` : 値だけと辺id構築． $O(E\lg E)$.  
 `prim(vv{cost,to})` : dijkstraとかで使う普通の辺集合を渡す． $O(E\lg E)$.
 
 ## LCA
@@ -267,14 +267,15 @@ vector<int>
 
 # math
 ## basic_math
-計算量はすべてラメの定理より $O(5\min(a,b))$.  
-- `gcd_(a,b)` : 最大公約数  
-- `lcm_(a,b)` : 最小公倍数  
+`gcd,lcm,egcd,exgcd,modinv`の計算量はラメの定理より $O(5\min(a,b))$.  
+- `gcd(a,b)` : 最大公約数  
+- `lcm(a,b)` : 最小公倍数  
 - `egcd(a,b,x,y)` : 再帰拡張ユークリッドの互除法 $ax+by=\text{GCD}(a,b)$  
 - `exgcd(a,b,x,y)` : 非再帰拡張ユークリッドの互除法  
-- `mod_inv(a,m)` : 素数 $m$ を法とする逆元を求める．
-- `safepow(a,b)` オーバーフロー防止。オーバーフロー時INT64_MAX
-- `modpow(a,b,m)` : $x\equiv a^b \pmod m$となる $x$ を求める．
+- `mod_inv(a,m)` : $m$ を法とする逆元を求める．
+- `mod_inv_prime(a,p)` : 素数 $p$ を法とする逆元を求める． $O(\lg p)$
+- `safepow(a,b)` オーバーフロー防止。オーバーフロー時INT64_MAX $O(\lg b)$
+- `modpow(a,b,m)` : $x\equiv a^b \pmod m$となる $x$ を求める． $O(\lg b)$
 
 ## modint
 - `modint<M>(N)` : $N$ は省略時 $0$. $M$ は省略時 $998244353$.
@@ -333,7 +334,7 @@ map<int64_t,uint32_t>factor(int64_t x);
 
 ## matrix
 ```C++
-vv<U> matrix_add<sub=true:false>(const vv<S>&,const vv<T>&);
+vv<U> matrix_add<bool sub=false>(const vv<S>&,const vv<T>&);
 vv<U> matrix_mul<threshold,q2>(vv<S>&,vv<T>&);
 vv<S> Mpower(vv<S>&A,int b);
 v3<S> split_quad_matrix(const vv<S>&);
@@ -354,9 +355,9 @@ vv<S> merge_quad_matrix(const vv<S>&,x4);
 	計算量は $n\times n$ 行列について $O(n^3\lg b)$  
 	通常オーバーフローするため，型には `modint` を入れる．
 
-`split_quad_matrix` : 行列を4分割する．
+`split_quad_matrix` : 行列を4分割する． $O(n^2)$
 
-`merge_quad_matrix` : 4つの行列を1つの行列にまとめる．
+`merge_quad_matrix` : 4つの行列を1つの行列にまとめる． $O(n^2)$
 
 # string
 ## kmp
