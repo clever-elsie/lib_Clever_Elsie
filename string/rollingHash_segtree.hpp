@@ -1,8 +1,10 @@
 #include <vector>
 #include <array>
 #include <random>
+#include <set>
 #ifndef ELSIE_ROLLINGHASH_SEGTREE
 #define ELSIE_ROLLINGHASH_SEGTREE
+namespace elsie{
 using namespace std;
 class rolHashSeg{
 private: // don't write
@@ -49,7 +51,7 @@ public:
 		mt19937_64 gen(seed());
 		uniform_int_distribution<ll>(1ll,(1ll<<61)-1);
 		for(int i=0;i<256;i++) trans[i]=gen()%mod;
-		for(size_t i=n,j=0;j<s.size();) v[++i]=mp(trans[s[j++]],1);
+		for(size_t i=n,j=0;j<s.size();) v[++i]={trans[s[j++]],1};
 		for(size_t i=n;i;i--){
 			int ch1=i<<1,ch2=ch1+1;
 			v[i]=op(v[ch1],v[ch2]);
@@ -68,7 +70,7 @@ public:
 		ll len = r-l;
 		return ((R-mul(L,modpow(B,len)))%mod+mod)%mod;
 	}
-	ll hash_value(const str&t){
+	ll hash_value(const string&t){
 		ll ret=0;
 		for(const auto&x:t)
 			ret=(mul(x,B)+trans[x])%mod;
@@ -84,7 +86,7 @@ class dynamicRollingHash{
 	ll n;
 	public:
 	dynamicRollingHash(const string&s){
-		int b=0;
+		size_t b=0;
 		n=s.size();
 		random_device seed;
 		mt19937_64 gen(seed());
@@ -96,12 +98,12 @@ class dynamicRollingHash{
 		}
 	}
 	vector<size_t>find(const string&t){
-		set<int>st;
+		std::set<size_t>st;
 		ll hash=seg[0].hash_value(t);
 		ll len=t.size();
 		for(int i=len;i<n+1;i++){
 			ll key = seg[0].prod(i-len,i);
-			if(key==hash)st.ins(i);
+			if(key==hash)st.insert(i);
 		}
 		for(int j=1;j<psz;j++){
 			hash=seg[j].hash_value(t);
@@ -128,4 +130,5 @@ class dynamicRollingHash{
 			seg[i].set(idx,c);
 	}
 };
+}
 #endif

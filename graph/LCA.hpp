@@ -1,6 +1,8 @@
 #include<iostream>
 #include<vector>
 #include<cstdint>
+#include<concepts>
+#include<type_traits>
 #include<atcoder/segtree>
 #ifndef ELSIE_LCA
 #define ELSIE_LCA
@@ -51,6 +53,6 @@ class LCA{
 	}
 };
 }
-template<integral T>
+template<std::integral T>
 using LCA = elsie::LCA<T>;
 #endif

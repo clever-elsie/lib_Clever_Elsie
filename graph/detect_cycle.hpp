@@ -22,7 +22,7 @@ template<class S>vc<int32_t>find_cycle_directed(const vv<S>&e){
 				cycle.push_back(now);
 				return to;
 			}else if(!seen[to]){
-				now_path.ins(to);
+				now_path.insert(to);
 				seen[to]=true;
 				int v=dfs(dfs,to);
 				if(v!=-1){

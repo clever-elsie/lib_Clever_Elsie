@@ -12,7 +12,7 @@ template<class S>using vv=vc<vc<S>>;
 // ret:|diameter|,from,to
 template<class S,class T>
 pair<int32_t,pair<int32_t,int32_t>> diameter(vv<pair<S,T>>&edge,int start=0){
-	auto farthest=[&](vv<pair<S,T>>&Edge,intStart)->pair<int32_t,int32_t> {
+	auto farthest=[&](vv<pair<S,T>>&Edge,int Start)->pair<int32_t,int32_t> {
 		int32_t inf=INT32_MAX;
 		vc<int32_t>dist(Edge.size(),-1);
 		list<int32_t>q;
@@ -42,7 +42,7 @@ int32_t diameter(vv<int>&edge,int start=0){
 		for(size_t j=0;j<edge[i].size();++j)
 			weighted_edge[i][j]={1,edge[i][j]};
 	}
-	return diameter(weighted_edge,start);
+	return diameter(weighted_edge,start).first;
 }
 }
 #endif

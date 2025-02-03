@@ -2,6 +2,7 @@
 #include<concepts>
 #include<type_traits>
 #include<numeric>
+#include<iostream>
 #ifndef ELSIE_FRAC
 #define ELSIE_FRAC
 namespace elsie{
@@ -30,7 +31,7 @@ public:
 		s=(((N<=0&&D<=0)||(N>=0&&D>=0))?0:1);
 		n=(N<0?-N:N);d=(D<0?-D:D);
 	}
-	frac&operator+=(const frac&o){
+	frac&operator+=(frac o){
 		ul g=gcd(d,o.d),p=d/g,q=o.d/g;
 		n*=q,o.n*=p;
 		s=(s!=o.s&&(s?n>o.n:n<o.n));
@@ -38,11 +39,11 @@ public:
 		d*=q;
 		return*this;
 	}
-	frac&operator-=(const frac&o){o.s=!o.s;*this+=o;return*this;}
-	frac&operator*=(const frac&o){
-		return*this=*this*o;}
-	frac&operator/=(const frac&o){
-		return*this=*this/o;}
+	frac&operator-=(frac o){o.s=!o.s;*this+=o;return*this;}
+	frac operator*=(const frac&o){
+		return*this=frac(this)*o;}
+	frac operator/=(const frac&o){
+		return*this=frac(this)/o;}
 	bool operator==(const frac &o) {
 		ul g=gcd(this->d,o.d);
 		return((this->s==o.s)&&(o.d/g*this->n==this->d/g*o.n));

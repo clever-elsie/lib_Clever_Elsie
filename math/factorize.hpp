@@ -1,4 +1,5 @@
 #include <map>
+#include <numeric>
 #include <vector>
 #include <cstdint>
 #ifndef ELSIE_FACTORIZE
@@ -10,13 +11,13 @@ class factorize{
 	vector<unsigned>p;
 	public:
 	factorize(uint64_t upperlimit):upper_limit(upperlimit){
-		uint64_t ng=0,ok=min(upper_limit,3'000'000'000ull);
+		uint64_t ng=0,ok=min<uint64_t>(upper_limit,3'000'000'000ull);
 		while(ng+1<ok){
 			uint64_t m = midpoint(ok,ng);
 			if(m*m<upper_limit)ng=m;
 			else ok=m;
 		}
-		unsigned rs=max(ok/10,10000);
+		unsigned rs=max<uint32_t>(ok/10,10000);
 		p.reserve(rs);
 		vector<bool> erathosthenes(ok+1,1);
 		for(unsigned i=2;i<=ok;i++)
@@ -52,7 +53,7 @@ class factorize{
 			if(x%v)continue;
 			auto itr=ret.emplace(v,0).first;
 			while(x%v==0){
-				itr->se++;
+				itr->second++;
 				x/=v;
 			}
 		}

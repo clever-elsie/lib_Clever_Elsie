@@ -34,12 +34,12 @@ class max_flow{
 		max_flow(int64_t n){ e.resize(n), seen.resize(n); }
 		void add(int64_t u,int64_t v,type c){
 			int64_t ru=e[u].size(),rv=e[v].size();
-			e[u].pb(edge(v,c,rv)), e[v].pb(edge(u,static_cast<type>(0),ru));
+			e[u].push_back(edge(v,c,rv)), e[v].push_back(edge(u,static_cast<type>(0),ru));
 		}
 		int64_t flow(int64_t s,int64_t t){
 			g=t,r=0;
 			while(1){
-				fill(A(seen),false);
+				fill(begin(seen),end(seen),false);
 				int64_t p=dfs(s,1ll<<62);
 				if(p)r+=p;
 				else break;

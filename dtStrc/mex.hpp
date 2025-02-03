@@ -52,10 +52,10 @@ struct mex{
 		v[a+1]=itr->second;
 		itr->second=a;
 	}
-	int find()const{return v[-1];}
+	int find(){return v[-1];}
 	size_t count(int a){
 		auto itr=c.find(a);
-		return(itr==c.end()?0ull:itr->se);
+		return(itr==c.end()?0ull:itr->second);
 	}
 };
 }

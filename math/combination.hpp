@@ -11,7 +11,7 @@ class combination{
 		using tint = long long;
 		vector<mint>invprod,prod;
 		vector<tint>inv;
-		const uint M;
+		const unsigned long long M;
 	public:
 	combination(int n=1):invprod(2,1),prod(2,1),inv(2,0),M(mint(-1).val()+1){
 		inv[1]=1;

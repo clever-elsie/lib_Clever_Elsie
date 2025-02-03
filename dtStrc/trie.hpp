@@ -26,7 +26,8 @@ class trie {
 				res += (here->cnt[i]) * (here->cnt[i] - 1) / 2;
 		for (int i = 0; i < char_size; i++)
 			if (here->next[i] != nullptr && here->cnt[i] > 1)
-				res += count_internal(here->next[i]);
+				res += count_prefix_internal(here->next[i]);
+		return res;
 	}
 	int char_set(char x) {
 		return std::lower_bound(char_set_press.begin(), char_set_press.end(), x) -

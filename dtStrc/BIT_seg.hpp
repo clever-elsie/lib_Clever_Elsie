@@ -1,10 +1,10 @@
 #include<vector>
+#include<cstdint>
 #include<cstddef>
 #ifndef ELSIE_BIT_SEGTREE
 #define ELSIE_BIT_SEGTREE
 namespace elsie{
 using namespace std;
-using namespace atcoder;
 template<class type>class BIT{// 0-indexed [l,r)
 	vector<type>v;
 	size_t _size;

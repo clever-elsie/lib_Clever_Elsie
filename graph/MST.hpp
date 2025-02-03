@@ -2,7 +2,7 @@
 #include <queue>
 #include <algorithm>
 #include <utility>
-#include "dtStrc/unionFind.cpp"
+#include "dtStrc/unionFind.hpp"
 #ifndef ELSIE_MST
 #define ELSIE_MST
 namespace elsie{

@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <algorithm>
 #include <vector>
 #include <utility>
 #ifndef ELSIE_CONVEXHULL
