@@ -51,6 +51,7 @@ class LCA{
 		if(f>e)swap(f,e);
 		return seg.prod(f,e+1).idx;
 	}
+	int get_depth(int u){ return depth[u]; }
 };
 }
 template<std::integral T>
