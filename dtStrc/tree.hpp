@@ -16,7 +16,7 @@ using namespace std;
 		struct rbnode{
 			using ip=rbnode*;
 			ip l,r,p,nx,pr;
-			uint64_t time,size; // odd red, even black
+			uint64_t time,size; // time: odd red, even black, second bit is reverse flag
 			const key_t key;
 			val_t val,data;
 			lazy_t lz;
@@ -67,26 +67,24 @@ class master_rbtree{
 	protected:
 	const static uint64_t filter_red=1;
 	const static uint64_t filter_black=0xFFFF'FFFF'FFFF'FFFEul;
+	const static uint64_t filter_reverse=2;
 	using node=rbtree_internal::rbnode<key_t,val_t,lazy_t,cmp,allow_duplicate_keys>;
 	using np=node*;
 	size_t cur_size,time;
-	np root,bs,nil;
+	np root,bs,es,nil;
 	/* 実装完了時に消すコメント
 		lower_boundを探索の基本として使う
 		lower_bound({key,0})がfind及びlower_bound
 		lower_bound({key,UINT64_MAX})がupper_bound
 		findではkeyが異なるときに落とす処理を加える． */
 	np lower_bound(const node&tar){
-		if(root==nil)return nil;
-		np cur=root,nx;
-		while(1){
-			auto s=tar<=>*cur;
-			if(s<0)nx=cur->l;else if(s>0)nx=cur->r;else break;
-			if(nx!=nil)cur=nx;
-			else{
-				if(s<0)return cur->nx;
-				else return nil;
-			}
+		np cur=root,res=nil;
+		while(cur!=nil){
+			auto s=*cur<=>tar;
+			if(s<=0){
+				if(res==nil||s==0) res=cur;
+				cur=cur->l;
+			}else cur=cur->r;
 		}
 		return cur;
 	}
@@ -116,7 +114,11 @@ class master_rbtree{
 		if(x->r!=nil) node_apply(x->r,&x->lz);
 		x->lz=id();
 	}
-	void update_prod(np x){ x->data=op(op(x->l!=nil?x->l->data,x->data),x->r->data); }
+	void update_prod(np x){
+		x->data=x->val;
+		if(x->l!=nil)x->data=op(x->l->data,x->data);
+		if(x->r!=nil)x->data=op(x->data,x->r->data);
+	}
 	np left_rotation(np x){
 		np y=x->r;
 		if constexpr(!is_same_v<lazy_t,null_t>)
@@ -147,8 +149,16 @@ class master_rbtree{
 	}
 	void resolve_delay(np z){
 		vector<np>pst;
+		for(np u=z;u!=nil;u=u->p)
+			pst.push_back(u);
+		for(int32_t i=(int32_t)pst.size()-1;i>=0;--i)
+			push_apply(pst[i]);
+		for(int32_t i=0;i<(int32_t)pst.size();++i)
+			update_prod(pst[i]);
 	}
 	void ascend_prod(np z){
+		for(;z!=nil;z=z->p)
+			update_prod(z);
 	}
 	// ここまで
 	void rb_insert_fixup(np z){
@@ -176,35 +186,27 @@ class master_rbtree{
 		root->time&=filter_black;
 	}
 	np insert(np z){
-		if(root==nil){
-			root=z;
-			z->pr=bs,z->nx=es;
-			cur_size=1;
-			return root;
+		np x=root,y=nil;
+		while(x!=nil){
+			y=x;
+			if(*z<*x)x=x->l;
+			else x=x->r;
 		}
-		np x=lower_bound(*z);
-		if(x->pr==nil){
-			if constexpr(!is_same_v<lazy_t,null_t>)
-				resolve_delay(x);
-			x->l=z,z->pr=x->pr;
-			z->p=x,z->nx=x,x->pr=z;
-			if(z->pr!=nil)z->pr->nx=z;
-		}else{
-			x=x->pr;
-			if constexpr(!is_same_v<lazy_t,null_t>)
-				resolve_delay(x);
-			x->r=z,z->pr=x,z->nx=x->nx;
-			z->p=x,x->nx=z;
-			if(z->nx!=nil)z->nx->pr=z;
-		}
+		if constexpr(!is_same_v<lazy_t,null_t>)
+			resolve_delay(y);
 		if constexpr(!allow_duplicate_keys)
-			if(cmp(x->key,z->key)==cmp(z->key,x->key)){
+			if(cmp(y->key,z->key)==cmp(z->key,y->key)){
 				if constexpr(!is_same_v<val_t,null_t>){
-					x->val=z->val;
-					ascend_prod(x);
+					y->val=z->val;
+					ascend_prod(y);
 				}
-				return x;
+				return y;
 			}
+		z->p=y;
+		if(y==nil){
+			bs->nx=y,y->pr=bs,y->nx=es,es->pr=y;
+		}else if(*z<*y) y->l=z;
+		else y->r=z;
 		rb_insert_fixup(z);
 		if constexpr(!is_same_v<val_t,null_t>)
 			ascend_prod(z);
@@ -297,36 +299,38 @@ class master_rbtree{
 	master_rbtree():cur_size(0),time(0){
 		nil=new node(nullptr);
 		bs=new node(nil);
-		bs->pr=bs,bs->nx=nil;
-		nil->pr=bs,nil->nx=nil;
+		es=new node(nil);
+		bs->pr=bs,bs->nx=es;
+		es->pr=bs,es->nx=es;
 		root=nil;
 	}
 	// access
-	virtual iterator find(const key_t&key)=0;
-	virtual iterator lower_bound(const key_t&key)=0;
-	virtual iterator upper_bound(const key_t&key)=0;
-	virtual iterator find_by_order(int64_t idx)=0;
-	virtual size_t order_of_key(const key_t&key)=0;
-	virtual const val_t&operator[](const key_t&)=0;
-	virtual size_t count(const key_t&)=0;
-	virtual size_t contains(const key_t&)=0;
+	iterator find(const key_t&key){}
+	iterator lower_bound(const key_t&key){}
+	iterator upper_bound(const key_t&key){}
+	iterator find_by_order(int64_t idx){}
+	size_t order_of_key(const key_t&key){}
+	const val_t&operator[](const key_t&key){}
+	size_t count(const key_t&key){}
+	size_t contains(const key_t&key){}
 	// change
-	virtual iterator insert(value_type&&x)=0;
-	virtual iterator emplace(key_t&&key,val_t&&val)=0;
-	virtual iterator erase(const key_t&key)=0;
-	virtual iterator erase(iterator&itr)=0;
+	iterator insert(value_type&&x){}
+	iterator emplace(key_t&&key,val_t&&val){}
+	iterator erase(const key_t&key){}
+	iterator erase(iterator&itr){}
 	// memory
 	void clear(){}
 	bool empty(){}
 	size_t size(){}
 	// iterator
-	virtual iterator begin()=0;
-	virtual iterator end()=0;
-	virtual iterator rbegin()=0;
-	virtual iterator rend()=0;
+	iterator begin(){}
+	iterator end(){}
+	iterator rbegin(){}
+	iterator rend(){}
 protected:
-	virtual val_t prod(const key_t&l,const key_t&r)=0;
-	virtual void apply(const key_t&l,const key_t&r,const lazy_t&lazy)=0;
+	val_t&operator[](const key_t&key){}
+	val_t prod(const key_t&l,const key_t&r){}
+	void apply(const key_t&l,const key_t&r,const lazy_t&lazy){}
 };
 
 template<class key_t,class cmp=less<key_t>>
