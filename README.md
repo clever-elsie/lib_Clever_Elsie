@@ -12,7 +12,6 @@ $N$ は配列の長さとする． $2$ つ以上の配列について論じる�
 - 赤黒木  
 - suffix array  
 - wavelet matrix  
-- シンプレックス法  
 - meissel Lehmer  
 
 # dtStrc (データ構造)
@@ -36,7 +35,18 @@ $N$ は配列の長さとする． $2$ つ以上の配列について論じる�
 `S potential(int)`: 頂点のrootからのポテンシャルを返す． $O(\lg N)$
 
 
-## BIT (binary indexed tree)
+## segtree.hpp
+### segtreeとlazy_segtreeのスニペット
+```C++
+(sum|min|max)_seg<S>
+(add|ch)_(sum|min|max)_lst<S,F>
+range_affine_range_sum_lst<S,F>
+```
+セグ木は区間和，区間最小，区間最大．  
+遅延セグ木は区間変更と区間加算に区間和，区間最小，区間最大．
+さらに，区間への線形変換とその和を得る`range_affine_range_sum`を一応．
+
+### Binary Indexed Tree
 `BIT<S>` : 1点更新と区間 $[0,N)$ の加算結果を $O(\lg N)$ で取得することができる。  
 
 `BIT(size_t)` : 要素数を渡すコンストラクタ。 $O(N)$  
@@ -45,7 +55,7 @@ $N$ は配列の長さとする． $2$ つ以上の配列について論じる�
 `void get(size_t)` : 一点取得。 $O(\lg N)$  
 `S sum(size_t,size_t)` : $[l,r)$ の和を求める。 $O(\lg N)$  
 
-## segtree
+### segtree
 `template<class S, S(*op)(S,S), S(*e)()> segtree`  
 単位元`e`,演算`op`が定義された型`S`を渡して使う。 $[0,N)$
 
@@ -55,7 +65,7 @@ $N$ は配列の長さとする． $2$ つ以上の配列について論じる�
 `S get(size_t)` : 1点取得。 $O(1)$  
 `S prod(size_t,size_t)` : 区間取得 $[l,r)$ 。 $O(\lg N)$
 
-## lazy_segtree
+### lazy_segtree
 `template<class S,S(*op),S(*e),class F,S(*mapping)(F,S),F(*composition)(F,F),F(*id)()>lst(n);`
 
 |template|説明|
@@ -76,25 +86,15 @@ S get(u32 idx);
 void apply(u32 l,u32 r,F f);
 S prod(u32 l,u32 r);
 ```
-
-## trie
-trie木のオブジェクトを生成し、その時に文字集合を決定する．重複は取り除く．  
-あるいは`trie obj('a',26)`のように連続することが保証される場合はそのように渡す．
-`obj.insert(string)`で挿入．文字集合に含まれない文字を含む文字列の動作は未定義．  
-`count_prefix_sum()`で共通接頭辞の総和を返す．
-`count_longest_prefix()`で最長共通接頭辞を返す．
-
-## mex
+## math.hpp
+### mex
 数列に含まれる最小の非負整数を求めるためのデータ構造  
 `add(int)`で追加し、`erase(int)`で削除、`find(int)`でmexを返す。  
 重複を考慮した区間 $[l,r)$ の管理をしているだけ。  
 計算量はすべての操作に対して $O(\lg N)$.  
 同じ数字の重複を許すため`add`した回数と同じ回数`erase`しないと消えない．
 
-## atcoder_lazy_segtree
-AtCoder Libraryのlazy_segtreeを区間変更、区間加算の遅延演算で区間和、区間最小、区間最大が取れるように用意しているテンプレ。
-
-## frac (分数)
+### frac (分数)
 分母分子が`unsigned long long`で管理される符号付き分数。  
 比較と四則演算と代入演算子がオーバーロードされている。
 整数値は分母省略可。
@@ -108,6 +108,16 @@ frac(frac&), frac(frac*); // 参照、ポインタ
 f.approx(); // 任意のタイミングで約分
 //f+-*/=g // 四則演算では内部的に約分
 ```
+
+## modint
+- `modint<M>(N)` : $N$ は省略時 $0$. $M$ は省略時 $998244353$.
+- 四則演算が`modint`と整数型でできる．
+- `pow(B)`で繰り返し二乗法で $n^B$ を $O(\lg B)$ で計算．
+- `inv()`で逆元を計算． ラメの定理より $O(5x)$
+- `val()`で整数値を取得． $O(1)$
+- でも実は`operator size_t()`があるので整数値として扱える．(ただしprintfみたいな場合を除く)
+- でも実は`cout,cin`では直接使える．
+
 # geometry
 ## convex_hull
 計算量は点の数を $N$ として, $O(N\lg N)$.  
@@ -121,6 +131,7 @@ vc<pi> c.monotone_chain(vc<pi>&); // 引数の配列はsortしてuniqueされる
 関数内部の`while`文に対して，比較演算子`<=`を`<`とすれば線分上の余分な点を含むことができる．  
 `x,y`を逆転させた入力に対して，演算子を`>=`に変えれば，最も下の最も左の点から反時計回りに点集合を構築できる．  
 時計回りにしたいとき，単に演算子を`>=`にするだけでよい．
+
 ## rotate
 vector or dequeの2次元配列  
 `rotate(const vv&)`: 反時計回り90度  
@@ -250,16 +261,7 @@ vector<int>
 - `safepow(a,b)` オーバーフロー防止。オーバーフロー時INT64_MAX $O(\lg b)$
 - `modpow(a,b,m)` : $x\equiv a^b \pmod m$となる $x$ を求める． $O(\lg b)$
 
-## modint
-- `modint<M>(N)` : $N$ は省略時 $0$. $M$ は省略時 $998244353$.
-- 四則演算が`modint`と整数型でできる．
-- `pow(B)`で繰り返し二乗法で $n^B$ を $O(\lg B)$ で計算．
-- `inv()`で逆元を計算． ラメの定理より $O(5x)$
-- `val()`で整数値を取得． $O(1)$
-- でも実は`operator size_t()`があるので整数値として扱える．(ただしprintfみたいな場合を除く)
-- でも実は`cout,cin`では直接使える．
-
-## combination
+### combination
 - `combination<modint>(max)`のコンストラクタで，`modint`型と $N$ の最大値を渡す．両方省略可．デフォルトでは`atcoder/modint998244353`.
 - $P,C,H$, `factorial`, `invfact`で順列，組合せ，重複組合せ，階乗，逆数の階乗(?)を求めることができる．
 - 前計算で最大値を渡していれば計算量は $O(1)$．
@@ -380,3 +382,10 @@ size_t LIS(const Itrabl&);
 ```C++
 size_t inv_num(Itrabl&v);
 ```
+
+## trie
+trie木のオブジェクトを生成し、その時に文字集合を決定する．重複は取り除く．  
+あるいは`trie obj('a',26)`のように連続することが保証される場合はそのように渡す．
+`obj.insert(string)`で挿入．文字集合に含まれない文字を含む文字列の動作は未定義．  
+`count_prefix_sum()`で共通接頭辞の総和を返す．
+`count_longest_prefix()`で最長共通接頭辞を返す．
