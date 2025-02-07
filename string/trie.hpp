@@ -2,6 +2,7 @@
 #include <new>
 #include <string>
 #include <vector>
+#include <deque>
 #ifndef ELSIE_TRIE
 #define ELSIE_TRIE
 namespace elsie{
@@ -51,6 +52,20 @@ public:
 			char_set_press.end());
 		char_size = char_list.size();
 		tree = new node(char_size);
+	}
+	~trie(){
+		deque<node*>st(1,tree);
+		while(st.size()){
+			node*cur=st.front();
+			st.pop_front();
+			for(size_t i=0;i<char_size;++i){
+				if(cur->next[i]!=nullptr)
+					st.push_back(cur->next[i]);
+			}
+			delete[] cur->cnt;
+			delete[] cur->next;
+			delete cur;
+		}
 	}
 	void insert(std::string &s) {
 		node *here = tree;
