@@ -117,7 +117,7 @@ namespace elsie{
 	vv<f>Mpower(const vv<f>&A,uint64_t b){
 		using szt=size_t;
 		szt r=A.size();
-		vv I=A,res(r,vc(r,0));
+		vv<f> I=A,res(r,vc<f>(r,0));
 		for(szt i=0;i<r;i++) res[i][i]=1;
 		while(b){
 			if(b&1)res=matrix_mul(res,I);
