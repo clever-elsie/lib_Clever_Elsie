@@ -7,6 +7,11 @@
 #include<functional> // less<>
 #include<type_traits>
 #include<initializer_list>
+
+#include<iostream>
+#include<deque>
+#include<vector>
+#include<map>
 #ifndef ELSIE_RBTREE
 #define ELSIE_RBTREE
 namespace elsie{
@@ -14,7 +19,7 @@ using namespace std;
 
 struct null_t{ null_t(){} };
 
-template<class key_t,class val_t,class cmp=less<key_t>,bool allow_duplicate_keys=false>
+template<class key_t,class val_t,class Cmp=less<key_t>,bool allow_duplicate_keys=false>
 class rbtree{
 	static_assert(!is_same_v<key_t,null_t>);
 	protected:
@@ -22,16 +27,17 @@ class rbtree{
 		using ip=node*;
 		ip l,r,p;
 		uint64_t time,size; // time: odd red, even black, second bit is reverse flag
-		const key_t key;
+		key_t key;
 		val_t val;
 		node(ip nil):key(),val(),time(0),size(1),l(nil),r(nil),p(nil){}
-		node(key_t&&k,val_t&&v,int32_t tm,ip P,ip L,ip R):key(move(k)),val(move(v)),time(tm),size(0),p(P),l(L),r(R){}
-		node(key_t&&k,const val_t&v,int32_t tm,ip P,ip L,ip R):key(move(k)),val(v),time(tm),size(0),p(P),l(L),r(R){}
-		node(const key_t&k,val_t&&v,int32_t tm,ip P,ip L,ip R):key(k),val(move(v)),time(tm),size(0),p(P),l(L),r(R){}
-		node(const key_t&k,const val_t&v,int32_t tm,ip P,ip L,ip R):key(k),val(v),time(tm),size(0),p(P),l(L),r(R){}
-		auto operator<=>(const node&other){
-			bool L=cmp(key,other.key),R=cmp(other.key,key);
-			if(L==R)return time<=>other.time;
+		node(key_t&&k,val_t&&v,uint64_t tm,ip P,ip L,ip R):key(move(k)),val(move(v)),time(tm),size(1),p(P),l(L),r(R){}
+		node(key_t&&k,const val_t&v,uint64_t tm,ip P,ip L,ip R):key(move(k)),val(v),time(tm),size(1),p(P),l(L),r(R){}
+		node(const key_t&k,val_t&&v,uint64_t tm,ip P,ip L,ip R):key(k),val(move(v)),time(tm),size(1),p(P),l(L),r(R){}
+		node(const key_t&k,const val_t&v,uint64_t tm,ip P,ip L,ip R):key(k),val(v),time(tm),size(1),p(P),l(L),r(R){}
+		friend auto operator<=>(const node&lhs,const node&rhs){
+			Cmp cmp;
+			bool L=cmp(lhs.key,rhs.key),R=cmp(rhs.key,lhs.key);
+			if(L==R)return lhs.time<=>rhs.time;
 			return L?strong_ordering::less:strong_ordering::greater;
 		}
 	};
@@ -46,52 +52,58 @@ class rbtree{
 	constexpr static uint64_t unit_time=2;
 	size_t cur_size,time;
 	np root,bs,es,nil;
+	Cmp cmp;
 
 	np lower_bound(const node&tar){
 		np cur=root,res=nil;
 		while(cur!=nil){
 			auto s=*cur<=>tar;
-			if(s<=0){
-				if(res==nil||s==0) res=cur;
+			if(s>=0){
+				res=cur;
 				cur=cur->l;
 			}else cur=cur->r;
 		}
-		return cur;
+		return res;
 	}
 	np ordered_access(size_t idx){
 		np cur=root;
 		while(cur!=nil){
-			size_t L=1;
-			if(cur->l!=nil)
-				L+=cur->l;
+			size_t L=(cur->l!=nil)?cur->l->size:0;
 			if(L==idx)return cur;
 			if(L>idx)cur=cur->l;
 			else {
 				cur=cur->r;
-				idx-=L;
+				idx-=L+1;
 			}
 		}
 		return nil;
 	}
 	size_t order_of_node(np p){
 		size_t R=0;
-		while(p!=nil){
-			R+=1+(p->l!=nil?p->l->size:0);
+		if(p==nil)return 0;
+		if(p->l!=nil)R+=p->l->size;
+		while(p->p!=nil){
+			if(p==p->p->r){
+				++R;
+				if(p->p->l!=nil)R+=p->p->l->size;
+			}
 			p=p->p;
 		}
 		return R;
 	}
 	public:
 	np minimum(np p){
-		for(;p->l!=nil;p=p->l);
+		if(!p||p==nil)return nil;
+		for(;p&&p->l!=nil;p=p->l);
 		return p;
 	}
 	np maximum(np p){
-		for(;p->r!=nil;p=p->r);
+		if(!p||p==nil)return nil;
+		for(;p&&p->r!=nil;p=p->r);
 		return p;
 	}
 	np next(np x){
-		if(x->r!=nil)return maximum(x->r);
+		if(x->r!=nil)return minimum(x->r);
 		while(1){
 			if(x==root)return nil;
 			np y=x;
@@ -101,17 +113,23 @@ class rbtree{
 		return x;
 	}
 	np prev(np x){
-		if(x->l!=nil)return minimum(x->l);
+		if(x->l!=nil)return maximum(x->l);
 		while(1){
 			if(x==root)return nil;
 			np y=x;
 			x=x->p;
 			if(x->r==y)break;
 		}
+		return x;
 	}
 	protected:
-	void calc_size(np x){ x->size=1+(x->l!=nil?x->l->size:0)+(x->r!=nil?x->r->size:0); }
-	np left_rotation(np x){
+	void calc_size(np x){
+		if(x==nil)return;
+		x->size=1;
+		if(x->l!=nil)x->size+=x->l->size;
+		if(x->r!=nil)x->size+=x->r->size;
+}
+	void left_rotation(np x){
 		np y=x->r;
 		x->r=y->l,y->p=x->p;
 		if(y->l!=nil)y->l->p=x;
@@ -122,7 +140,7 @@ class rbtree{
 		calc_size(x);
 		calc_size(y);
 	}
-	np right_rotation(np x){
+	void right_rotation(np x){
 		np y=x->l;
 		x->l=y->r,y->p=x->p;
 		if(y->r!=nil)y->r->p=x;
@@ -161,18 +179,13 @@ class rbtree{
 		np x=root,y=nil;
 		while(x!=nil){
 			y=x;
-			if(*z<*x)x=x->l;
+			auto s=*z<=>*x;
+			if(s<0)x=x->l;
 			else x=x->r;
 		}
-		if constexpr(!allow_duplicate_keys)
-			if(cmp(y->key,z->key)==cmp(z->key,y->key)){
-				if constexpr(!is_same_v<val_t,null_t>)
-					y->val=z->val;
-				return y;
-			}
 		z->p=y;
 		if(y==nil){
-			root=y;
+			root=z;
 		}else if(*z<*y) y->l=z;
 		else y->r=z;
 		rb_insert_fixup(z);
@@ -296,13 +309,14 @@ class rbtree{
 		}
 		auto operator*(){
 			if constexpr(is_same_v<val_t,null_t>)
-				return (const key_t&)n->key;
+				return (const key_t&)(n->key);
 			else return pair<const key_t&,val_t&>(n->key,n->val);
 		}
 		bool operator==(const iterator&itr){ return this->n==itr.n; }
 		bool operator!=(const iterator&itr){ return this->n!=itr.n; }
 		const key_t&f(){return n->key;}
 		val_t&s(){return n->val;}
+		friend class rbtree;
 		protected:
 		np n;
 		rbtree*tree;
@@ -310,52 +324,59 @@ class rbtree{
 
 	struct reverse_iterator:public iterator{
 		reverse_iterator(rbtree*t,np node):iterator(t,node){}
-		iterator&operator++(){ return *this=this->tree->prev(this->n); }
-		iterator operator++(int32_t){
-			iterator cur=*this;
-			*this=this->tree->prev(this->n);
+		reverse_iterator&operator++(){
+			this->n=this->tree->prev(this->n);
+			return *this;
+		}
+		reverse_iterator operator++(int32_t){
+			reverse_iterator cur=*this;
+			this->n=this->tree->prev(this->n);
 			return cur;
 		}
-		iterator&operator--(){ return *this=this->tree->next(this->n); }
-		iterator operator--(int32_t){
-			iterator cur=*this;
-			*this=this->tree->next(this->n);
+		reverse_iterator&operator--(){
+			this->n=this->tree->next(this->n);
+			return*this;
+		}
+		reverse_iterator operator--(int32_t){
+			reverse_iterator cur=*this;
+			this->n=this->tree->next(this->n);
 			return cur;
 		}
 	};
 	protected:// wrapper
 	// auto -> const value_type& or value_type&&
-	iterator insert_wrapper(auto&&x){
+	iterator insert_wrapper(vp&&x){
 		time+=unit_time;
 		cur_size+=1;
+		auto&[first,second]=x;
 		if constexpr(allow_duplicate_keys)
-			return iterator(this,insert(new node(forward(x.first),forward(x.second),time|filter_red,nil,nil,nil)));
+			return iterator(this,insert(new node(move(first),move(second),time|filter_red,nil,nil,nil)));
 		else{
-			node p=new node(forward(x.first),forward(x.second),0,nil,nil,nil);
-			np lb=lower_bound(&p);
-			if(cmp(x.first,lb->key)==cmp(lb->key,x.first)){
+			np p=new node(move(first),move(second),0,nil,nil,nil);
+			np lb=lower_bound(*p);
+			if(lb==nil||cmp(p->key,lb->key)!=cmp(lb->key,p->key)){
+				p->time=time|filter_red;
+				lb=insert(p);
+			}else{
 				cur_size-=1;
 				lb->val=move(p->val);
 				delete p;
-			}else{
-				p->time=time|filter_red;
-				lb=insert(p);
 			}
 			return iterator(this,lb);
 		}
 	}
 	iterator find_wrapper(np p){
-		np lb=lower_bound(p);
-		if(cmp(lb->key,p->key)==cmp(p->key,lb->key))
+		np lb=lower_bound(*p);
+		if(lb!=nil&&cmp(lb->key,p->key)==cmp(p->key,lb->key))
 			return iterator(this,lb);
 		else return iterator(this,nil);
 	}
 	iterator count_wrapper(auto&&key){
 		if constexpr(allow_duplicate_keys){
 			node P(forward(key),val_t(),0,nil,nil,nil);
-			size_t R=order_of_key(lower_bound(&P));
+			size_t R=order_of_key(lower_bound(P));
 			P->time=UINT64_MAX;
-			return R-order_of_key(lower_bound(&P));
+			return R-order_of_key(lower_bound(P));
 		}
 		return nil!=find(key);
 	}
@@ -376,48 +397,49 @@ class rbtree{
 	}
 	iterator lower_bound(const key_t&key){
 		node tar(key,val_t(),0,nil,nil,nil);
-		return iterator(this,lower_bound(&tar));
+		return iterator(this,lower_bound(tar));
 	}
 	iterator lower_bound(key_t&&key){
 		node tar(move(key),val_t(),0,nil,nil,nil);
-		return iterator(this,lower_bound(&tar));
+		return iterator(this,lower_bound(tar));
 	}
 	iterator upper_bound(const key_t&key){
 		node tar(key,val_t(),UINT64_MAX,nil,nil,nil);
-		return iterator(this,lower_bound(&tar));
+		return iterator(this,lower_bound(tar));
 	}
 	iterator upper_bound(key_t&&key){
 		node tar(move(key),val_t(),UINT64_MAX,nil,nil,nil);
-		return iterator(this,lower_bound(&tar));
+		return iterator(this,lower_bound(tar));
 	}
 	iterator find_by_order(int64_t idx){
-		if(idx>=cur_size||-idx>cur_size)return iterator(this,nil);
+		if(idx>=(int64_t)cur_size||-idx>(int64_t)cur_size) return iterator(this,nil);
 		return iterator(this,ordered_access(idx>=0?idx:cur_size+idx));
 	}
 	size_t order_of_key(const key_t&key){
 		node tar(key,val_t(),0,nil,nil,nil);
-		return order_of_node(lower_bound(&tar));
+		return order_of_node(lower_bound(tar));
 	}
 	size_t order_of_key(key_t&&key){
 		node tar(move(key),val_t(),0,nil,nil,nil);
-		return order_of_node(lower_bound(&tar));
+		return order_of_node(lower_bound(tar));
 	}
 	size_t count(const key_t&key){ return find_wrapper(key); }
 	size_t count(key_t&&key){ return find_wrapper(move(key)); }
-	bool contains(const key_t&key){ return nil!=find(key); }
+	bool contains(const key_t&key){ return end()!=find(key); }
 	// change
 	iterator insert(value_type&&val){return insert_wrapper(move(val));}
-	iterator insert(const value_type&val){return insert_wrapper(val);}
+	iterator insert(const value_type&val){return insert_wrapper(vp(val));}
 	iterator insert(const key_t&key,const val_t&val){return insert_wrapper(vp(key,val));}
 	iterator insert(const key_t&key,val_t&&val){return insert_wrapper(vp(key,move(val)));}
 	iterator insert(key_t&&key,const val_t&val){return insert_wrapper(vp(move(key),val));}
 	iterator insert(key_t&&key,val_t&&val){return insert_wrapper(vp(move(key),move(val)));}
 	iterator erase(iterator&itr){
-		if(itr!=nil){
+		if(itr.n!=nil){
 			cur_size-=1;
 			np nx=next(itr.n);
 			erase(itr.n);
-			return itr.n=nx;
+			itr.n=nx;
+			return itr;
 		}
 		return iterator(this,nil);
 	}
@@ -446,7 +468,7 @@ class rbtree{
 	iterator end(){ return iterator(this,nil); }
 	reverse_iterator rbegin(){
 		if(cur_size) return reverse_iterator(this,maximum(root));
-		return iterator(this,nil);
+		return reverse_iterator(this,nil);
 	}
 	reverse_iterator rend(){ return reverse_iterator(this,nil); }
 };
