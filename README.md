@@ -9,7 +9,6 @@ $N$ は配列の長さとする． $2$ つ以上の配列について論じる�
 
 
 ## 現在作成(放置)中
-- 赤黒木  
 - suffix array  
 - wavelet matrix  
 - meissel Lehmer  
@@ -86,6 +85,15 @@ S get(u32 idx);
 void apply(u32 l,u32 r,F f);
 S prod(u32 l,u32 r);
 ```
+## tree
+`set,map,multiset,multimap`が可乱択で！！  
+`.find_by_order(idx)`で順序参照．戻り値はイテレータ．  
+`.order_of_key(key)`で`lower_bound(key)`のインデックスが手に入る．
+それ以外は大体std::setなどと同じだが，`swap, merge`などはない．  
+競プロライブラリによくある`split`などもない．  
+
+そこになければ有りません．あるのは乱択機能だけ  
+使うなら`__gnu_pbds::tree`のほうがいいですよ．
 ## math.hpp
 ### mex
 数列に含まれる最小の非負整数を求めるためのデータ構造  
