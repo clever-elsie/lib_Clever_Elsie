@@ -1,3 +1,6 @@
+#include<iostream>
+#include<chrono>
+#include<vector>
 #include<any> // swap()
 #include<cstdint>
 #include<cstddef> // size_t
@@ -12,11 +15,14 @@
 namespace elsie{
 using namespace std;
 
-struct null_t{ null_t(){} };
+struct null_t{
+	null_t(){}
+	friend bool operator<(const null_t&lhs,const null_t&rhs){ return true; }
+	friend bool operator==(const null_t&lhs,const null_t&rhs){ return true; }
+};
 
 template<class key_t,class val_t,class Cmp=less<key_t>,bool allow_duplicate_keys=false>
 class rbtree{
-	static_assert(!is_same_v<key_t,null_t>);
 	protected:
 	struct node{
 		using ip=node*;
@@ -24,6 +30,7 @@ class rbtree{
 		uint64_t time,size; // time: odd red, even black
 		key_t key;
 		val_t val;
+		node(){}
 		node(ip nil):key(),val(),time(0),size(1),l(nil),r(nil),p(nil){}
 		node(key_t&&k,val_t&&v,uint64_t tm,ip P,ip L,ip R):key(move(k)),val(move(v)),time(tm),size(1),p(P),l(L),r(R){}
 		node(key_t&&k,const val_t&v,uint64_t tm,ip P,ip L,ip R):key(move(k)),val(v),time(tm),size(1),p(P),l(L),r(R){}
@@ -42,12 +49,14 @@ class rbtree{
 	using value_type=pair<const key_t,val_t>;
 
 	protected:
+	constexpr static uint64_t unit_time=2;
 	constexpr static uint64_t filter_red=1;
 	constexpr static uint64_t filter_black=0xFFFF'FFFF'FFFF'FFFEul;
-	constexpr static uint64_t unit_time=2;
 	size_t cur_size,time;
 	np root,nil,unused;
 	Cmp cmp;
+	vector<np>freelist;
+	size_t alloc_time,insert_time,fixup_time,access_time;
 	public:
 	rbtree():cur_size(0),time(0),unused(nullptr){
 		nil=new node(nullptr);
@@ -55,6 +64,7 @@ class rbtree{
 		nil->size=0;
 		root=nil;
 	}
+	//~rbtree(){ clear(1); }
 	struct iterator{
 		iterator(rbtree*t,np node):tree(t),n(node){}
 		iterator&operator=(const iterator&itr){
@@ -326,13 +336,13 @@ class rbtree{
 		cur_size+=1;
 		time+=unit_time;
 		np z;
-		if(unused==nullptr) z=new node(move(first),move(second),time|filter_red,nil,nil,nil);
-		else {
+		if(unused==nullptr) z=new node(nil);
+		else{
 			z=unused;
 			unused=unused->p;
-			z->key=move(first),z->val=move(second);
-			z->time=time|filter_red,z->l=z->r=nil;
 		}
+		z->key=move(first),z->val=move(second);
+		z->time=time|filter_red,z->l=z->r=nil;
 		z->p=y;
 		if(y==nil) root=z;
 		else if(*z<*y) y->l=z;
@@ -456,13 +466,26 @@ class rbtree{
 	void clear(){
 		if(root==nil)return;
 		time=0;
+		root=nil;
+		unused=nullptr;
 		vector<np>st;
+		st.reserve(cur_size);
 		np c=minimum(root);
 		while(c!=nil){
 			st.push_back(c);
 			c=next(c);
 		}
-		for(auto&x:st)delete x;
+		for(const auto&x:st){
+			x->p=unused;
+			unused=x;
+		}
+	}
+	void clear(int x){
+		for(const auto&x:freelist)delete[] x;
+		freelist.clear();
+		root=nil;
+		unused=nullptr;
+		cur_size=0;
 	}
 	bool empty(){return cur_size==0;}
 	size_t size(){return cur_size;}
@@ -498,6 +521,48 @@ class map:public rbtree<key_t,val_t,cmp,false>{
 		if(p.n!=this->nil)return p.n->val;
 		return this->emplace(key,val_t()).n->val;
 	}
+};
+
+template<class val_t>
+class vector:public rbtree<null_t,val_t,less<null_t>,true>{
+	protected:
+	using super=rbtree<null_t,val_t,less<null_t>,true>;
+	super::iterator insert_key_null(size_t idx,val_t&&t){
+		if(super::cur_size==0)return super::insert_wrapper(super::vp(null_t(),move(t)));
+		else{
+			super::cur_size+=1;
+			super::time+=super::unit_time;
+			typename super::np y,z;
+			if(super::unused==nullptr)z=new super::node(super::nil);
+			else{
+				z=super::unused;
+				super::unused=z->p;
+			}
+			z->val=move(t),z->l=super::nil,z->r=super::nil;
+			z->time=super::time|super::filter_red;
+			if(super::cur_size-1<=idx){
+				y=super::maximum(super::root);
+				z->p=y,y->r=z;
+			}else{
+				y=super::ordered_access(idx);
+				if(y->l!=super::nil){
+					y->l->p=z;
+					z->l=y->l;
+				}
+				z->p=y,y->l=z;
+			}
+			for(typename super::np s=z;s!=super::nil;s=s->p)
+				super::calc_size(s);
+			super::rb_insert_fixup(z);
+			return super::iterator(this,z);
+		}
+	}
+	public:
+	using iterator=super::iterator;
+	iterator insert(int64_t idx,const val_t&v){ return super::insert_key_null(idx<0?super::cur_size+idx:idx,v); }
+	iterator insert(int64_t idx,val_t&&v){ return super::insert_key_null(idx<0?super::cur_size+idx:idx,move(v)); }
+	iterator erase(int64_t idx){ return super::erase(super::find_by_order(idx)); }
+	val_t& get(int64_t idx){ return super::find_by_order(idx).s(); }
 };
 
 }
