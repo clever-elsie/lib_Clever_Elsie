@@ -3,12 +3,10 @@
 #include<cstdint>
 #include<cstddef>
 #include<iostream>
-#include<atcoder/lazysegtree>
 #ifndef ELSIE_SEGTREE
 #define ELSIE_SEGTREE
 namespace elsie{
 	using namespace std;
-	using namespace atcoder;
 
 	template<class S,S(*op)(S,S),S(*e)(),class F,S(*mapping)(F,S),F(*composition)(F,F),F(*id)()>
 	class lazy_segtree{

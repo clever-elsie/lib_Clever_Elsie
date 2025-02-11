@@ -2,12 +2,10 @@
 #include<vector>
 #include<cstdint>
 #include<cstddef>
-#include<atcoder/segtree>
 #ifndef ELSIE_SEGTREE
 #define ELSIE_SEGTREE
 namespace elsie{
 	using namespace std;
-	using namespace atcoder;
 
 	template<class S,S(*op)(S,S),S(*e)()>class segtree{
 	protected: // 1-indexed [l,r)
