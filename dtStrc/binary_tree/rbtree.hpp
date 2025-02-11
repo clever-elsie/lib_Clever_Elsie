@@ -1,6 +1,3 @@
-#include<iostream>
-#include<chrono>
-#include<vector>
 #include<any> // swap()
 #include<cstdint>
 #include<cstddef> // size_t
@@ -55,8 +52,6 @@ class rbtree{
 	size_t cur_size,time;
 	np root,nil,unused;
 	Cmp cmp;
-	vector<np>freelist;
-	size_t alloc_time,insert_time,fixup_time,access_time;
 	public:
 	rbtree():cur_size(0),time(0),unused(nullptr){
 		nil=new node(nullptr);
@@ -64,7 +59,7 @@ class rbtree{
 		nil->size=0;
 		root=nil;
 	}
-	//~rbtree(){ clear(1); }
+	//~rbtree(){ clear(); }
 	struct iterator{
 		iterator(rbtree*t,np node):tree(t),n(node){}
 		iterator&operator=(const iterator&itr){
@@ -153,7 +148,7 @@ class rbtree{
 	np ordered_access(size_t idx){
 		np cur=root;
 		while(cur!=nil){
-			size_t L=(cur->l!=nil)?cur->l->size:0;
+			size_t L=cur->l->size;
 			if(L==idx)return cur;
 			if(L>idx)cur=cur->l;
 			else {
@@ -265,12 +260,8 @@ class rbtree{
 	bool contains(const key_t&key){ return end()!=find(key); }
 	protected:
 	void calc_size(np x){
-		if(x!=nil){
-			x->size=1;
-			if(x->l!=nil)x->size+=x->l->size;
-			if(x->r!=nil)x->size+=x->r->size;
-		}else x->size=0;
-}
+		x->size=1+x->l->size+x->r->size;
+	}
 	void left_rotation(np x){
 		np y=x->r;
 		x->r=y->l,y->p=x->p;
@@ -279,8 +270,8 @@ class rbtree{
 		else if(x==x->p->l)x->p->l=y;
 		else x->p->r=y;
 		y->l=x,x->p=y;
+		y->size=x->size;
 		calc_size(x);
-		calc_size(y);
 	}
 	void right_rotation(np x){
 		np y=x->l;
@@ -290,8 +281,8 @@ class rbtree{
 		else if(x==x->p->l)x->p->l=y;
 		else x->p->r=y;
 		y->r=x,x->p=y;
+		y->size=x->size;
 		calc_size(x);
-		calc_size(y);
 	}
 	void rb_insert_fixup(np z){
 		while(z->p->time&filter_red){
@@ -336,19 +327,19 @@ class rbtree{
 		cur_size+=1;
 		time+=unit_time;
 		np z;
-		if(unused==nullptr) z=new node(nil);
+		if(unused==nullptr) z=new node(move(first),move(second),time|filter_red,y,nil,nil);
 		else{
 			z=unused;
 			unused=unused->p;
+			z->key=move(first),z->val=move(second);
+			z->time=time|filter_red,z->l=z->r=nil;
+			z->p=y,z->size=1;
 		}
-		z->key=move(first),z->val=move(second);
-		z->time=time|filter_red,z->l=z->r=nil;
-		z->p=y;
 		if(y==nil) root=z;
 		else if(*z<*y) y->l=z;
 		else y->r=z;
-		for(np s=z;s!=nil;s=s->p)
-			calc_size(s);
+		for(np s=y;s!=nil;s=s->p)
+			s->size+=1;
 		rb_insert_fixup(z);
 		return iterator(this,z);
 	}
@@ -414,13 +405,11 @@ class rbtree{
 			else if(u==u->p->l)u->p->l=v;
 			else u->p->r=v;
 			v->p=u->p;
-			calc_size(v),calc_size(v->p);
 		};
 		np x,y=z,w=z->p;
 		bool y_was_red=y->time&filter_red;
 		if(z->l==nil) transplant(z,x=z->r);
-		else if(z->r==nil)
-			transplant(z,x=z->l);
+		else if(z->r==nil) transplant(z,x=z->l);
 		else{
 			for(y=z->r;1;y=y->l){
 				y->size-=1;
@@ -428,7 +417,6 @@ class rbtree{
 			}
 			y_was_red=y->time&filter_red;
 			x=y->r;
-			w=y;
 			if(y!=z->r){
 				transplant(y,y->r);
 				y->r=z->r,y->r->p=y;
@@ -438,12 +426,11 @@ class rbtree{
 			y->l->p=y;
 			if(z->time&filter_red)y->time|=filter_red;
 			else y->time&=filter_black;
+			calc_size(y);
 		}
 		if(w!=nil)
-		for(np s=w;1;s=s->p){
-			calc_size(s);
-			if(s==root)break;
-		}
+		for(;w!=nil;w=w->p)
+			w->size-=1;
 		if(!y_was_red)rb_delete_fixup(x);
 		z->p=unused;
 		unused=z;
@@ -479,13 +466,6 @@ class rbtree{
 			x->p=unused;
 			unused=x;
 		}
-	}
-	void clear(int x){
-		for(const auto&x:freelist)delete[] x;
-		freelist.clear();
-		root=nil;
-		unused=nullptr;
-		cur_size=0;
 	}
 	bool empty(){return cur_size==0;}
 	size_t size(){return cur_size;}
@@ -527,8 +507,8 @@ template<class val_t>
 class vector:public rbtree<null_t,val_t,less<null_t>,true>{
 	protected:
 	using super=rbtree<null_t,val_t,less<null_t>,true>;
-	super::iterator insert_key_null(size_t idx,val_t&&t){
-		if(super::cur_size==0)return super::insert_wrapper(super::vp(null_t(),move(t)));
+	typename super::iterator insert_key_null(size_t idx,val_t&&t){
+		if(super::cur_size==0)return super::insert_wrapper(typename super::vp(null_t(),move(t)));
 		else{
 			super::cur_size+=1;
 			super::time+=super::unit_time;
@@ -554,13 +534,13 @@ class vector:public rbtree<null_t,val_t,less<null_t>,true>{
 			for(typename super::np s=z;s!=super::nil;s=s->p)
 				super::calc_size(s);
 			super::rb_insert_fixup(z);
-			return super::iterator(this,z);
+			return typename super::iterator(this,z);
 		}
 	}
 	public:
 	using iterator=super::iterator;
-	iterator insert(int64_t idx,const val_t&v){ return super::insert_key_null(idx<0?super::cur_size+idx:idx,v); }
-	iterator insert(int64_t idx,val_t&&v){ return super::insert_key_null(idx<0?super::cur_size+idx:idx,move(v)); }
+	iterator insert(int64_t idx,const val_t&v){ return insert_key_null(idx<0?super::cur_size+idx:idx,v); }
+	iterator insert(int64_t idx,val_t&&v){ return insert_key_null(idx<0?super::cur_size+idx:idx,move(v)); }
 	iterator erase(int64_t idx){ return super::erase(super::find_by_order(idx)); }
 	val_t& get(int64_t idx){ return super::find_by_order(idx).s(); }
 };

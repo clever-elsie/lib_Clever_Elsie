@@ -1,3 +1,4 @@
 library-checker-problems
 */*gch
+*/*/*gch
 .precompile/main.out
