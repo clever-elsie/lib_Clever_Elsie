@@ -33,12 +33,6 @@ class rbtree{
 		node(key_t&&k,const val_t&v,uint64_t tm,ip P,ip L,ip R):key(move(k)),val(v),time(tm),size(1),p(P),l(L),r(R){}
 		node(const key_t&k,val_t&&v,uint64_t tm,ip P,ip L,ip R):key(k),val(move(v)),time(tm),size(1),p(P),l(L),r(R){}
 		node(const key_t&k,const val_t&v,uint64_t tm,ip P,ip L,ip R):key(k),val(v),time(tm),size(1),p(P),l(L),r(R){}
-		friend auto operator<=>(const node&lhs,const node&rhs){
-			Cmp cmp;
-			bool L=cmp(lhs.key,rhs.key),R=cmp(rhs.key,lhs.key);
-			if(L==R)return lhs.time<=>rhs.time;
-			return L?strong_ordering::less:strong_ordering::greater;
-		}
 	};
 	using np=node*;
 	using vp=pair<key_t,val_t>;
@@ -124,24 +118,31 @@ class rbtree{
 	np lower_bound(const node&tar)const{
 		np cur=root,res=nil;
 		while(cur!=nil){
-			auto s=*cur<=>tar;
-			if(s<0)cur=cur->r;
-			else if(s>0){
-				res=cur;
-				cur=cur->l;
-			}else return cur;
+			bool L=cmp(cur->key,tar.key);
+			if(L==cmp(tar.key,cur->key)){
+				if constexpr(allow_duplicate_keys){
+					uint64_t ct=cur->time&filter_black,tt=tar.time&filter_black;
+					if(ct==tt)return cur;
+					else if(ct<tt)cur=cur->r;
+					else res=cur,cur=cur->l;
+				}else return cur;
+			}else if(L)cur=cur->r;
+			else res=cur,cur=cur->l;
 		}
 		return res;
 	}
 	np upper_bound(const node&tar)const{
 		np cur=root,res=nil;
 		while(cur!=nil){
-			auto s=*cur<=>tar;
-			if(s<=0)cur=cur->r;
-			else if(s>0){
-				res=cur;
-				cur=cur->l;
-			}
+			bool L=cmp(cur->key,tar.key);
+			if(L||L==cmp(tar.key,cur->key)){
+				if constexpr(allow_duplicate_keys)
+					if(uint64_t ct=cur->time&filter_black,tt=tar.time&filter_black;ct>tt){
+						res=cur,cur=cur->l;
+						continue;
+					}
+				cur=cur->r;
+			}else res=cur,cur=cur->l;
 		}
 		return res;
 	}
@@ -149,24 +150,20 @@ class rbtree{
 		np cur=root;
 		while(cur!=nil){
 			size_t L=cur->l->size;
-			if(L==idx)return cur;
 			if(L>idx)cur=cur->l;
-			else {
+			else if(L<idx){
 				cur=cur->r;
 				idx-=L+1;
-			}
+			}else return cur;
 		}
 		return nil;
 	}
 	size_t order_of_node(np p){
-		size_t R=0;
 		if(p==nil)return cur_size;
-		if(p->l!=nil)R+=p->l->size;
-		while(p->p!=nil){
-			if(p==p->p->r){
-				++R;
-				if(p->p->l!=nil)R+=p->p->l->size;
-			}
+		size_t R=p->l->size;
+		while(p!=root){
+			if(p==p->p->r)
+				R+=1+p->p->l->size;
 			p=p->p;
 		}
 		return R;
@@ -204,10 +201,20 @@ class rbtree{
 		return x;
 	}
 	iterator find_wrapper(np p){
-		np lb=lower_bound(*p);
-		if(lb!=nil&&cmp(lb->key,p->key)==cmp(p->key,lb->key))
-			return iterator(this,lb);
-		else return iterator(this,nil);
+		np x=root;
+		while(x!=nil){
+			bool L=cmp(p->key,x->key);
+			if(L==cmp(x->key,p->key)){
+				if constexpr(allow_duplicate_keys){
+					uint64_t pt=p->time&filter_black,xt=x->time&filter_black;
+					if(pt==xt)break;
+					if(pt<xt)x=x->l;
+					else x=x->r;
+				}else break;
+			}if(L)x=x->l;
+			else x=x->r;
+		}
+		return iterator(this,x);
 	}
 	iterator count_wrapper(auto&&key){
 		if constexpr(allow_duplicate_keys){
@@ -259,9 +266,7 @@ class rbtree{
 	size_t count(key_t&&key){ return find_wrapper(move(key)); }
 	bool contains(const key_t&key){ return end()!=find(key); }
 	protected:
-	void calc_size(np x){
-		x->size=1+x->l->size+x->r->size;
-	}
+	inline void calc_size(np x){ x->size=1+x->l->size+x->r->size; }
 	void left_rotation(np x){
 		np y=x->r;
 		x->r=y->l,y->p=x->p;
@@ -314,8 +319,7 @@ class rbtree{
 		while(x!=nil){
 			y=x;
 			bool L=cmp(first,x->key);
-			bool R=cmp(x->key,first);
-			if(L==R)
+			if(L==cmp(x->key,first))
 				if constexpr(allow_duplicate_keys) x=x->r;
 				else{
 					if constexpr(!is_same_v<val_t,null_t>)
@@ -336,7 +340,7 @@ class rbtree{
 			z->p=y,z->size=1;
 		}
 		if(y==nil) root=z;
-		else if(*z<*y) y->l=z;
+		else if(cmp(z->key,y->key)) y->l=z;
 		else y->r=z;
 		for(np s=y;s!=nil;s=s->p)
 			s->size+=1;
@@ -518,8 +522,8 @@ class vector:public rbtree<null_t,val_t,less<null_t>,true>{
 				z=super::unused;
 				super::unused=z->p;
 			}
-			z->val=move(t),z->l=super::nil,z->r=super::nil;
-			z->time=super::time|super::filter_red;
+			z->val=move(t),z->l=z->r=super::nil;
+			z->size=1,z->time=super::time|super::filter_red;
 			if(super::cur_size-1<=idx){
 				y=super::maximum(super::root);
 				z->p=y,y->r=z;
@@ -530,9 +534,10 @@ class vector:public rbtree<null_t,val_t,less<null_t>,true>{
 					z->l=y->l;
 				}
 				z->p=y,y->l=z;
+				super::calc_size(z);
 			}
-			for(typename super::np s=z;s!=super::nil;s=s->p)
-				super::calc_size(s);
+			for(typename super::np s=z->p;s!=super::nil;s=s->p)
+				s->size+=1;
 			super::rb_insert_fixup(z);
 			return typename super::iterator(this,z);
 		}
