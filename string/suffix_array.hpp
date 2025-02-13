@@ -28,6 +28,7 @@ namespace elsie{
 		T v;
 		protected:
 		void construct(){
+			loop=((64-countl_zero(v.size()))+(popcount(v.size())!=1)+base_exp-1)/base_exp;
 			sa.resize(v.size());
 			SA_log();
 		}
@@ -37,6 +38,38 @@ namespace elsie{
 		using ps2=pair<size_t,size_t>;
 		using ps3=pair<ps2,size_t>;
 		using vps3=vector<ps3>;
+		constexpr static int32_t base_exp=4;
+		constexpr static size_t base=1ull<<base_exp;
+		constexpr static size_t bit_mask=base-1;
+		//! loop size for radix_sort
+		size_t loop;
+		void radix_sort(vps3&a){
+			const size_t n=a.size();
+			auto rsort=[&](vps3::iterator l,vps3::iterator r,bool key_first){
+				array<vps3,1<<base_exp>rd;
+				for(size_t i=0,shift=0;i<loop;++i,shift+=base_exp){
+					for(auto&x:rd)x.clear();
+					if(key_first)
+						for(auto itr=l;itr!=r;++itr)
+							rd[(itr->first.first>>shift)&bit_mask].push_back(*itr);
+					else
+						for(auto itr=l;itr!=r;++itr)
+							rd[(itr->first.second>>shift)&bit_mask].push_back(*itr);
+					auto itr=l;
+					for(const auto&x:rd)
+					for(const auto&y:x){
+						*itr=y;++itr;
+					}
+				}
+			};
+			rsort(a.begin(),a.end(),true);
+			auto ltr=a.begin(),rtr=a.begin();
+			while(ltr<a.end()){
+				while(rtr<a.end()&&ltr->first.first==rtr->first.first)++rtr;
+				if(rtr-ltr>1) rsort(ltr,rtr,false);
+				ltr=rtr++;
+			}
+		}
 		void SA_log(){ // log^2
 			size_t n=v.size();
 			vps3 Rsubstr(n);
