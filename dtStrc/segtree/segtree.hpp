@@ -39,17 +39,5 @@ namespace elsie{
 			return prod(0,n,1);
 		}
 	};
-
-	template<class S>S zeroE(){return S();}
-	template<class S>S max4min(){return numeric_limits<S>::max();}
-	template<class S>S min4max(){return numeric_limits<S>::lowest();}
-	template<class S>S opAdd(S a,S b){return a+b;}
-	template<class S>S opMax(S a,S b){return a>b?a:b;}
-	template<class S>S opMin(S a,S b){return a<b?a:b;}
-
-	// segtree
-	template<class S>using min_seg=segtree<S,opMin<S>,max4min<S>>;
-	template<class S>using max_seg=segtree<S,opMax<S>,min4max<S>>;
-	template<class S>using sum_seg=segtree<S,opAdd<S>,zeroE<S>>;
 }
 #endif
