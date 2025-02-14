@@ -1,9 +1,11 @@
+#ifndef ELSIE_UNIONFIND
+#define ELSIE_UNIONFIND
 #include <algorithm>
 #include <numeric>
 #include <vector>
 #include <cstdint>
-#ifndef ELSIE_UNIONFIND
-#define ELSIE_UNIONFIND
+#include <utility>
+#include <unordered_map>
 namespace elsie{
 using namespace std;
 class unionFind{
@@ -24,6 +26,19 @@ class unionFind{
 			if(pr[u]<pr[v])swap(u,v);
 			pr[v]+=pr[u];
 			pr[u]=v;
+		}
+		vector<vector<it>> groups()const{
+			vector<vector<it>>ret;
+			unordered_map<it,it>idx;
+			for(it i=0;i<_order;++i){
+				it r=root(i);
+				auto itr=idx.find(r);
+				if(itr==idx.end()){
+					idx[r]=ret.size();
+					ret.emplace_back(1,i);
+				}else ret[itr->second].push_back(i);
+			}
+			return move(ret);
 		}
 		unionFind&operator=(auto&&other){
 			if(this!=&other){
