@@ -80,22 +80,24 @@ template<class ll>vc<ll>dijkstra(const vv<ll>&edge,int start=0){
 	return dist;
 }
 
-template<class ll>vc<ll>BF(vv<pair<ll,ll>>&e,int start=0) noexcept(false) {
-	ll inf=numeric_limits<ll>::max();
+/**
+ * @return dist:vc, has_negative_cycle:bool
+ */
+template<class ll>pair<vc<ll>,bool>
+BF(vv<pair<ll,ll>>&e,int start=0){
+	constexpr ll inf=numeric_limits<ll>::max();
+	bool has_renew;
 	vc<ll>dist(e.size(),inf);
 	dist[start]=0;
-	for(int _=1;_<e.size();++_)
-	for(int i=0;i<e.size();++i)
-	for(int j=0;j<e[i].size();++j)
-		if(dist[i]<inf)
-		if(dist[i]+e[i][j].first<dist[e[i][j].second])
-			dist[e[i][j].second]=dist[i]+e[i][j].first;
-	for(int i=0;i<e.size();i++)
-	for(int j=0;j<e[i].size();j++)
-		if(dist[i]<inf)
-		if(dist[i]+e[i][j].first<dist[e[i][j].second])
-			throw (int64_t)(-1);
-	return move(dist);
+	for(int _=0;_<e.size();++_){
+		has_renew=false;
+		for(int i=0;i<e.size();++i)
+		for(const auto&[cost,to]:e[i])
+			if(dist[i]<inf&&dist[i]+cost<dist[to])
+				has_renew=1,
+				dist[to]=dist[i]+cost;
+	}
+	return {move(dist),has_renew};
 }
 
 template<class ll>void WF(vv<ll>&e)noexcept(false){
