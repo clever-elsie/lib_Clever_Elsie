@@ -21,7 +21,7 @@ namespace elsie{
 	template<Itrabl T>
 	size_t LIS(const T&a){
 		vc<typename T::value_type>dp(a.size()+1,numeric_limits<typename T::value_type>::max());
-		dp[0]=INT64_MIN;
+		dp[0]=numeric_limits<typename T::value_type>::lowest();
 		size_t ans=0;
 		for(size_t i=0;i<a.size();++i){
 			size_t k=lower_bound(begin(dp),end(dp),a[i])-begin(dp);
