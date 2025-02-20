@@ -1,12 +1,19 @@
 #include <vector>
 #include <limits>
 #include <cstdint>
+#include <concepts>
 #include <atcoder/modint>
 #ifndef ELSIE_BASIC_MATH
 #define ELSIE_BASIC_MATH
 namespace elsie{
 	using namespace std;
 	using namespace atcoder;
+
+	template<integral T,integral U>
+	inline auto ceil(const T a,const U b){return(a+b-1)/b;}
+	template<integral T,integral U>
+	inline auto floor(const T a,const U b){return a/b-(a%b&&(a^b)<0);}
+
 	int64_t safepow(int64_t a,uint64_t b){
 		int64_t ret=1,k=a;
 		double check=1,kcheck=a;
