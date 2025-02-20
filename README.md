@@ -9,7 +9,6 @@ $N$ は配列の長さとする． $2$ つ以上の配列について論じる�
 
 
 ## 現在作成(放置)中
-- suffix array  
 - wavelet matrix  
 - meissel Lehmer  
 
