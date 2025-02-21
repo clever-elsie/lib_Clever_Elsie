@@ -52,10 +52,11 @@ template<class S,S(*op)(S,S),S(*e)()>
 class dsu:public unionFind{
 	private:vector<S>_mset;
 	public:
-		dsu(int n):unionFind(n),_mset(n,e()){}
-		void set(int u,const S&v){_mset[root(u)]=v;}
-		S prod(int u){return _mset[root(u)];}
-		void unite(int u,int v){
+		dsu():unionFind(),_mset(0){}
+		dsu(int32_t n):unionFind(n),_mset(n,e()){}
+		void set(int32_t u,const S&v){_mset[root(u)]=v;}
+		S prod(int32_t u){return _mset[root(u)];}
+		void unite(int32_t u,int32_t v){
 			int ru=root(u),rv=root(v);
 			unionFind::unite(u,v);
 			_mset[(ru==root(u)?ru:rv)]=op(_mset[ru],_mset[rv]);
