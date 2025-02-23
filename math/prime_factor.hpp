@@ -76,7 +76,7 @@ namespace elsie{
 		auto pollard_rho=[&](auto pollard_rho,uint64_t n)->uint64_t {
 			if(~n&1)return 2;
 			if(is_prime(n))return n;
-			uint64_t x,y,ys,g,q,r,k,m=uint64_t(pow<float64_t>(float64_t(n),1.0/8.0))+1;
+			uint64_t x,y,ys,g,q,r,k,m=uint64_t(pow<double>(double(n),1.0/8.0))+1;
 			for(uint64_t c=1;c<n;++c){
 				auto f=[&](__uint128_t a){return(a*a+c)%n;};
 				y=k=0;g=q=r=1;
