@@ -34,10 +34,10 @@ namespace elsie{
 	}
 
 	int64_t modpow(int64_t a,uint64_t b,uint64_t mod){
-		__uint128_t k=a%mod,ret=1;
+		__int128_t k=a%mod,ret=1;
 		if(k<0)k+=mod;
 		while(b){
-			if(b&1)ret=(ret*k)%mod;
+			ret=(b&1?ret*k%mod:ret);
 			k=(k*k)%mod;
 			b>>=1;
 		}
