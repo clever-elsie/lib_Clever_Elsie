@@ -9,3 +9,5 @@ atcoder::fenwick_treeより本当に微妙にちょっとだけ便利．
 ## <a href="./Segtree.md">セグ木</a>
 
 ## <a href="./lazy_segtree.md">遅延セグ木</a>
+
+## <a href="./sparseTable.md">スパーステーブル</a>
