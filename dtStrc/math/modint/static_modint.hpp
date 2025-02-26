@@ -1,18 +1,19 @@
-#ifndef ELSIE_MODINT
-#ifndef ELSIE_MODINT
+#ifndef ELSIE_STATIC_MODINT
+#define ELSIE_STATIC_MODINT
 #include <cstddef>
 #include <cstdint>
 #include <utility>
 #include <concepts>
+#include <math/prime_factor.hpp>
 namespace elsie{
 	using namespace std;
 	template<size_t M=998244353>class modint{
+		static_assert(is_prime(M),"elsie::modint<size_t M> requires that M is prime number\n");
 		private:
 		long long x;
 		public:
 		modint():x(0){}
-		template<integral T>
-		modint(T val){
+		template<integral T>modint(T val){
 			val%=M;
 			x=val+(val<0)*M;
 		}

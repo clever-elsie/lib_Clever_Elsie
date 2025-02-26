@@ -134,5 +134,43 @@ namespace elsie{
 			return C(n+k-1,k);
 		}
 	};
+
+	using u128=__uint128_t;
+	using u64 = uint64_t;
+	inline __uint128_t mul64to128(u64 a,u64 b){
+		u64 hi,lo;
+		asm("mulq %3" :"=a"(lo),"=d"(hi):"a"(a),"r"(b));
+		return((__uint128_t)(hi)<<64)+lo;
+	}
+	inline pair<u128,u128>mul128(u128 a,u128 b){
+		constexpr static u128 Lfilter=0xFFFF'FFFF'FFFF'FFFFull;
+		u64 x1=a>>64,x0=a&Lfilter;
+		u64 y1=b>>64,y0=b&Lfilter;
+		u128 z2=mul64to128(x1,y1),z1=mul64to128(x1,y0)+mul64to128(x0,y1),z0=mul64to128(x0,y0);
+		u128 lower=z0+(z1<<64);
+		return{z2+(z1>>64)+(lower<z0),lower};
+	}
+
+	template<uint32_t M>class barret32{
+		constexpr static uint64_t iM=uint64_t(-1)/M + 1;
+		uint32_t umod(){ return M; }
+		uint32_t mul(uint32_t a,uint32_t b){
+			uint64_t z=(uint64_t)a*b;
+			uint64_t x=((__uint128_t)z*iM>>64);
+			uint64_t y=x*M;
+			return(uint32_t)(z-y+(z<y?M:0));
+		}
+	};
+
+	template<uint64_t M>class barret64{
+		constexpr static __uint128_t iM=__uint128_t(-1)/M + 1;
+		uint64_t umod(){ return M; }
+		uint64_t mul(uint64_t a,uint64_t b){
+			__uint128_t z=(__uint128_t)a*b;
+			__uint128_t x=mul128(z,iM).first;
+			__uint128_t y=x*M;
+			return(uint64_t)(z-y+(z<y?M:0));
+		}
+	};
 }
 #endif
