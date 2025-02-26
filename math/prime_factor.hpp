@@ -13,7 +13,7 @@
 namespace elsie{
 	using namespace std;
 	// O(\sqrt{n})
-	uint64_t eular_totient(uint64_t n){
+	constexpr uint64_t eular_totient(uint64_t n){
 		uint64_t r=n;
 		for(uint64_t i=2;i*i<=n;++i){
 			if(n%i==0){
@@ -39,9 +39,9 @@ namespace elsie{
 	/**
 	 * miller rabin
 	 */
-	bool is_prime(uint64_t p){
+	constexpr bool is_prime(uint64_t p){
 		if(p<=1)return false;
-		for(auto s:{2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101}){
+		for(const auto&s:{2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101}){
 			if(p==s)return true;
 			if(p%s==0)return false;
 		}
@@ -53,7 +53,7 @@ namespace elsie{
 				y=__uint128_t(y)*y%p;
 				t<<=1;
 			}
-			return !(y!=p-1&&t%2==0);
+			return y==p-1||t%2;
 		};
 		if(p<(1ull<<32)){
 			for(uint64_t a:{2,7,61})
