@@ -1,10 +1,10 @@
+#ifndef ELSIE_CRT_GARNER
+#define ELSIE_CRT_GARNER
 #include <vector>
 #include <cstdint>
 #include <unordered_map>
 #include <numeric>
 #include "math/basic_math.hpp"
-#ifndef ELSIE_CRT_GARNER
-#define ELSIE_CRT_GARNER
 namespace elsie{
 using namespace std;
 // gcd_lcm.cpp::exgcd();

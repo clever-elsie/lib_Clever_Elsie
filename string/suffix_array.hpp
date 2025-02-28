@@ -1,3 +1,5 @@
+#ifndef ELSIE_SUFFIX_ARRAY
+#define ELSIE_SUFFIX_ARRAY
 /**
  * @file suffix_array.hpp
  * @brief compute suffix_array in O(N). N is size of text.
@@ -11,8 +13,6 @@
 #include <cstdint>
 #include <concepts>
 #include <algorithm>
-#ifndef ELSIE_SUFFIX_ARRAY
-#define ELSIE_SUFFIX_ARRAY
 namespace elsie{
 	using namespace std;
 	template<class T>concept Itrabl=requires(const T&x){x.begin();x.end();x.size();typename T::value_type;};

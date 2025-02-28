@@ -1,11 +1,11 @@
+#ifndef ELSIE_SHORTEST_PATH
+#define ELSIE_SHORTEST_PATH
 #include <vector>
 #include <queue>
 #include <algorithm>
 #include <utility>
 #include <cstdint>
 #include <limits>
-#ifndef ELSIE_SHORTEST_PATH
-#define ELSIE_SHORTEST_PATH
 namespace elsie{
 using namespace std;
 template<class f>using vc=vector<f>;

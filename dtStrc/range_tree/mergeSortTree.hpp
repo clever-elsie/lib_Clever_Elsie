@@ -1,3 +1,5 @@
+#ifndef ELSIE_MERGE_SORT_TREE
+#define ELSIE_MERGE_SORT_TREE
 #include <vector>
 #include <cassert>
 #include <cstdint>
@@ -52,3 +54,4 @@ namespace elsie{
 		}
 	};
 }
+#endif

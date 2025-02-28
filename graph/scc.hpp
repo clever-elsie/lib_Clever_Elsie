@@ -1,8 +1,8 @@
+#ifndef ELSIE_SCC
+#define ELSIE_SCC
 #include <cstdint>
 #include <vector>
 #include <set>
-#ifndef ELSIE_SCC
-#define ELSIE_SCC
 namespace elsie{
 using namespace std;
 class scc_graph{

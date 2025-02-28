@@ -1,9 +1,9 @@
+#ifndef ELSIE_DIAMETER
+#define ELSIE_DIAMETER
 #include <algorithm>
 #include <cstdint>
 #include <list>
 #include <vector>
-#ifndef ELSIE_DIAMETER
-#define ELSIE_DIAMETER
 namespace elsie{
 using namespace std;
 template<class S>using vc=vector<S>;

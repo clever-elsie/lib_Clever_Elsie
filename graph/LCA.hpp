@@ -1,11 +1,11 @@
+#ifndef ELSIE_LCA
+#define ELSIE_LCA
 #include<iostream>
 #include<vector>
 #include<cstdint>
 #include<concepts>
 #include<type_traits>
 #include<atcoder/segtree>
-#ifndef ELSIE_LCA
-#define ELSIE_LCA
 namespace elsie{
 using namespace std;
 using namespace atcoder;

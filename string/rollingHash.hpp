@@ -1,3 +1,5 @@
+#ifndef ELSIE_ROLLINGHASH
+#define ELSIE_ROLLINGHASH
 #include <array>
 #include <cstdint>
 #include <cstdlib>
@@ -6,8 +8,6 @@
 #include <string>
 #include <vector>
 #include <set>
-#ifndef ELSIE_ROLLINGHASH
-#define ELSIE_ROLLINGHASH
 namespace elsie{
 using namespace std;
 template<size_t psz>

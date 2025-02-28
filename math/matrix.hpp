@@ -1,11 +1,11 @@
+#ifndef ELSIE_STRASSEN
+#define ELSIE_STRASSEN
 #include <vector>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
 #include <utility>
-#ifndef ELSIE_STRASSEN
-#define ELSIE_STRASSEN
 namespace elsie{
 	using namespace std;
 	using ps=pair<size_t,size_t>;

@@ -1,8 +1,8 @@
+#ifndef ELSIE_DAGSORT
+#define ELSIE_DAGSORT
 #include <vector>
 #include <deque>
 #include <set>
-#ifndef ELSIE_DAGSORT
-#define ELSIE_DAGSORT
 namespace elsie{
 using namespace std;
 template<class T>vector<size_t>DAGsort(const vector<vector<T>>&edge){

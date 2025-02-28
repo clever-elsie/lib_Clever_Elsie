@@ -1,9 +1,9 @@
+#ifndef ELSIE_KMP
+#define ELSIE_KMP
 #include<string>
 #include<vector>
 #include<cstdint>
 #include<cstdlib>
-#ifndef ELSIE_KMP
-#define ELSIE_KMP
 namespace elsie{
 using namespace std;
 class kmp{

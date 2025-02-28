@@ -1,3 +1,5 @@
+#ifndef ELSIE_RBTREE
+#define ELSIE_RBTREE
 #include<any> // swap()
 #include<cstdint>
 #include<cstddef> // size_t
@@ -7,8 +9,6 @@
 #include<functional> // less<>
 #include<type_traits>
 #include<initializer_list>
-#ifndef ELSIE_RBTREE
-#define ELSIE_RBTREE
 namespace elsie{
 using namespace std;
 

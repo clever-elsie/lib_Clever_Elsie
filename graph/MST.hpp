@@ -1,10 +1,10 @@
+#ifndef ELSIE_MST
+#define ELSIE_MST
 #include <vector>
 #include <queue>
 #include <algorithm>
 #include <utility>
 #include "dtStrc/unionFind.hpp"
-#ifndef ELSIE_MST
-#define ELSIE_MST
 namespace elsie{
 using namespace std;
 template<class f>using vc=vector<f>;

@@ -1,11 +1,11 @@
+#ifndef ELSIE_DETECT_CYCLE
+#define ELSIE_DETECT_CYCLE
 #include <functional>
 #include <vector>
 #include <set>
 #include <map>
 #include <algorithm>
 #include <cstddef>
-#ifndef ELSIE_DETECT_CYCLE
-#define ELSIE_DETECT_CYCLE
 namespace elsie{
 using namespace std;
 template<class S>using vc=vector<S>;

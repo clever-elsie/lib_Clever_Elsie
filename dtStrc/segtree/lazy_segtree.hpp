@@ -1,10 +1,10 @@
+#ifndef ELSIE_SEGTREE
+#define ELSIE_SEGTREE
 #include<limits>
 #include<vector>
 #include<cstdint>
 #include<cstddef>
 #include<iostream>
-#ifndef ELSIE_SEGTREE
-#define ELSIE_SEGTREE
 namespace elsie{
 	using namespace std;
 

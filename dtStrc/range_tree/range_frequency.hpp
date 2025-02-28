@@ -1,3 +1,5 @@
+#ifndef ELSIE_RANGE_TREE
+#define ELSIE_RANGE_TREE
 #include <vector>
 #include <cassert>
 #include <cstdint>
@@ -5,8 +7,6 @@
 #include <unordered_map>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
-#ifndef ELSIE_RANGE_TREE
-#define ELSIE_RANGE_TREE
 namespace elsie{
 	using namespace std;
 	using namespace __gnu_pbds;

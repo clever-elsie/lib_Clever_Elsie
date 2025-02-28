@@ -1,10 +1,9 @@
-#include <vector>
-#include <cstddef>
-using namespace std;
-
 #ifndef ELSIE_ROTATE
 #define ELSIE_ROTATE
+#include <vector>
+#include <cstddef>
 namespace elsie{
+using namespace std;
 template<class T>concept Itrabl=requires(const T&x){x.begin();x.end();};
 template<class T>concept IItrabl=Itrabl<T>&&Itrabl<typename T::value_type>;
 // vector, deque, string

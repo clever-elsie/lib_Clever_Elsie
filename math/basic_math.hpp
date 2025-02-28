@@ -1,10 +1,10 @@
+#ifndef ELSIE_BASIC_MATH
+#define ELSIE_BASIC_MATH
 #include <vector>
 #include <limits>
 #include <cstdint>
 #include <concepts>
 #include <atcoder/modint>
-#ifndef ELSIE_BASIC_MATH
-#define ELSIE_BASIC_MATH
 namespace elsie{
 	using namespace std;
 	using namespace atcoder;

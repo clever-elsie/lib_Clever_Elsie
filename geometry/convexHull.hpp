@@ -1,9 +1,9 @@
+#ifndef ELSIE_CONVEXHULL
+#define ELSIE_CONVEXHULL
 #include <cstdint>
 #include <algorithm>
 #include <vector>
 #include <utility>
-#ifndef ELSIE_CONVEXHULL
-#define ELSIE_CONVEXHULL
 namespace elsie{
 using namespace std;
 class convex_hull{

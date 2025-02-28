@@ -1,8 +1,8 @@
+#ifndef ELSIE_MAXFLOW
+#define ELSIE_MAXFLOW
 #include<cstddef>
 #include<cstdint>
 #include<vector>
-#ifndef ELSIE_MAXFLOW
-#define ELSIE_MAXFLOW
 namespace elsie{
 using namespace std;
 template<class type>

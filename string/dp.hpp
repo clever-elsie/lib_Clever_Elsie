@@ -1,3 +1,5 @@
+#ifndef ELSIE_DP
+#define ELSIE_DP
 #include<algorithm>
 #include<string>
 #include<vector>
@@ -8,8 +10,6 @@
 #include<utility>
 #include<concepts>
 #include<atcoder/fenwicktree>
-#ifndef ELSIE_DP
-#define ELSIE_DP
 namespace elsie{
 	using namespace std;
 	using namespace atcoder;
