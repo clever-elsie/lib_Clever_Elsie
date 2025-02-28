@@ -2,6 +2,7 @@
 #define ELSIE_SEGTREE
 #include<limits>
 #include<vector>
+#include<cassert>
 #include<cstdint>
 #include<cstddef>
 #include<iostream>
@@ -14,7 +15,7 @@ namespace elsie{
 		using sz_t=uint32_t;
 		vector<S>data;
 		vector<F>lazy;
-		sz_t sz,h;
+		sz_t sz,h,_n;
 		void update(sz_t idx){data[idx]=op(data[2*idx],data[2*idx+1]);}
 		void all_apply(sz_t idx,F f){
 			data[idx]=mapping(f,data[idx]);
@@ -25,16 +26,16 @@ namespace elsie{
 			all_apply(2*idx+1,lazy[idx]);
 			lazy[idx]=id();
 		}
+		size_t ceil2exp(size_t n)const{ return 1ull<<(63+(popcount(n)!=1)-countl_zero(n)); }
 	public:
-		lazy_segtree(size_t N=0):lazy_segtree(vector<S>(N,e())){}
-		lazy_segtree(const vector<S>&v){
-			sz=1ll<<(63-countl_zero(v.size())+(popcount(v.size())>1?1:0));
+		lazy_segtree(size_t N=0):lazy_segtree(vector<S>(N,e())){_n=N;}
+		lazy_segtree(const vector<S>&v):_n(v.size()){
+			sz=ceil2exp(v.size());
 			h=countr_zero(sz);
 			data=vector<S>(2*sz,e());
 			for(sz_t i=0;i<v.size();++i)data[i+sz]=v[i];
 			for(sz_t i=sz-1;i>0;--i)update(i);
 			lazy=vector<F>(sz,id());
-
 		}
 		void set(sz_t p,S val){
 			p+=sz;
@@ -80,6 +81,50 @@ namespace elsie{
 				if(((l>>i)<<i)!=l)update(l>>i);
 				if(((r>>i)<<i)!=r)update((r-1)>>i);
 			}
+		}
+		template<bool(*g)(S)>size_t min_left(size_t r){ return min_left(r,[](S x){return g(x);}); }
+		template<bool(*g)(S)>size_t max_right(size_t l){ return max_right(l,[](S x){return g(x);}); }
+
+		template<class G>size_t max_right(size_t l){
+			assert(l<=_n&&g(e()));
+			if(l==_n)return _n;
+			l+=sz;
+			for(size_t i=h;i>=1;--i)push(l>>i);
+			S p=e();
+			do{
+				while(!(l&1))l>>=1;
+				if(!g(op(p,data[l]))){
+					while(l<sz){
+						push(l);
+						l<<=1;
+						if(g(op(p,data[l]))) p=op(p,data[l++]);
+					}
+					return l-sz;
+				}
+				p=op(p,data[l++]);
+			}while((l&-l)!=l);
+			return _n;
+		}
+		template<class G>size_t min_left(size_t r){
+			assert(r<=_n&&g(e()));
+			if(r==0)return 0;
+			r+=sz;
+			for(size_t i=h;i>=1;--i)push((r-1)>>i);
+			S p=e();
+			do{
+				--r;
+				while(r>1&&(r&1))r>>=1;
+				if(!g(op(data[r],p))){
+					while(r<sz){
+						push(r);
+						r=(r<<1)+1;
+						if(g(op(data[r],p))) p=op(data[r--],p);
+					}
+					return r+1-sz;
+				}
+				p=op(data[r],p);
+			}while((r&-r)!=r);
+			return 0;
 		}
 	};
 }

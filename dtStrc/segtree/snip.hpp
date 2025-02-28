@@ -3,11 +3,10 @@
 #include <limits>
 #include <cstddef>
 #include <iostream>
-#include <atcoder/segtree>
-#include <atcoder/lazysegtree>
+#include <dtStrc/segtree/segtree.hpp>
+#include <dtStrc/segtree/lazy_segtree.hpp>
 namespace elsie{
 	using namespace std;
-	using namespace atcoder;
 
 	template<class S>S zeroE(){return S();}
 	template<class S>S max4min(){return numeric_limits<S>::max();}
