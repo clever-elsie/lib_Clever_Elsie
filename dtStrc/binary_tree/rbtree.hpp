@@ -487,7 +487,7 @@ class map:public rbtree<key_t,val_t,cmp,false>{
 };
 
 template<class val_t>
-class vector:public rbtree<null_t,val_t,less<null_t>,true>{
+class varray:public rbtree<null_t,val_t,less<null_t>,true>{
 	protected:
 	using super=rbtree<null_t,val_t,less<null_t>,true>;
 	typename super::iterator insert_key_null(size_t idx,val_t&&t){
