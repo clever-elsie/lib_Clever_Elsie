@@ -1,14 +1,5 @@
 #ifndef ELSIE_STD_IO
 #define ELSIE_STD_IO
-#include <string>
-#include <limits>
-#include <vector>
-#include <cstddef>
-#include <cstdint>
-#include <concepts>
-#include <iostream>
-#include <type_traits>
-using namespace std;
 
 template<class T>concept Lint=is_integral_v<T>&&sizeof(T)>8;
 template<class T>concept Itrabl=requires(const T&x){x.begin();x.end();}&&!std::is_same_v<T,string>;
@@ -16,8 +7,8 @@ template<class T>concept IItrabl=Itrabl<T>&&Itrabl<typename T::value_type>;
 template<class T>concept ModInt=requires(const T&x){x.val();};
 template<class T>concept NLobj=Itrabl<T>||std::is_same_v<T,string>;
 
-istream&operator<<(istream&is,f128&x){f64 y;is>>y;x=y;return is;}
-ostream&operator<<(ostream&os,const f128&x){return os<<static_cast<f64>(x);}
+istream&operator<<(istream&is,__float128&x){double y;is>>y;x=y;return is;}
+ostream&operator<<(ostream&os,const __float128&x){return os<<static_cast<double>(x);}
 
 template<Lint T>ostream&operator<<(ostream&dst,T val){
 	ostream::sentry s(dst);
@@ -52,13 +43,13 @@ template<Itrabl T>istream&operator>>(istream&is,T&v){for(auto&&x:v)is>>x;return 
 template<class T>void in(T&a){cin>>a;}
 template<class T,class... Ts>void in(T&a,Ts&... b){in(a);in(b...);}
 
-template<class T,class U>vc<pair<T,U>>zip(size_t n,size_t m){
+template<class T,class U>vector<pair<T,U>>zip(size_t n,size_t m){
 	vector<pair<T,U>>r(min(n,m));
 	iter(x,y,r)in(x);
 	iter(x,y,r)in(y);
 	return move(r);
 }
-template<class T,class U>vc<pair<T,U>>zip(size_t n){return move(zip<T,U>(n,n));}
+template<class T,class U>vector<pair<T,U>>zip(size_t n){return move(zip<T,U>(n,n));}
 
 template<ModInt T>ostream&operator<<(ostream&os,const T&v){return os<<v.val(); }
 template<class T,class U>ostream&operator<<(ostream&os,const pair<T,U>&v){return os<<'('<<v.first<<','<<v.second<<')';}
