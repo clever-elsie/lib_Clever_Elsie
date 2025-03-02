@@ -151,10 +151,14 @@ namespace elsie{
 		return{z2+(z1>>64)+(lower<z0),lower};
 	}
 
-	template<uint32_t M>class barret32{
-		constexpr static uint64_t iM=uint64_t(-1)/M + 1;
-		uint32_t umod(){ return M; }
-		uint32_t mul(uint32_t a,uint32_t b){
+	class barret32{
+		uint64_t M,iM;
+		public:
+		barret32():M(0),iM(0){}
+		barret32(uint32_t m):M(m),iM(uint64_t(-1)/m+1){}
+		void set(uint32_t m){ M=m,iM=uint64_t(-1)/m+1; }
+		uint32_t umod()const{ return M; }
+		uint32_t mul(uint32_t a,uint32_t b)const{
 			uint64_t z=(uint64_t)a*b;
 			uint64_t x=((__uint128_t)z*iM>>64);
 			uint64_t y=x*M;
@@ -162,11 +166,14 @@ namespace elsie{
 		}
 	};
 
-	template<uint64_t M>class barret64{
-		constexpr static __uint128_t iM=__uint128_t(-1)/M + 1;
+	class barret64{
+		__uint128_t M,iM;
+		public:
+		barret64():M(0),iM(0){}
+		barret64(uint64_t m):M(m),iM(__uint128_t(-1)/M+1){}
 		uint64_t umod(){ return M; }
 		uint64_t mul(uint64_t a,uint64_t b){
-			__uint128_t z=(__uint128_t)a*b;
+			__uint128_t z=mul64to128(a,b);
 			__uint128_t x=mul128(z,iM).first;
 			__uint128_t y=x*M;
 			return(uint64_t)(z-y+(z<y?M:0));
