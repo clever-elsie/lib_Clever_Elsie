@@ -20,13 +20,13 @@ template<class T,class U>inline void chmax(T&a,const U&b){if(a<b)a=b;}
 template<class T,class U>inline void chmin(T&a,const U&b){if(a>b)a=b;}
 
 
-#define _SEL2(_1,_2,name,...) name
+#define _BISECT4(_1,_2,_3,_4,name,...) name
 #define _LB_BEX(b,e,x) lower_bound(b,e,x)
 #define _LB_BEXG(b,e,x,g) lower_bound(b,e,x,g)
 #define _UB_BEX(b,e,x) upper_bound(b,e,x)
 #define _UB_BEXG(b,e,x,g) upper_bound(b,e,x,g)
-#define lb(...) _SEL2(__VA_ARGS__,_LB_BEXG,_LB_BEX)(__VA_ARGS__)
-#define ub(...) _SEL2(__VA_ARGS__,_UB_BEXG,_UB_BEX)(__VA_ARGS__)
+#define lb(...) _BISECT4(__VA_ARGS__,_LB_BEXG,_LB_BEX)(__VA_ARGS__)
+#define ub(...) _BISECT4(__VA_ARGS__,_UB_BEXG,_UB_BEX)(__VA_ARGS__)
 
 #define TP template<class T,class U,typename cp=less<U>>
 template<class T,class U>concept LUBI= same_as<T,vector<U>>||same_as<T,deque<U>>||is_array_v<T>;
