@@ -1,0 +1,59 @@
+#ifndef ELSIE_MISC_HEADER
+#define ELSIE_MISC_HEADER
+#if __has_include(<atcoder/modint>)
+#include "atcoder/modint"
+using namespace atcoder;
+using mint=modint998244353;
+using mint1=modint1000000007;
+#endif
+#include <limits>
+#include <new>
+#include <initializer_list>
+#include <compare>
+#include <concepts>
+#include <utility>
+#include <bitset>
+#include <tuple>
+#include <type_traits>
+#include <functional>
+#include <chrono>
+#include <string>
+#include <array>
+#include <deque>
+#include <list>
+#include <queue>
+#include <vector>
+#include <set>
+#include <map>
+#include <unordered_map>
+#include <unordered_set>
+#include <iterator>
+#include <ranges>
+#include <algorithm>
+#include <bit>
+#include <random>
+#include <numeric>
+#include <numbers>
+#include <iostream>
+#include <ios>
+#include <streambuf>
+#include <iomanip>
+#include <sstream>
+#include <regex>
+#include <cassert>
+#include <cctype>
+#include <climits>
+#include <cmath>
+#include <cstdarg>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+using namespace std;
+using namespace chrono;
+using std::cin;
+using std::cout;
+using sstream=stringstream;
+#endif

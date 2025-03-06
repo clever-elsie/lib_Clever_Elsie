@@ -1,6 +1,20 @@
 #ifndef ELSIE_STD_IO
 #define ELSIE_STD_IO
 
+#define INT(...) int __VA_ARGS__;in(__VA_ARGS__)
+#define CHR(...) char __VA_ARGS__;in(__VA_ARGS__)
+#define STR(...) str __VA_ARGS__;in(__VA_ARGS__)
+#define VI(a,n) vi a(n);in(a)
+#define VIT(a,n) vit a(n);in(a)
+#define VS(a,n) vs a(n);in(a)
+#define UV(u,v) INT(u,v);--u,--v
+#define UVW(u,v,w) INT(u,v,w);--u,--v
+#ifdef LOCAL
+#define dput(...) dos=&cerr;out(__VA_ARGS__);dos=&cout
+#else
+#define dput(...)
+#endif
+
 template<class T>concept Lint=is_integral_v<T>&&sizeof(T)>8;
 template<class T>concept Itrabl=requires(const T&x){x.begin();x.end();}&&!std::is_same_v<T,string>;
 template<class T>concept IItrabl=Itrabl<T>&&Itrabl<typename T::value_type>;
