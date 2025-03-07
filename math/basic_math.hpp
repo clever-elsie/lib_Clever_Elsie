@@ -33,7 +33,7 @@ namespace elsie{
 		return ret;
 	}
 
-	int64_t modpow(int64_t a,uint64_t b,uint64_t mod){
+	constexpr int64_t modpow(int64_t a,uint64_t b,uint64_t mod){
 		__int128_t k=a%mod,ret=1;
 		if(k<0)k+=mod;
 		while(b){
