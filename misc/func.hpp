@@ -46,9 +46,9 @@ TP size_t ubi(size_t i,const T&v,size_t e,const U&x,cp cmp=cp())RL{RET ub(i+I(v,
 #define TP template<integral T>
 #define MT make_unsigned_t<T>
 
-TP int32_t pcnt(T p){return popcount(MT(p));}
-TP int32_t lsb(T p){return countl_zero(MT(p));}
-TP int32_t msb(T p){return countr_zero(MT(p));}
+TP constexpr int32_t pcnt(T p){return popcount(MT(p));}
+TP constexpr int32_t lsb(T p){return countr_zero(MT(p));}
+TP constexpr int32_t msb(T p){return sizeof(T)*8-1-countl_zero(MT(p));}
 
 template<int32_t N,integral T>
 void putbit(T s){

@@ -31,4 +31,5 @@ using vs=vc<str>;
 using pqgp=pqg<pi>;
 #define int i64
 #define itn i64
+#define LL long long
 #endif
