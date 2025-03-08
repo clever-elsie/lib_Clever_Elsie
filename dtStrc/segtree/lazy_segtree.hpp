@@ -1,5 +1,5 @@
-#ifndef ELSIE_SEGTREE
-#define ELSIE_SEGTREE
+#ifndef ELSIE_LST
+#define ELSIE_LST
 #include<limits>
 #include<vector>
 #include<cassert>
