@@ -90,7 +90,7 @@ namespace elsie{
 		press.erase(unique(prb,pre),pre);
 		for(auto&x:arr)x=lower_bound(prb,pre,x)-prb;
 		for(int i=0;i<n;++i){
-			res+=i-bit.sum(0,arr[i]);
+			res+=i-bit.sum(0,arr[i]+1);
 			bit.add(arr[i],1);
 		}
 		return res;
