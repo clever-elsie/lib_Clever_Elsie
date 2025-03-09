@@ -80,7 +80,7 @@ namespace elsie{
 	}
 
 	template<Itrabl S>
-	size_t inversion_number(const S&tar){
+	size_t inv_number(const S&tar){
 		const size_t n=tar.size();
 		size_t res=0;
 		S arr=tar,press=tar;

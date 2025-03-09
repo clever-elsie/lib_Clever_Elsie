@@ -18,7 +18,7 @@ $n$ を $\forall x\in [1,n]$で割ったときの商の切り捨てとして有�
 bool is_prime(uint64_t);
 ```
 Miller Rabinです．
-乱択なので $O(\sqrt{N})$ より真に速い．
+$O(\sqrt{N})$ より真に速い．
 
 ## 素因数分解
 ```C++

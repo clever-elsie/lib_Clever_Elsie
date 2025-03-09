@@ -94,17 +94,17 @@ namespace elsie{
 			vector<tint>inv;
 			const unsigned long long M;
 		public:
-		combination(int n=1):invprod(2,1),prod(2,1),inv(2,0),M(mint(-1).val()+1){
+		combination(int64_t n=1):invprod(2,1),prod(2,1),inv(2,0),M(mint(-1).val()+1){
 			inv[1]=1;
 			if(n>1)PreCalc(n);
 		}
-		void PreCalc(int n){
-			int presize=inv.size();
+		void PreCalc(int64_t n){
+			size_t presize=inv.size();
 			if(presize>=n+1)return;
 			inv.resize(n+1);
 			prod.resize(n+1);
 			invprod.resize(n+1);
-			for(int i=presize;i<=n;i++){
+			for(int64_t i=presize;i<=n;++i){
 				prod[i]=prod[i-1]*i;
 				inv[i]=(((M/i)*(-inv[M%i]))+M)%M;
 				invprod[i]=invprod[i-1]*inv[i];

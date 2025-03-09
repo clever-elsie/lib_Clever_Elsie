@@ -7,14 +7,14 @@
 #include "math/basic_math.hpp"
 namespace elsie{
 using namespace std;
-// gcd_lcm.cpp::exgcd();
+// math/basic_math.cpp: elsie::exgcd();
 template<integral T>pair<T,T>crt(const vector<T>&b,const vector<T>&m){
 	T r=0,M=1;
 	for(size_t i=0;i<b.size();++i){
 		T p,q,d=exgcd(M,m[i],p,q);
 		T qo=(b[i]-r)/d;
 		T rem=(b[i]-r)%d;
-		if(rem)return {0,-1};
+		if(rem)return {0,0};
 		T tmp=qo*p%(m[i]/d);
 		r+=M*tmp;
 		M*=m[i]/d;
@@ -38,7 +38,7 @@ template<integral T>T garner(vector<T>&b,vector<T>&m,T mod){// any pair each of 
 	return constants.back();
 }
 
-template<integral T>T decomposite_garner(vector<T>&b,vector<T>&m,T mod)noexcept(false){
+template<integral T>T decomposite_garner(vector<T>&b,vector<T>&m,T mod){
 	size_t zerocnt=0;
 	for(const auto&x:b)zerocnt+=x==0;
 	long long ret=1;
