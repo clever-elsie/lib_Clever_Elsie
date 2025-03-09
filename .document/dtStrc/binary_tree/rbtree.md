@@ -72,7 +72,7 @@ copy も当然 $O(N)$.
 ## <a id="iterator">iterator</a>
 `iterator` は以下のメンバ関数を持つ `rbtree` のインナークラスである．
 ```C++
-iterator(rbtree*,node*); // nodeはprotectedなので使用不可
+iterator(const rbtree*,node*); // nodeはprotectedなので使用不可
 iterator&operator=(const iterator&);   // コピー
 bool operator==(const iterator&)const; // 参照するノードが同じときtrue
 bool operator!=(const iterator&)const; // 参照するノードが違うときtrue

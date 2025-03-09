@@ -85,7 +85,7 @@ class rbtree{
 		return*this;
 	}
 	struct iterator{
-		iterator(rbtree*t,np node):tree(t),n(node){}
+		iterator(const rbtree*t,np node):tree(t),n(node){}
 		iterator&operator=(const iterator&itr){
 			n=itr.n;
 			tree=itr.tree;
@@ -121,10 +121,10 @@ class rbtree{
 		friend class rbtree;
 		protected:
 		np n;
-		rbtree*tree;
+		const rbtree*tree;
 	};
 	struct reverse_iterator:public iterator{
-		reverse_iterator(rbtree*t,np node):iterator(t,node){}
+		reverse_iterator(const rbtree*t,np node):iterator(t,node){}
 		reverse_iterator&operator++(){
 			this->n=this->tree->prev_next(this->n,false);
 			return *this;
@@ -176,7 +176,7 @@ class rbtree{
 		}
 		return res;
 	}
-	np ordered_access(size_t idx){
+	np ordered_access(size_t idx)const{
 		np cur=root;
 		while(cur!=nil){
 			size_t L=cur->ch[0]->size;
@@ -188,7 +188,7 @@ class rbtree{
 		}
 		return nil;
 	}
-	size_t order_of_node(np p){
+	size_t order_of_node(np p)const{
 		if(p==nil)return cur_size;
 		size_t R=p->ch[0]->size;
 		while(p!=root){
