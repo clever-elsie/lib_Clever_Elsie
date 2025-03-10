@@ -52,10 +52,10 @@ TP constexpr int32_t msb(T p){return sizeof(T)*8-1-countl_zero(MT(p));}
 
 template<int32_t N,integral T>
 void putbit(T s){
-	char buf[N+1]={0};
-	for(char*itr=buf+N-1;itr>=buf;itr--,s>>=1)
-		*itr='0'+(s&1);
-	cout<<buf<<sep;
+    char buf[N+1]={0};
+    for(char*itr=buf+N-1;itr>=buf;itr--,s>>=1)
+        *itr='0'+(s&1);
+    cout<<buf<<sep;
 }
 #undef TP
 #undef MT
