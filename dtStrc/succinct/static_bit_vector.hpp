@@ -35,35 +35,43 @@ class static_bit_vector{
         fixed=true;
     }
     // [0,idx)
-    size_t rank1(size_t idx)const{
-        assert(fixed);
-        return cnt[idx>>6]+std::popcount(bit[idx>>6]&((u64(1)<<(idx&0x3F))-1));
-    }
-    size_t rank0(size_t idx)const{
-        assert(fixed);
-        return idx+1-rank1(idx);
+    template<bool one=true>
+    size_t rank(size_t idx)const{
+        assert(fixed&&idx<=sz);
+        size_t r=cnt[idx>>6]+std::popcount(bit[idx>>6]&((u64(1)<<(idx&0x3F))-1));
+        if constexpr(one)
+            return r;
+        else return idx-r;
     }
     // [l,r)
-    size_t rank1(size_t l,size_t r)const{
-        assert(fixed);
-        return rank1(r)-rank1(l);
+    template<bool one=true>
+    size_t rank(size_t l,size_t r)const{ return rank<one>(r)-rank<one>(l); }
+    // k is 1-based index
+    template<bool one=true>
+    size_t select(size_t k)const{
+        assert(fixed&&k);
+        if(k>sz)return sz;
+        int64_t ng=k-2,ok=sz;
+        while(ng+1<ok){
+            int64_t m=(ng+ok)>>1;
+            if(rank<one>(m+1)>=k)ok=m;
+            else ng=m;
+        }
+        return ok;
     }
-    size_t rank0(size_t l,size_t r)const{
-        assert(fixed);
-        return rank0(r)-rank0(l);
-    }
-
     const static_bit_vector&operator=(const static_bit_vector&v){
         sz=v.sz;
         fixed=v.fixed;
         cnt=v.cnt;
-        bit=v.cnt;
+        bit=v.bit;
+        return*this;
     }
     const static_bit_vector&operator=(static_bit_vector&&v){
         sz=v.sz;
         fixed=v.fixed;
         bit=std::move(v.bit);
         cnt=std::move(v.cnt);
+        return*this;
     }
 };
 }// namespace elsie
