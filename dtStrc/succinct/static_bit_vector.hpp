@@ -19,7 +19,8 @@ class static_bit_vector{
     u32 ceil(u64 a,u64 b){return(a+b-1)/b;}
     public:
     static_bit_vector():fixed(false),bit(0),cnt(0),sz(0){}
-    static_bit_vector(size_t N):fixed(false),sz(N),bit(ceil(N,bsz),0),cnt(ceil(N,bsz),0){}
+    static_bit_vector(size_t N):fixed(false),sz(N),bit(ceil(N,bsz),0),cnt(ceil(N,bsz)+1,0){}
+    static_bit_vector(const static_bit_vector&)=default;
     bool get(size_t idx)const{return(bit[idx>>6]&u64(1)<<(idx&0x3F))!=0;}
     void set(size_t idx){
         assert(!fixed);
@@ -58,6 +59,11 @@ class static_bit_vector{
             else ng=m;
         }
         return ok;
+    }
+    template<bool one=true>
+    size_t select(size_t l,size_t k)const{
+        assert(k);
+        return select<one>(rank<one>(l)+k);
     }
     const static_bit_vector&operator=(const static_bit_vector&v){
         sz=v.sz;

@@ -38,10 +38,12 @@ size_t rank<0,1>(size_t l,size_t r)const;
 ## select $O(\lg N)$
 ```C++
 size_t select<0,1>(size_t k)const;
+size_t select<0,1>(size_t l,size_t k)const;
 ```
 $k\ge 1$ 番目に現れる $0,1$ のインデックスを返す．  
 デフォルトは $1$.  
-存在しない場合は，配列のサイズが返る．
+存在しない場合は，配列のサイズが返る．  
+2個目は $[l,N)$ で $k \ge 1$ 番目に現れる $0,1$ のインデックスを返す．
 
 ## operator=
 ```C++
