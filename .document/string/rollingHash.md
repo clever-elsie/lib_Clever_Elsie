@@ -36,12 +36,19 @@ bool same(int64_t l,int64_t r,int64_t L,int64_t R);
 ```
 SRCの区間 $[l,r)$ と 区間 $[L,R)$ が同じ文字列かどうかを調べる． $O(\lg(R-L))$
 
-## hassing
+## hashing
 ```C++
-pair<array<int64_t,n>,size_t>hassing(const T&tar);
+pair<array<int64_t,n>,size_t>hashing(const T&tar);
 ```
 `tar:T`をハッシュ化した値を得る．
 `.find()`を何度も呼ぶときにはこれを使うと良いかも．
+
+## get_b
+```C++
+int64_t get_b(size_t idx)const;
+```
+$idx<n$ となる `idx` のハッシュ化基数を返します．
+$[l,r)$ を除去した文字列のハッシュ値などを求める際に必要になります．
 
 ## 動的ロリハ
 ```C++

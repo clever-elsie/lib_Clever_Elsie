@@ -40,6 +40,7 @@ class rollingHash{
     }
     ll spow(ll i,ll p){ return modpow(b[i],p,mods[i]); }
     public:
+    ll get_b(size_t idx)const{return b[idx];}
     void make_hash(const str&s,vector<arl>&h){
         h.resize(s.size()+1);
         h[0].fill(0ll);
@@ -61,7 +62,7 @@ class rollingHash{
     public:
     rollingHash():src(""){gen_rand();}
     rollingHash(const str&SRC):src(SRC){gen_rand(),make_hash(src,hash);}
-    pair<arl,size_t>hassing(const str&tar){
+    pair<arl,size_t>hashing(const str&tar){
         arl h;
         make_hash(tar,thash);
         for(int i=0;i<psz;i++)h[i]=thash.back()[i];
