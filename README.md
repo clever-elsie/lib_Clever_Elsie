@@ -9,8 +9,8 @@ $N$ は配列の長さとする． $2$ つ以上の配列について論じる�
 
 
 ## 現在作成(放置)中
-- wavelet matrix  
 - meissel Lehmer  
+- mincost flow
 
 # 目次
 * <a href="./.document/dtStrc/dtStrc.md">データ構造</a>

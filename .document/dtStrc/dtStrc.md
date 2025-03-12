@@ -20,3 +20,5 @@
 rbtreeは`set,map,multiset,multimap`に対応．
 * rbtree_tree
 * splay_tree
+## <a href="./succinct/succinct.md">簡潔データ構造</a>
+* wavelet

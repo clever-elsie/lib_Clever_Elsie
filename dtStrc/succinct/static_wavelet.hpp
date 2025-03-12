@@ -59,6 +59,7 @@ class wavelet{
     }
 
     type get(size_t idx)const{
+        if(!fixed) return data[idx];
         type r=0;
         for(int32_t i=lg-1;i>=0;--i){
             if(bv[i].get(idx)){
@@ -95,18 +96,21 @@ class wavelet{
     size_t select(size_t idx,type v)const{
         size_t mx=rank(0,sz,v);
         if(idx>=mx) return sz;
-        size_t pos=0;
+        size_t l=0,r=sz;
         for(int32_t h=lg-1;h>=0;--h){
-            if(v>>h&1) pos=bv[h].rank<0>(sz)+bv[h].rank<1>(pos);
-            else pos=bv[h].rank<0>(pos);
+            size_t L0=bv[h].rank<0>(l),R0=bv[h].rank<0>(r);
+            if(v>>h&1){
+                size_t zeros=bv[h].rank<0>(sz);
+                l+=zeros-L0,r+=zeros-R0;
+            }else l=L0,r=R0;
         }
-        pos+=idx;
-        for(int32_t h=0;h<lg;++h){
-            if(v>>h&1) pos=bv[h].select<1>(pos-bv[h].rank<0>(sz));
-            else bv[h].select<0>(pos);
-        }
+        size_t pos=l+idx;
+        for(int32_t h=0;h<lg;++h)
+            if(v>>h&1) pos=bv[h].select<1>(1+pos-bv[h].rank<0>(sz));
+            else pos=bv[h].select<0>(1+pos);
         return pos;
     }
+    size_t select(size_t l,size_t idx,type v)const{ return select(idx+rank(0,l,v),v); }
     type less(size_t l,size_t r,size_t ord)const{
         type ret=0;
         for(int32_t h=lg-1;h>=0;--h){
@@ -164,6 +168,7 @@ class wavelet_s{
     size_t range_freq(size_t l,size_t r,type lower,type upper)const{return wv.range_freq(l,r,raise(lower),raise(upper));}
     size_t rank(size_t l,size_t r,type v)const{ return wv.rank(l,r,raise(v)); }
     size_t select(size_t idx,type v)const{ return wv.select(idx,raise(v)); }
+    size_t select(size_t l,size_t idx,type v)const{ return wv.select(l,idx,raise(v)); }
     type less(size_t l,size_t r,size_t ord)const{ return wv.less(l,r,ord)-pot; }
     type greater(size_t l,size_t r,size_t ord)const{ return wv.greater(l,r,ord)-pot; }
     type prev(size_t l,size_t r,type upper)const{ return wv.prev(l,r,raise(upper))-pot; }
