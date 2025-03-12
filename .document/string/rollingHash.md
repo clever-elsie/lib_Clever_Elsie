@@ -1,13 +1,53 @@
-## rolling hash
-**遅い**  
+# rolling hash
 
-`rollingHash<n>(const string&)` コンストラクタで検索元の文字列を設定。 nはロリハの本数
+## コンストラクタ
+```C++
+rollingHash<n,T>();
+rollingHash<n,T(const T&SRC);
+```
+$n={1,2,3}$ はロリハの本数  
+`T`は乱択可能な型`vector`とか`string`とか．  
+`SRC`で初期化・構築するか，後から`set()`で構築する．
+## set
+```C++
+void set(const T&SRC);
+```
+構築する. $O(n|\text{SRC}|)$
+## hash_value
+```C++
+int64_t hash_value(int64_t l,int64_t r,int64_t i);
+```
+$i$ 本目のロリハの $[l,r)$ のハッシュ値を得る．  
+$O(\lg (r-l))$
 
-`dynamicRollingHash<n>(const string&)` セグ木版。文字変更機能あり。
+## find
+```C++
+vector<size_t>find(const T&t);
+vector<size_t>find(const array<int64_t,n>&h,const size_t len);
+vector<size_t>find(size_t len,const array<int64_t,n>&h);
+vector<size_t>find(const pair<array<int64_t,n>,size_t>&hashed);
+```
+検索対象の文字列が現れる先頭位置を全列挙する． $O(|S|\lg|T|)$  
+1番上以外は内部的に使うが，`hassing()`と組合せて使ってもいい．
 
-`.find(const string&)` 対象の文字列を検索する。
+## same
+```C++
+bool same(int64_t l,int64_t r,int64_t L,int64_t R);
+```
+SRCの区間 $[l,r)$ と 区間 $[L,R)$ が同じ文字列かどうかを調べる． $O(\lg(R-L))$
 
-`.same(int,int,int,int)` 区間の文字列一致判定 $[L1,R1), [L2,R2)$
+## hassing
+```C++
+pair<array<int64_t,n>,size_t>hassing(const T&tar);
+```
+`tar:T`をハッシュ化した値を得る．
+`.find()`を何度も呼ぶときにはこれを使うと良いかも．
 
-`.set(int idx,char c)` idxの文字をcに変更する。セグ木版限定。
-
+## 動的ロリハ
+```C++
+dynamicRollingHash<n>(const string&);
+vector<size_t>find(const string&);
+bool same(int64_t l,int64_t r,int64_t L,int64_t R);
+void set(size_t idx,char c);
+```
+`.set(int idx,char c)` idxの文字をc変更する。

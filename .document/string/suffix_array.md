@@ -22,7 +22,7 @@ void set(T&&);
 ```C++
 size_t lower_bound(const T&t);
 size_t upper_bound(const T&t);
+size_t count(const T&t);
 ```
 検索対象の文字列`t`がsuffix_array上で何番目にあるかを探索する．  
 `lower_bound()`は辞書順で`t`以上，`upper_bound()`は`t`より真に大きい．  
-したがって，`v`に含まれる`v`と一致する部分列の数は，`upper_bound()-lower_bound()`

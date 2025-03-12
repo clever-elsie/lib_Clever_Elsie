@@ -10,15 +10,18 @@
 #include <set>
 namespace elsie{
 using namespace std;
-template<size_t psz>
+template<class T>concept Itrabl_for_rollhash=requires(const T&x){x.begin();x.end();x.size();typename T::value_type;};
+template<size_t psz,Itrabl_for_rollhash itr_t>
 class rollingHash{
     protected:
-    using ll = long long;
+    using ll = int64_t;
     using vl = vector<ll>;
-    using str = string;
-    const ll mods[3]={(ll)((1LL<<61)-1),998244353,(ll)(1e9+7)};
+    using str = itr_t;
+    constexpr static ll mods[3]={(ll)((1LL<<61)-1),998244353,(ll)(1e9+7)};
     ll b[psz];
+    public:
     using arl = array<ll,psz>;
+    protected:
     str src;
     ll trans[256][psz];
     vector<arl>thash;
@@ -36,6 +39,7 @@ class rollingHash{
         return ll(ret);
     }
     ll spow(ll i,ll p){ return modpow(b[i],p,mods[i]); }
+    public:
     void make_hash(const str&s,vector<arl>&h){
         h.resize(s.size()+1);
         h[0].fill(0ll);
@@ -43,6 +47,7 @@ class rollingHash{
             for(int j=0;j<psz;j++)
                 h[i+1][j]=((mul(h[i][j],b[j],mods[j])+trans[s[i]][j])%mods[j]+mods[j])%mods[j];
     }
+    protected:
     void gen_rand(){
         random_device seed;
         mt19937_64 gen(seed());
@@ -53,13 +58,6 @@ class rollingHash{
         for(int j=0;j<psz;j++)
             trans[i][j]=gen()%mods[j];
     }
-    ll hash_value(ll l,ll r,ll i){
-        ll ret=hash[r][i];
-        ll L=mul(hash[l][i],spow(i,r-l),mods[i]);
-        ret=(ret-L)%mods[i];
-        ret=(ret+mods[i])%mods[i];
-        return ret;
-    }
     public:
     rollingHash():src(""){gen_rand();}
     rollingHash(const str&SRC):src(SRC){gen_rand(),make_hash(src,hash);}
@@ -68,6 +66,18 @@ class rollingHash{
         make_hash(tar,thash);
         for(int i=0;i<psz;i++)h[i]=thash.back()[i];
         return move(make_pair(move(h),tar.size()));
+    }
+    void set(const str&SRC){
+        src=SRC;
+        gen_rand();
+        make_hash(src,hash);
+    }
+    ll hash_value(ll l,ll r,ll i){
+        ll ret=hash[r][i];
+        ll L=mul(hash[l][i],spow(i,r-l),mods[i]);
+        ret=(ret-L)%mods[i];
+        ret=(ret+mods[i])%mods[i];
+        return ret;
     }
     /**
      * @brief return all matched string's first character's index in src
@@ -90,7 +100,7 @@ class rollingHash{
      * @brief [l,r)==[L,R)
      * @brief verified with AtCoder https://atcoder.jp/contests/tessoku-book/submissions/me
      */
-    bool same(int l,int r,int L,int R){
+    bool same(ll l,ll r,ll L,ll R){
         if(r-l!=R-L)return false;
         ll n=R-L;
         for(int i=0;i<psz;i++)
@@ -102,7 +112,7 @@ class rollingHash{
 
 class rolHashSeg{
 private: // don't write
-    using ll = long long;
+    using ll = int64_t;
     using S = pair<ll,ll>;
     vector<S> v;
     array<ll,256>trans;
@@ -174,7 +184,7 @@ public:
 
 template<size_t psz>
 class dynamicRollingHash{
-    using ll = long long;
+    using ll = int64_t;
     const ll mods[3]={ll(1ll<<61)-1,998244353,1'000'000'007};
     rolHashSeg seg[psz];
     ll n;
@@ -211,7 +221,7 @@ class dynamicRollingHash{
         for(const auto&x:st)ret.push_back(x);
         return move(ret);
     }
-    bool same(int l,int r,int L,int R){
+    bool same(ll l,ll r,ll L,ll R){
         if(r-l!=R-L)return false;
         bool all=true;
         for(int j=0;j<psz;j++)
