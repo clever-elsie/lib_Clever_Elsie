@@ -1,0 +1,3 @@
+# 線形時間文字列アルゴリズム
+## <a href="./kmp.md">KMP法</a>
+## <a href="./suffix_array.md">接尾辞配列</a>
