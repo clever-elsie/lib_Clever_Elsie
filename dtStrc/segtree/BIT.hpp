@@ -23,7 +23,7 @@ namespace elsie{
         BIT(size_t size){ setup(vector<type>(size,type())); }
         BIT(const vector<type>&v_){ setup(v_); }
         BIT(vector<type>&&v_){ setup(move(v_)); }
-        BIT(const BIT&b){ setup(b.v);}
+        BIT(const BIT&b){ setup(vector<type>(b.v));}
         BIT(BIT&&b){ setup(move(b.v));}
         void add(size_t i,type val){ for(i++;i<=v.size();i+=i&-i) v[i-1]+=val; }
         type sum(size_t l,size_t r){ return sum(r)-sum(l); }
