@@ -58,6 +58,15 @@ class mpInt{
     mpInt(int64_t x){ u64toVal(x<0?~ut(x)+1:x); }
     mpInt(const mpInt&v):val(v.val){}
     mpInt(mpInt&&v):val(move(v.val)){}
+    mpInt(const string&s){
+        val.fill(0);
+        if(s.size()!=0){
+            bool sign=s[0]=='-';
+            for(ut i=sign;i<s.size();++i)
+                *this=(*this*raw(10))+raw(s[i]-'0');
+            if(sign) *this=raw(0)-*this;
+        }
+    }
     static mpInt raw(it v){ return mpInt(v,0); }
     string to_string(){
         mpInt x=*this;
