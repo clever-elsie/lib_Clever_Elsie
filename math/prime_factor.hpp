@@ -33,21 +33,34 @@ namespace elsie{
             ret.push_back(q);
             x=n/(q+1);
         }
-        return move(ret);
+        return ret;
     }
 
     /**
      * miller rabin
+     * 2^64を受け取れるように一応しているが，実際に判定できるのはuint64_tだけ
      */
-    constexpr bool is_prime(uint64_t p){
+    template<class T>
+    constexpr bool is_prime(T p)requires is_integral_v<T>||same_as<T,__int128_t>||same_as<T,__uint128_t>{
+        if constexpr(sizeof(T)>8) return false;
+        else{
         if(p<=1)return false;
         for(const auto&s:{2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101}){
-            if(p==s)return true;
+            if(p==(T)s)return true;
             if(p%s==0)return false;
         }
-        uint64_t d=(p-1)>>countr_zero(p-1);
+        uint64_t d=({
+            uint64_t r=0;
+            if constexpr(sizeof(T)<=8)
+                r=(p-1)>>countr_zero(make_unsigned_t<T>(p)-1);
+            else{
+                T s=p-1;
+                while((s&1)==0)s>>=1,++r;
+            }
+            r;
+        });
         auto ok=[&](uint64_t a)-> bool {
-            uint64_t y=modpow(a,d,p);
+            uint64_t y=modpow<uint64_t>(a,d,uint64_t(p));
             uint64_t t=d;
             while(y!=1&&y!=p-1&&t!=p-1){
                 y=__uint128_t(y)*y%p;
@@ -65,6 +78,7 @@ namespace elsie{
             }
         }
         return true;
+        } // endif constexpr
     }
 
     /**
@@ -72,7 +86,7 @@ namespace elsie{
     */
     vector<uint64_t>factorize(uint64_t m){
         if(m==1)return {};
-        if(is_prime(m))return{m};
+        if(is_prime<uint64_t>(m))return{m};
         auto pollard_rho=[&](auto pollard_rho,uint64_t n)->uint64_t {
             if(~n&1)return 2;
             if(is_prime(n))return n;

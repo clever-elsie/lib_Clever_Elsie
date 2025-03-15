@@ -15,7 +15,7 @@
 #define dput(...)
 #endif
 
-template<class T>concept Lint=is_integral_v<T>&&sizeof(T)>8;
+template<class T>concept Lint=same_as<T,__int128_t>||same_as<T,__uint128_t>;
 template<class T>concept Itrabl=requires(const T&x){x.begin();x.end();}&&!std::is_same_v<T,string>;
 template<class T>concept IItrabl=Itrabl<T>&&Itrabl<typename T::value_type>;
 template<class T>concept ModInt=requires(const T&x){x.val();};
@@ -37,7 +37,7 @@ template<Lint T>ostream&operator<<(ostream&dst,T val){
         v/=10;
     }while(v!=0);
     if(vsign)*(--d)='-';
-    size_t len=end(_O128)-d;
+    ptrdiff_t len=end(_O128)-d;
     if(dst.rdbuf()->sputn(d,len)!=len)dst.setstate(ios_base::badbit);
     return dst;
 }
@@ -67,8 +67,8 @@ template<class T,class U>vector<pair<T,U>>zip(size_t n){return move(zip<T,U>(n,n
 
 template<ModInt T>ostream&operator<<(ostream&os,const T&v){return os<<v.val(); }
 template<class T,class U>ostream&operator<<(ostream&os,const pair<T,U>&v){return os<<'('<<v.first<<','<<v.second<<')';}
-template<Itrabl T>ostream&operator<<(ostream&os,const T&v){int cnt=0;cter(x,v)os<<x<<(++cnt<v.size()?" ":"");return os;}
-template<IItrabl T>ostream&operator<<(ostream&os,const T&v){int cnt=0;cter(x,v)os<<x<<(++cnt<v.size()?"\n":"");return os;}
+template<Itrabl T>ostream&operator<<(ostream&os,const T&v){size_t cnt=0;cter(x,v)os<<x<<(++cnt<v.size()?" ":"");return os;}
+template<IItrabl T>ostream&operator<<(ostream&os,const T&v){size_t cnt=0;cter(x,v)os<<x<<(++cnt<v.size()?"\n":"");return os;}
 inline ostream*dos=&cout;
 inline int32_t OFLG; // 0:first, 1:notNLobj, 2:NLobj
 template<class T>void _out(const T&a){if(OFLG)(*dos)<<"0 \n"[OFLG]<<a;else(*dos)<<a;OFLG=1;}

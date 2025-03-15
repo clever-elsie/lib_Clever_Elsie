@@ -14,6 +14,30 @@ inline auto ceil(const T a,const U b){return(a+b-1)/b;}
 template<integral T,integral U>
 inline auto floor(const T a,const U b){return a/b-(a%b&&(a^b)<0);}
 
+using u128=__uint128_t;
+using u64 = uint64_t;
+inline __uint128_t mul64to128(u64 a,u64 b){
+    u64 hi,lo;
+    asm("mulq %3" :"=a"(lo),"=d"(hi):"a"(a),"r"(b));
+    return((__uint128_t)(hi)<<64)+lo;
+}
+inline pair<u128,u128>mul128(u128 a,u128 b){
+    constexpr static u128 Lfilter=0xFFFF'FFFF'FFFF'FFFFull;
+    u64 x1=a>>64,x0=a&Lfilter;
+    u64 y1=b>>64,y0=b&Lfilter;
+    u128 z2=mul64to128(x1,y1),z1=mul64to128(x1,y0)+mul64to128(x0,y1),z0=mul64to128(x0,y0);
+    u128 lower=z0+(z1<<64);
+    return{z2+(z1>>64)+(lower<z0),lower};
+}
+inline u128 rem256(pair<u128,u128>x,u128 mod){
+    u128 rem32=(u128(1)<<32)%mod;
+    u128 rem64=rem32*rem32%mod;
+    u128 rem128=rem64*rem64%mod;
+    auto&&[a,b]=x;
+    a%=mod,b%=mod;
+    return(a*rem128%mod+b)%mod;
+}
+
 int64_t safepow(int64_t a,uint64_t b){
     int64_t ret=1,k=a;
     double check=1,kcheck=a;
@@ -33,15 +57,29 @@ int64_t safepow(int64_t a,uint64_t b){
     return ret;
 }
 
-constexpr int64_t modpow(int64_t a,uint64_t b,uint64_t mod){
-    __int128_t k=a%mod,ret=1;
-    if(k<0)k+=mod;
-    while(b){
-        ret=(b&1?ret*k%mod:ret);
-        k=(k*k)%mod;
-        b>>=1;
+template<integral T,class U=make_unsigned_t<T>>
+constexpr T modpow(T a,U b,U mod){
+    if constexpr(is_same_v<U,__uint128_t>){ // mod=2^64専用
+        constexpr __uint128_t filter=uint64_t(-1);
+        a%=mod;
+        __uint128_t ret=1;
+        if(a<0)a+=mod;
+        while(b){
+            ret=(b&1?ret*a&filter:ret);
+            a=a*a&filter;
+            b>>=1;
+        }
+        return uint64_t(ret&filter);
+    }else{
+        __int128_t k=a%mod,ret=1;
+        if(k<0)k+=mod;
+        while(b){
+            ret=(b&1?ret*k%mod:ret);
+            k=(k*k)%mod;
+            b>>=1;
+        }
+        return int64_t(ret);
     }
-    return int64_t(ret);
 }
 
 template<class S>S gcd(S a,S b){
@@ -68,13 +106,13 @@ template<class T>T exgcd(T a,T b,T&x,T&y){
     x=1,y=0;
     T u=0,v=1;
     while(b){
-        T k=a/b;
-        T r=a%b;
+        T k=a/b,r=a%b;
         assign(a,b,b,r);
         assign(x,u,u,x-u*k);
         assign(y,v,v,y-v*k);
     }
-    if(a<0)a=-a,x=-x,y=-y;
+    if constexpr(is_signed_v<T>)
+        if(a<0)a=-a,x=-x,y=-y;
     return a;
 }
 
@@ -134,22 +172,6 @@ class combination{
         return C(n+k-1,k);
     }
 };
-
-using u128=__uint128_t;
-using u64 = uint64_t;
-inline __uint128_t mul64to128(u64 a,u64 b){
-    u64 hi,lo;
-    asm("mulq %3" :"=a"(lo),"=d"(hi):"a"(a),"r"(b));
-    return((__uint128_t)(hi)<<64)+lo;
-}
-inline pair<u128,u128>mul128(u128 a,u128 b){
-    constexpr static u128 Lfilter=0xFFFF'FFFF'FFFF'FFFFull;
-    u64 x1=a>>64,x0=a&Lfilter;
-    u64 y1=b>>64,y0=b&Lfilter;
-    u128 z2=mul64to128(x1,y1),z1=mul64to128(x1,y0)+mul64to128(x0,y1),z0=mul64to128(x0,y0);
-    u128 lower=z0+(z1<<64);
-    return{z2+(z1>>64)+(lower<z0),lower};
-}
 
 class barret32{
     uint64_t M,iM;

@@ -21,17 +21,37 @@ template<integral T>pair<T,T>crt(const vector<T>&b,const vector<T>&m){
     }return{(r%M+M)%M,M};
 }
 
-template<integral T>T garner(vector<T>&b,vector<T>&m,T mod){// any pair each of all m is gcd(m[i],m[j])=1
-    using vc=vector<T>;
-    auto mod_mul=[](int64_t x,int64_t y,int64_t MOD){ return (MOD+((x%MOD)*(y%MOD))%MOD)%MOD; };
+/**
+ * any pair each of all m is gcd(m[i],m[j])=1
+ */
+template<class T>T garner(const vector<T>&b,vector<T>&m,T mod)requires is_integral_v<T>||same_as<T,__int128_t>||same_as<T,__uint128_t>{
+    using int_s=conditional_t<(sizeof(T)>8),__int128_t,int64_t>;
+    using vc=vector<int_s>;
+    constexpr __uint128_t threshold=__uint128_t(1)<<64;
     m.push_back(mod);
-    vc coeffs(m.size(),1);
-    vc constants(m.size(),0);
-    for(size_t k=0;k<b.size();++k){
-        T t=mod_mul(b[k]-constants[k],mod_inv<T>(coeffs[k],m[k]),m[k]);
-        for(size_t i=k+1;i<m.size();++i){
-            (constants[i]+=mod_mul(t,coeffs[i],m[i]))%=m[i];
-            coeffs[i]=mod_mul(coeffs[i],m[k],m[i]);
+    vc coeffs(m.size(),1),constants(m.size(),0);
+    if(threshold>=mod){
+        for(size_t k=0;k<b.size();++k){
+            int_s tmp=b[k]>=constants[k]?b[k]-constants[k]:(b[k]+m[k])-constants[k];
+            int_s t=tmp*mod_inv<int_s>(coeffs[k],m[k])%m[k];
+            for(size_t i=k+1;i<m.size();++i){
+                constants[i]=(t*coeffs[i]%m[i]+constants[i])%m[i];
+                coeffs[i]=coeffs[i]*m[k]%m[i];
+            }
+        }
+    }else{
+        for(size_t k=0;k<b.size();++k){
+            int_s tmp=b[k]>=constants[k]?b[k]-constants[k]:(b[k]+m[k])-constants[k];
+            int_s t=tmp*mod_inv<int_s>(coeffs[k],m[k])%m[k];
+            for(size_t i=k+1;i<m.size();++i){
+                if constexpr(sizeof(T)>8){
+                    constants[i]=(constants[i]+rem256(mul128(t,coeffs[i]),m[i]))%m[i];
+                    coeffs[i]=rem256(mul128(coeffs[i],m[k]),m[i]);
+                }else{
+                    constants[i]=(t*coeffs[i]%m[i]+constants[i])%m[i];
+                    coeffs[i]=coeffs[i]*m[k]%m[i];
+                }
+            }
         }
     }
     m.pop_back();
