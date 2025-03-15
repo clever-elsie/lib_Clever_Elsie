@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <utility>
 #include <algorithm>
+#include <functional>
 #include <math/basic_math.hpp>
 namespace elsie{
 using namespace std;
@@ -68,6 +69,17 @@ class mpInt{
         }
     }
     static mpInt raw(it v){ return mpInt(v,0); }
+    mpInt&operator=(mpInt&&v){
+        this->val=move(v.val);
+        return*this;
+    }
+    mpInt&operator=(const mpInt&v){
+        this->val=v.val;
+        return*this;
+    }
+    mpInt&operator=(int64_t x){return*this=mpInt(x);}
+    mpInt&operator=(uint64_t x){return*this=mpInt(x);}
+    mpInt&operator=(const string&s){return*this=mpInt(s);}
     string to_string(){
         mpInt x=*this;
         string ret;
@@ -80,10 +92,6 @@ class mpInt{
         if(ret.size()) reverse(ret.begin(),ret.end());
         else ret.push_back('0');
         return ret;
-    }
-    mpInt&operator=(const mpInt&rhs){
-        val=rhs.val;
-        return*this;
     }
     mpInt&operator+=(const mpInt&rhs){
         for(it i=0;i<mod_cnt;++i){
@@ -114,16 +122,6 @@ class mpInt{
     mpInt&operator-=(int64_t x){return*this-=mpInt(x);}
     mpInt&operator*=(int64_t x){return*this*=mpInt(x);}
     mpInt&operator/=(int64_t x){return*this/=mpInt(x);}
-    mpInt&operator=(mpInt&&v){
-        this->val=move(v.val);
-        return*this;
-    }
-    mpInt&operator=(const mpInt&v){
-        this->val=v.val;
-        return*this;
-    }
-    mpInt&operator=(int64_t x){return*this=mpInt(x);}
-    mpInt&operator=(uint64_t x){return*this=mpInt(x);}
     friend bool operator!=(const mpInt&lhs,const mpInt&rhs){
         for(it i=0;i<mod_cnt;++i)
             if(lhs.val[i]!=rhs.val[i])
@@ -147,6 +145,19 @@ class mpInt{
     friend mpInt operator-(const mpInt&lhs,int64_t rhs){return mpInt(rhs)-=lhs;}
     friend mpInt operator*(const mpInt&lhs,int64_t rhs){return mpInt(rhs)*=lhs;}
     friend mpInt operator/(const mpInt&lhs,int64_t rhs){return mpInt(rhs)/=lhs;}
+    private:
+    friend struct std::hash<mpInt<mod_cnt>>;
+};
+}
+namespace std{ // ハッシュ関数の特殊化
+template<size_t mod_cnt>
+struct hash<elsie::mpInt<mod_cnt>>{
+    size_t operator()(const elsie::mpInt<mod_cnt>&obj)const{
+        size_t res=0;
+        for(const auto&val:obj.val)
+            res^=std::hash<uint32_t>{}(val)+0x9E3779B9+(res<<6)+(res>>2);
+        return res;
+    }
 };
 }
 #endif
