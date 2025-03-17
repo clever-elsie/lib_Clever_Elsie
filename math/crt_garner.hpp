@@ -24,8 +24,9 @@ template<integral T>pair<T,T>crt(const vector<T>&b,const vector<T>&m){
 /**
  * any pair each of all m is gcd(m[i],m[j])=1
  */
-template<class T>T garner(const vector<T>&b,vector<T>&m,T mod)requires is_integral_v<T>||same_as<T,__int128_t>||same_as<T,__uint128_t>{
-    using int_s=conditional_t<(sizeof(T)>8),__int128_t,int64_t>;
+template<class T,class U>U garner(const vector<T>&b,vector<T>&m,U mod)
+requires is_integral_v<T>||same_as<T,__int128_t>||same_as<T,__uint128_t>{
+    using int_s=conditional_t<(sizeof(U)>8),__int128_t,int64_t>;
     using vc=vector<int_s>;
     constexpr __uint128_t threshold=__uint128_t(1)<<64;
     m.push_back(mod);
