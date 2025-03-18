@@ -14,6 +14,35 @@ inline auto ceil(const T a,const U b){return(a+b-1)/b;}
 template<integral T,integral U>
 inline auto floor(const T a,const U b){return a/b-(a%b&&(a^b)<0);}
 
+// std::ceil(std::sqrtl(x:u64))が64bit精度で40%高速なので，long double 80bitならそちらを使うべき
+template<bool internal_invocate=false>
+inline uint64_t sqrt_ceil(uint64_t x){
+    if constexpr(!internal_invocate){
+        // sqrt_floorからの呼出しではここをスキップする
+        if(x>uint64_t(UINT32_MAX)*UINT32_MAX)return 1ull<<32;
+        else if(x<2)return x!=0;
+    }
+    uint64_t nx,y=min<uint64_t>((1ULL<<((64-countl_zero(x))>>1)+1)-1,UINT32_MAX);
+    y-=(y*y-x)/(y<<1);
+    y-=(y*y-x)/(y<<1);
+    y-=(y*y-x)/(y<<1);
+    y-=(y*y-x)/(y<<1);
+    y-=(y*y-x)/(y<<1);
+    nx=y-(y*y-x)/(y<<1);
+    while(nx!=y){
+        y=nx;
+        nx=y-(y*y-x)/(y<<1);
+        if(nx==y)break;
+    }
+    return y+(y*y<x?1:(y-1)*(y-1)>=x?-1:0);
+}
+inline uint64_t sqrt_floor(uint64_t x){
+    if((uint64_t)UINT32_MAX*UINT32_MAX<=x)return UINT32_MAX;
+    else if(x<4)return x!=0;
+    uint64_t y=sqrt_ceil<true>(x);
+    return y-(y*y!=x);
+}
+
 using u128=__uint128_t;
 using u64 = uint64_t;
 inline __uint128_t mul64to128(u64 a,u64 b){

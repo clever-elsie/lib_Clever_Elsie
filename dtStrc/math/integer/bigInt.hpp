@@ -212,7 +212,6 @@ void karatsuba(sv64 a,sv64 b,sv64 r){
     }
     return r;
 }
-void toomcook3(sv64 a,sv64 b,sv64 r){}
 void ntt_cnvlt(sv64 a,sv64 b,sv64 r){}
 void multiply(cv64&a,cv64&b){
     // 符号を除いた配列サイズ
