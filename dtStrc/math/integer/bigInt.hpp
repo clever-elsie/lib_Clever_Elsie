@@ -153,7 +153,7 @@ void adder(vu64&a,sv64&b){
     }
     shrink_to_fit();
 }
-static constexpr array<size_t,3>Lp{64,80,250};
+static constexpr array<size_t,3>Lp{64,250,100000};
 void naive_mul(sv64 a,sv64 b,sv64 r){
     sv64 s=a,t=b;
     if(a.size()<b.size())swap(s,t);
@@ -181,36 +181,47 @@ void karatsuba(sv64 a,sv64 b,sv64 r){
     sv64 low(r.begin(),wsize),hi(r.begin()+wsize,r.end());
     karatsuba(alow,blow,low);
     karatsuba(ahi,bhi,hi);
+    // 正のspan同士の減算
     auto sub=[&](sv64 Hi,sv64 Lo)-> vu64 {
-        // 未実装
+        vu64 r(Hi.size()+1);
+        __uint128_t carry=1;
+        for(size_t i=0;i<Lo.size();++i){
+            carry=carry+Hi[i]+~Lo[i];
+            r[i]=(u64)carry;
+            carry>>=64;
+        }
+        for(size_t i=Lo.size();i<Hi.size();++i){
+            carry=carry+Hi[i]+~u64(0);
+            r[i]=(u64)carry;
+            carry>>=64;
+        }
+        return r;
     };
     bigInt mid(sub(ahi,alow));
     mid*=bigInt(sub(bhi,blow));
     // mid-(hi+low)して，r-mid
-    __uint128_t carry=1;
-    if(mid.data.size()-1<hi.size()) mid.data.resize(hi.size(),mid.data.back()); // 符号拡張
-    for(size_t i=0;i<hi.size();++i){
-        carry+=mid[i]+(~(__uint128_t(hi[i])+low[i]))+carry;
-        mid[i]=(u64)carry;
+    if(mid.data.size()-1<hi.size()) mid.data.resize(hi.size()+1,mid.data.back()); // 符号拡張
+    __uint128_t carry=2;
+    for(size_t i=0;i<low.size();++i){
+        carry=carry+mid.data[i]+~hi[i]+~low[i];
+        mid.data[i]=(u64)carry;
         carry>>=64;
     }
-    for(size_t i=hi.size();carry>0;++i){
-        carry+=__uint128_t(mid[i])+carry;
-        mid[i]=(u64)carry;
+    for(size_t i=low.size();i<hi.size();++i){
+        carry=carry+mid.data[i]+~hi[i];
+        mid.data[i]=(u64)carry;
         carry>>=64;
     }
-    carry=1;
-    for(size_t i=0;i<mid.size();++i){
-        carry+=__uint128_t(r[i+hsize])+(~mid[i])+carry;
-        r[i+hsize]=(u64)carry;
+    for(size_t i=hi.size();i<mid.data.size()-1;++i){
+        carry+=mid.data[i];
+        mid.data[i]=(u64)carry;
         carry>>=64;
     }
-    for(size_t i=hsize+mid.size();carry>0;++i){
-        carry+=__uint128_t(r[i]);
-        r[i]=(u64)carry;
-        carry>>=64;
+    if(carry){
+        mid.data.push_back(mid.data.back());
+        mid.data[mid.data.size()-2]+=carry;
     }
-    return r;
+    return r-=move(mid);
 }
 void ntt_cnvlt(sv64 a,sv64 b,sv64 r){}
 void multiply(cv64&a,cv64&b){
@@ -224,7 +235,6 @@ void multiply(cv64&a,cv64&b){
     sv64 rspan(r.begin(),r.end()-1);
          if(m<=Lp[0]) naive_mul(s,t,rspan); // O(n^2)
     else if(m<=Lp[1]) karatsuba(s,t,rspan); // O(n^{1.58})
-    else if(m<=Lp[2]) toomcook3(s,t,rspan); // O(n^{1.46})
     else              ntt_cnvlt(s,t,rspan); // O(n\lg n)
     r.push_back(0);
 }
@@ -282,8 +292,8 @@ bigInt& operator*=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
                 negate();
             }
         }
-        return*this;
     }
+    return*this;
 }
 template<class T>
 bigInt& operator/=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
