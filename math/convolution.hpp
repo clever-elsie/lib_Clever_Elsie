@@ -32,8 +32,7 @@ struct ntt_info{
     array<u32,max(0,e2-1)>r2,i2;
     array<u32,max(0,e2-2)>r3,i3;
     ntt_info(){
-        r[e2]=convolution_fast<M>::modpow(3,//primitive_root(M),
-            (M-1)>>e2);
+        r[e2]=convolution_fast<M>::modpow(primitive_root(M),(M-1)>>e2);
         i[e2]=mod_inv<__int128_t>(r[e2],M);
         for(i32 j=e2-1;j>=0;--j){
             r[j]=(u64)r[j+1]*r[j+1]%M;
@@ -148,7 +147,7 @@ template<bool is_Zmod=true>
 vector<u32>prod_move(vector<u32>&&a,vector<u32>&&b){
     if(a.empty()||b.empty())return{0};
     size_t m=a.size()+b.size()-1;
-    if(m<=60){
+    if(min(a.size(),b.size())<=60){
         vector<u32>c(m,0);
         conv_naive(move(a),move(b),c);
         return c;
@@ -190,7 +189,6 @@ class convolution{
     template<size_t... I>
     static constexpr array<T,psz+1>make_mods_s(index_sequence<I...>){ return{{mods[I]...,M}}; }
     static constexpr array<T,psz+1>mods_s=make_mods_s(make_index_sequence<psz>{});
-
     T garner_impl(const array<u32,psz>&b)const
     requires is_integral_v<T>||same_as<T,__int128_t>||same_as<T,__uint128_t>{
         using int_s=conditional_t<(sizeof(T)>8),__int128_t,int64_t>;
@@ -219,15 +217,24 @@ class convolution{
         }
         return constants.back();
     }
-    template<u32 mod> vector<u32>mod_vec(const vector<T>&a)const{
+    template<u32 mod,bool is_Zmod> vector<u32>mod_vec(const vector<T>&a)const{
         vector<u32>r(a.size());
-        for(auto rtr=r.begin(),atr=a.begin();atr!=a.end();++atr,++rtr)
-            *rtr=*atr%mod;
+        if constexpr(is_Zmod){
+            for(auto rtr=r.begin(),atr=a.begin();atr!=a.end();++atr,++rtr)
+                *rtr=*atr;
+        }else{
+            for(auto rtr=r.begin(),atr=a.begin();atr!=a.end();++atr,++rtr){
+                T m=*atr%mod;
+                if constexpr(is_signed_v<T>||same_as<T,__int128_t>)
+                    if(m<0)m+=mod;
+                *rtr=static_cast<u32>(m);
+            }
+        }
         return r;
     }
-    template<size_t... I>
+    template<bool is_Zmod,size_t... I>
     vector<T>prod_impl(const vector<T>&a,const vector<T>&b,const size_t len,index_sequence<I...>)const{
-        vector<vector<u32>>r={convolution_fast<mods_s[I]>().prod_move(mod_vec<mods_s[I]>(a),mod_vec<mods[I]>(b))...};
+        vector<vector<u32>>r={convolution_fast<mods_s[I]>().prod_move(mod_vec<mods_s[I],is_Zmod>(a),mod_vec<mods[I],is_Zmod>(b))...};
         vector<T>ret(len);
         array<u32,psz>q;
         for(size_t i=0;i<len;++i){
@@ -239,15 +246,16 @@ class convolution{
     }
     public:
     convolution(){}
+    template<bool is_Zmod=false>
     vector<T>prod(const vector<T>&a,const vector<T>&b)const{
         const size_t len=a.size()+b.size()-1;
         const size_t step=63-countl_zero(len)+(popcount(len)!=1);
         size_t max_step=0;
         if constexpr(sizeof(T)>8) for(T p=M-1;(p&1==0);p>>=1)++max_step;
         else max_step=countr_zero(uint64_t(M)-1);
-        if constexpr(f_prime)if(max_step>=step)
-            return convolution_fast<M>().prod(a,b);
-        return prod_impl(a,b,len,make_index_sequence<psz>{});
+        if constexpr(f_prime&&same_as<T,u32>)if(max_step>=step)
+            return convolution_fast<M>().template prod<is_Zmod>(a,b);
+        return prod_impl<is_Zmod>(a,b,len,make_index_sequence<psz>{});
     }
 };
 }
