@@ -84,47 +84,63 @@ namespace elsie{
     /**
      * pollard's rho O(n^{1/4})
     */
+    constexpr uint64_t pollard_rho(uint64_t n){
+        if(~n&1)return 2;
+        if(is_prime(n))return n;
+        uint64_t x,y,ys,g,q,r,k,m=uint64_t(pow<double>(double(n),1.0/8.0))+1;
+        for(uint64_t c=1;c<n;++c){
+            auto f=[&](__uint128_t a){return(a*a+c)%n;};
+            y=k=0;g=q=r=1;
+            while(g==1){
+                x=y;
+                while(k<3*r/4)y=f(y),++k;
+                while(k<r&&g==1){
+                    ys=y;
+                    for(uint64_t _=0;_<m&&_+k<r;++_)
+                        y=f(y),q=__uint128_t(q)*(x>y?x-y:y-x)%n;
+                    g=gcd(q,n);
+                    k+=m;
+                }
+                k=r;
+                r<<=1;
+            }
+            if(g==n){
+                g=1,y=ys;
+                while(g==1) y=f(y),g=gcd(x>y?x-y:y-x,n);
+            }
+            if(g==n)continue;
+            if(is_prime(g))return g;
+            else if(is_prime(n/g))return n/g;
+            else return pollard_rho(g);
+        }
+        return 0;
+    }
+
     vector<uint64_t>factorize(uint64_t m){
         if(m==1)return {};
         if(is_prime<uint64_t>(m))return{m};
-        auto pollard_rho=[&](auto pollard_rho,uint64_t n)->uint64_t {
-            if(~n&1)return 2;
-            if(is_prime(n))return n;
-            uint64_t x,y,ys,g,q,r,k,m=uint64_t(pow<double>(double(n),1.0/8.0))+1;
-            for(uint64_t c=1;c<n;++c){
-                auto f=[&](__uint128_t a){return(a*a+c)%n;};
-                y=k=0;g=q=r=1;
-                while(g==1){
-                    x=y;
-                    while(k<3*r/4)y=f(y),++k;
-                    while(k<r&&g==1){
-                        ys=y;
-                        for(uint64_t _=0;_<m&&_+k<r;++_)
-                            y=f(y),q=__uint128_t(q)*(x>y?x-y:y-x)%n;
-                        g=gcd(q,n);
-                        k+=m;
-                    }
-                    k=r;
-                    r<<=1;
-                }
-                if(g==n){
-                    g=1,y=ys;
-                    while(g==1) y=f(y),g=gcd(x>y?x-y:y-x,n);
-                }
-                if(g==n)continue;
-                if(is_prime(g))return g;
-                else if(is_prime(n/g))return n/g;
-                else return pollard_rho(pollard_rho,g);
-            }
-            return 0;
-        };
         vector<uint64_t>ret;
         ret.reserve(64);
         while(m>1&&!is_prime(m))
-            for(uint64_t p=pollard_rho(pollard_rho,m);m%p==0;m/=p)
+            for(uint64_t p=pollard_rho(m);m%p==0;m/=p)
                 ret.push_back(p);
         if(m>1)ret.push_back(m);
         sort(begin(ret),end(ret));
+        return ret;
+    }
+    constexpr array<uint64_t,64>factorize_constexpr(uint64_t m){
+        array<uint64_t,64>ret; ret.fill(UINT64_MAX);
+        if(m==1)return ret;
+        if(is_prime<uint64_t>(m)){
+            ret[0]=m;
+            return ret;
+        }
+        uint32_t cnt=0;
+        while(m>1&&!is_prime(m))
+            for(uint64_t p=pollard_rho(m);m%p==0;m/=p)
+                ret[cnt++]=p;
+        if(m>1)ret[cnt++]=m;
+        sort(ret.begin(),ret.end());
         return ret;
     }
 

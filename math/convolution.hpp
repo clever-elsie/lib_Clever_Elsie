@@ -1,110 +1,177 @@
 #ifndef ELSIE_CONVOLUTION
 #define ELSIE_CONVOLUTION
+#include <chrono>
+#include<iostream>
 #include <array>
 #include <vector>
 #include <cstdint>
 #include <variant>
 #include <algorithm>
 #include <type_traits>
-#include <math/basic_math.hpp>
 #include <math/prime_factor.hpp>
 namespace elsie{
 using namespace std;
 template<uint32_t M=998244353>
 class convolution_fast{
-    static_assert(is_prime(M),"convolution_fast requires that M is prime");
-    private:
-    using i32 = int32_t; using u32 = uint32_t;
-    using i64 = int64_t; using u64 = uint64_t;
-    using ll = int64_t; using ull= uint64_t;
-    vector<ll> root,invroot;
-    inline u32 bit_rev(u32 x){
-        x=(x<<16)|(x>>16);
-        x=((x&0x00FF00FF)<<8)|((x&0xFF00FF00)>>8);
-        x=((x&0x0F0F0F0F)<<4)|((x&0xF0F0F0F0)>>4);
-        x=((x&0x33333333)<<2)|((x&0xCCCCCCCC)>>2);
-        return((x&0x55555555)<<1)|((x&0xAAAAAAAA)>>1);
+static_assert(is_prime(M),"convolution_fast requires that M is prime");
+private:
+using i32 = int32_t; using u32 = uint32_t;
+using i64 = int64_t; using u64 = uint64_t;
+static inline u32 modpow(u32 a,u32 b){
+    u32 r=1;
+    while(b){
+        if(b&1)r=(u64)r*a%M;
+        a=(u64)a*a%M;
+        b>>=1;
     }
-    public:
-    template<bool sign>
-    void ntt(vector<u32>&s,uint32_t term){
-        uint64_t N=1,shf=countl_zero((u32)s.size())+1;
-        if(1<=term){ // 初回はbit reverse 昇順アクセス
-            vector<u32>pre(s.size(),UINT32_MAX);
-            for(size_t st=0;st+N<s.size();st+=N<<1){
-                ll z,p=1;
-                if constexpr(sign)z=invroot[1];
-                else z=root[1];
-                for(size_t j=0;j<N;++j){
-                    u32 sj=st+j,jn=sj+N;
-                    u32 pt=bit_rev(sj)>>shf,qt=bit_rev(jn)>>shf;
-                    ll f,t;
-                    if(pre[pt]!=UINT32_MAX)f=pre[pt];
-                    else f=pre[pt]=s[pt];
-                    if(pre[qt]!=UINT32_MAX)t=(u64)pre[qt]*p%M;
-                    else t=(u64)p*(pre[qt]=s[qt])%M;
-                    if(pre[sj]==UINT32_MAX)pre[sj]=s[sj];
-                    s[sj]=(u64)f+t>=M?(u64)f+t-M:f+t;
-                    if(pre[jn]==UINT32_MAX)pre[jn]=s[jn];
-                    s[jn]=f>=t?f-t:(u64)f+M-t;
-                    p=mul64to128(p,z)%M;
-                }
+    return r;
+}
+struct ntt_info{
+    static constexpr i32 e2=countr_zero(M-1);
+    array<u32,e2+1>r,i;
+    array<u32,max(0,e2-1)>r2,i2;
+    array<u32,max(0,e2-2)>r3,i3;
+    ntt_info(){
+        r[e2]=convolution_fast<M>::modpow(3,//primitive_root(M),
+            (M-1)>>e2);
+        i[e2]=mod_inv<__int128_t>(r[e2],M);
+        for(i32 j=e2-1;j>=0;--j){
+            r[j]=(u64)r[j+1]*r[j+1]%M;
+            i[j]=(u64)i[j+1]*i[j+1]%M;
+        }
+        u32 p=1,ip=1;
+        for(i32 j=0;j<=e2-2;++j){
+            r2[j]=(u64)r[j+2]*p%M;
+            i2[j]=(u64)i[j+2]*ip%M;
+            p=(u64)p*i[j+2]%M;
+            ip=(u64)ip*r[j+2]%M;
+        }
+        p=1,ip=1;
+        for(i32 j=0;j<=e2-3;++j){
+            r3[j]=(u64)r[j+3]*p%M;
+            i3[j]=(u64)i[j+3]*ip%M;
+            p=(u64)p*i[j+3]%M;
+            ip=(u64)ip*r[j+3]%M;
+        }
+    }
+};
+ntt_info info=ntt_info();
+void ntt(vector<u32>&a){
+    u32 len=0,n=static_cast<u32>(a.size()),h=countr_zero(n);
+    while(len<h){
+        if(h-len==1){
+        u32 p=1u<<(h-len-1),rot=1;
+        for(u32 s=0;s<(1u<<len);++s){
+            u32 offs=s<<(h-len);
+            for(u32 i=0;i<p;++i){
+                u32 l=a[i+offs],r=(u64)a[i+offs+p]*rot%M;
+                a[i+offs]=(u64)l+r-((u64)l+r>=M?M:0);
+                a[i+offs+p]=(l>=r?l-r:(M-r)+l);
             }
-            N=2;
+            if(s+1!=(1u<<len)) rot=(u64)rot*info.r2[countr_zero(~s)]%M;
         }
-        for(uint32_t cnt=2;cnt<=term;++cnt,N<<=1){
-            for(size_t st=0;st+N<s.size();st+=N<<1){
-                ll z,p=1;
-                if constexpr(sign)z=invroot[cnt];
-                else z=root[cnt];
-                for(size_t j=0;j<N;++j){
-                    size_t pt=st+j,qt=pt+N;
-                    ll f=s[pt], t=p*s[qt]%M;
-                    u64 ad=(u64)f+t;
-                    if(ad>=M)ad-=M;
-                    s[pt]=ad;
-                    s[qt]=f>=t?f-t:(u64)f+M-t;
-                    p=mul64to128(p,z)%M;
-                }
+        ++len;
+    }else{
+        u32 rot=1,imag=info.r[2],p=1u<<(h-len-2);
+        for(u32 s=0;s<(1u<<len);++s){
+            u32 rot2=(u64)rot*rot%M,rot3=(u64)rot2*rot%M;
+            u32 offs=s<<(h-len);
+            for(u32 i=0;i<p;++i){
+                u32 a0=a[i+offs],a1=(u64)a[i+offs+p]*rot%M;
+                u32 a2=(u64)a[i+offs+2*p]*rot2%M;
+                u32 a3=(u64)a[i+offs+3*p]*rot3%M;
+                u32 a1_a3imag=u64(a1>=a3?a1-a3:(M-a3)+a1)*imag%M;
+                u32 a02=(u64)a0+a2-((u64)a0+a2>=M?M:0);
+                u32 a13=(u64)a1+a3-((u64)a1+a3>=M?M:0);
+                u32 a0n2=(a0>=a2?a0-a2:(M-a2)+a0);
+                a[i+offs]=(u64)a02+a13-((u64)a02+a13>=M?M:0);
+                a[i+offs+p]=(a02>=a13?a02-a13:(M-a13)+a02);
+                a[i+offs+2*p]=(u64)a0n2+a1_a3imag-((u64)a0n2+a1_a3imag>=M?M:0);
+                a[i+offs+3*p]=(a0n2>=a1_a3imag?a0n2-a1_a3imag:(M-a1_a3imag)+a0n2);
             }
+            if(s+1!=(1u<<len))
+                rot=(u64)rot*info.r3[countr_zero(~s)]%M;
+        }
+        len+=2;
+    }
+    }
+}
+void ntt_inv(vector<u32>&a){
+    u32 n=static_cast<u32>(a.size()),h=countr_zero(n);
+    i32 len=h;
+    while(len){
+        if(len==1){
+            u32 p=1u<<(h-len),rot=1;
+            for(u32 s=0;s<(1u<<len-1);++s){
+                u32 offs=s<<(h+1-len);
+                for(u32 i=0;i<p;++i){
+                    u32 l=a[i+offs],r=a[i+offs+p];
+                    a[i+offs]=(u64)l+r-((u64)l+r>=M?M:0);
+                    a[i+offs+p]=u64(l>=r?l-r:(M-r)+l)*rot%M;
+                }
+                if(s+1!=(1u<<len-1)) rot=(u64)rot*info.i2[countr_zero(~s)]%M;
+            }
+            --len;
+        }else{
+            u32 p=1u<<(h-len),rot=1,imag=info.i[2];
+            for(u32 s=0;s<(1u<<len-2);++s){
+                u32 rot2=(u64)rot*rot%M,rot3=(u64)rot*rot2%M;
+                u32 offs=s<<(h+2-len);
+                for(u32 i=0;i<p;++i){
+                    u32 a0=a[i+offs],a1=a[i+offs+p],a2=a[i+offs+2*p],a3=a[i+offs+3*p];
+                    u32 a2_a3imag=(u64)(a2>=a3?a2-a3:(M-a3)+a2)*imag%M;
+                    u32 a01=(u64)a0+a1-((u64)a0+a1>=M?M:0);
+                    u32 a23=(u64)a2+a3-((u64)a2+a3>=M?M:0);
+                    u32 a0n1=(a0>=a1?a0-a1:(M-a1)+a0);
+                    a[i+offs]=(u64)a01+a23-((u64)a01+a23>=M?M:0);
+                    a[i+offs+p]=((u64)a0n1+a2_a3imag-((u64)a0n1+a2_a3imag>=M?M:0))*rot%M;
+                    a[i+offs+2*p]=(u64)(a01>=a23?a01-a23:(M-a23)+a01)*rot2%M;
+                    a[i+offs+3*p]=(u64)(a0n1>=a2_a3imag?a0n1-a2_a3imag:(M-a2_a3imag)+a0n1)*rot3%M;
+                }
+                if(s+1!=(1u<<len-2))rot=(u64)rot*info.i3[countr_zero(~s)]%M;
+            }
+            len-=2;
         }
     }
-    public:
-    int on=0;
-    convolution_fast(){}
-    template<bool is_Zmod=true>
-    vector<u32>prod_move(vector<u32>&&a,vector<u32>&&b){
-        if(a.empty()||b.empty())return{0};
-        size_t m=a.size()+b.size()-1;
-        size_t u=1ull<<(sizeof(ull)*8-1-countl_zero(m)+(popcount(m)!=1));
-        size_t sz=countr_zero(u);
-        root.resize(sz+1,1),invroot.resize(sz+1,1);
-        root[sz]=modpow(primitive_root(M),(M-1)>>sz,M);
-        invroot[sz]=modpow(root[sz],M-2,M);
-        for(int32_t i=sz-1;i>=1;--i){
-            root[i]=root[i+1]*root[i+1]%M;
-            invroot[i]=invroot[i+1]*invroot[i+1]%M;
-        }
-        if constexpr(!is_Zmod)
-            for(auto&x:a) x%=M;
-        a.resize(u,0),ntt<false>(a,sz);
-        if constexpr(!is_Zmod)
-            for(auto&x:b) x%=M;
-        b.resize(u,0),ntt<false>(b,sz);
-        for(ull i=0;i<u;++i)
-            a[i]=(u64)a[i]*b[i]%M;
-        ntt<true>(a,sz);
-        a.resize(m);
-        ll invN=modpow(u,M-2,M);
-        for(auto&&x:a)x=invN*x%M;
-        return a;
+}
+void conv_naive(vector<u32>&&a,vector<u32>&&b,vector<u32>&c){
+    if(b.size()>a.size())swap(a,b);
+    for(u32 i=0;i<a.size();++i)
+    for(u32 j=0;j<b.size();++j){
+        u32 tmp=(u64)a[i]*b[j]%M;
+        c[i+j]=(u64)c[i+j]+tmp-((u64)c[i+j]+tmp>=M?M:0);
     }
-    template<bool is_Zmod=true>
-    vector<u32>prod_amove(vector<u32>&&a,vector<u32>b){ return prod_move<is_Zmod>(move(a),move(b)); }
-    template<bool is_Zmod=true>
-    vector<u32>prod_bmove(vector<u32>a,vector<u32>&&b){ return prod_move<is_Zmod>(move(a),move(b)); }
-    template<bool is_Zmod=true>
-    vector<u32>prod(vector<u32>a,vector<u32>b){ return prod_move<is_Zmod>(move(a),move(b)); }
+}
+public:
+convolution_fast():info(){}
+template<bool is_Zmod=true>
+vector<u32>prod_move(vector<u32>&&a,vector<u32>&&b){
+    if(a.empty()||b.empty())return{0};
+    size_t m=a.size()+b.size()-1;
+    if(m<=60){
+        vector<u32>c(m,0);
+        conv_naive(move(a),move(b),c);
+        return c;
+    }
+    size_t u=1ull<<(sizeof(size_t)*8-1-countl_zero(m)+(popcount(m)!=1));
+    size_t sz=countr_zero(u);
+    if constexpr(!is_Zmod) for(auto&x:a) x%=M;
+    a.resize(u,0),ntt(a);
+    if constexpr(!is_Zmod) for(auto&x:b) x%=M;
+    b.resize(u,0),ntt(b);
+    for(u32 i=0;i<u;++i) a[i]=(u64)a[i]*b[i]%M;
+    ntt_inv(a);
+    a.resize(m);
+    u32 invN=modpow(u,M-2);
+    for(auto&&x:a)x=(u64)invN*x%M;
+    return a;
+}
+template<bool is_Zmod=true>
+vector<u32>prod_amove(vector<u32>&&a,vector<u32>b){ return prod_move<is_Zmod>(move(a),move(b)); }
+template<bool is_Zmod=true>
+vector<u32>prod_bmove(vector<u32>a,vector<u32>&&b){ return prod_move<is_Zmod>(move(a),move(b)); }
+template<bool is_Zmod=true>
+vector<u32>prod(vector<u32>a,vector<u32>b){ return prod_move<is_Zmod>(move(a),move(b)); }
 };
 
 template<class T,T M=998244353,size_t psz=2>
