@@ -7,6 +7,8 @@
 #include <math/basic_math.hpp>
 namespace elsie{
     using namespace std;
+    template<class T>
+    concept ints=is_integral_v<T>||same_as<T,__int128_t>||same_as<T,__uint128_t>;
     template<uint32_t M=998244353>
     class mint{
         public: // static
@@ -18,8 +20,6 @@ namespace elsie{
             return r;
         }
         private: uint32_t x; // field
-        template<class T>
-        concept ints=is_integral_v<T>||same_as<T,__int128_t>||same_as<T,__uint128_t>;
         public:
         mint():x(0){}
         mint(const mint&n):x(n.x){}

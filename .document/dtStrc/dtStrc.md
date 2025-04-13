@@ -22,3 +22,4 @@ rbtreeは`set,map,multiset,multimap`に対応．
 * splay_tree
 ## <a href="./succinct/succinct.md">簡潔データ構造</a>
 * wavelet
+* flat vector
