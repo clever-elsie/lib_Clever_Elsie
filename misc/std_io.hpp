@@ -25,29 +25,29 @@ istream&operator<<(istream&is,__float128&x){double y;is>>y;x=y;return is;}
 ostream&operator<<(ostream&os,const __float128&x){return os<<static_cast<double>(x);}
 
 template<Lint T>ostream&operator<<(ostream&dst,T val){
-    ostream::sentry s(dst);
-    if(!s)return dst;
-    char _O128[64];
-    char*d=end(_O128);
-    bool vsign=val<0;
-    __uint128_t v=val;
-    if(vsign&&val!=numeric_limits<T>::min())v=1+~(__uint128_t)val;
-    do{
-        *(--d)="0123456789"[v%10];
-        v/=10;
-    }while(v!=0);
-    if(vsign)*(--d)='-';
-    ptrdiff_t len=end(_O128)-d;
-    if(dst.rdbuf()->sputn(d,len)!=len)dst.setstate(ios_base::badbit);
-    return dst;
+  ostream::sentry s(dst);
+  if(!s)return dst;
+  char _O128[64];
+  char*d=end(_O128);
+  bool vsign=val<0;
+  __uint128_t v=val;
+  if(vsign&&val!=numeric_limits<T>::min())v=1+~(__uint128_t)val;
+  do{
+    *(--d)="0123456789"[v%10];
+    v/=10;
+  }while(v!=0);
+  if(vsign)*(--d)='-';
+  ptrdiff_t len=end(_O128)-d;
+  if(dst.rdbuf()->sputn(d,len)!=len)dst.setstate(ios_base::badbit);
+  return dst;
 }
 
 template<Lint T>istream&operator>>(istream&src,T&val) {
-    string s;src>>s;
-    bool is_neg=numeric_limits<T>::is_signed&&s.size()>0&&s[0]=='-';
-    for(val=0;const auto&x:s|views::drop(is_neg))val=10*val+x-'0';
-    if(is_neg)val*=-1;
-    return src;
+  string s;src>>s;
+  bool is_neg=numeric_limits<T>::is_signed&&s.size()>0&&s[0]=='-';
+  for(val=0;const auto&x:s|views::drop(is_neg))val=10*val+x-'0';
+  if(is_neg)val*=-1;
+  return src;
 }
 
 template<ModInt T>istream&operator>>(istream&is,T&v){int64_t x;is>>x;v=x;return is;}
@@ -58,10 +58,10 @@ template<class T>void in(T&a){cin>>a;}
 template<class T,class... Ts>void in(T&a,Ts&... b){in(a);in(b...);}
 
 template<class T,class U>vector<pair<T,U>>zip(size_t n,size_t m){
-    vector<pair<T,U>>r(min(n,m));
-    iter(x,y,r)in(x);
-    iter(x,y,r)in(y);
-    return move(r);
+  vector<pair<T,U>>r(min(n,m));
+  iter(x,y,r)in(x);
+  iter(x,y,r)in(y);
+  return move(r);
 }
 template<class T,class U>vector<pair<T,U>>zip(size_t n){return move(zip<T,U>(n,n));}
 
