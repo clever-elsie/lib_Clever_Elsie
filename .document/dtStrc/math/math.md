@@ -7,4 +7,4 @@ mapで区間を管理するため遅い．
 ## <a href="./modint.md">modint</a>
 素数環
 ## <a href="./matrix.md">行列・ベクトル</a>
-行列とベクトル．
+行列．

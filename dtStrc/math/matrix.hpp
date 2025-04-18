@@ -15,14 +15,15 @@ template<class T>
 class matrix{
   using ps=pair<size_t,size_t>;
   template<class S>using vc=vector<S>;
-  template<class S>using vv=vc<vc<S>>;
-  template<class S>using v3=vv<vc<S>>;
   size_t row,col;
   vc<T> data;
   public:
-  matrix():row(0),col(0),data(){}
-  matrix(matrix&&rhs):row(rhs.row),col(rhs.col),data(move(rhs.data)){}
-  matrix(const matrix&rhs):row(rhs.row),col(rhs.col),data(rhs.data){}
+  matrix()=default;
+	~matrix()=default;
+  matrix(matrix&&)=default;
+  matrix(const matrix&)=default;
+	matrix&operator=(matrix&&)=default;
+	matrix&operator=(const matrix&)=default;
   matrix(size_t row_,size_t col_):row(row_),col(col_),data(row*col){}
   matrix(size_t row_,size_t col_,const T&init):row(row_),col(col_),data(row_*col_,init){}
 
@@ -64,14 +65,6 @@ class matrix{
 
   inline T& operator[](size_t i,size_t j){ return data[i*col+j]; }
   inline const T& operator[](size_t i,size_t j)const{ return data[i*col+j]; }
-  inline matrix& operator=(const matrix&rhs){
-    row=rhs.row,col=rhs.col,data=rhs.data;
-    return*this;
-  }
-  inline matrix& operator=(matrix&&rhs){
-    row=rhs.row,col=rhs.col,data=std::move(rhs.data);
-    return*this;
-  }
 
   using iterator=vc<T>::iterator;
   using const_iterator=vc<T>::const_iterator;
@@ -148,10 +141,40 @@ class matrix{
     for(auto&x:data)x*=rhs;
     return*this;
   }
+	template<class U,class V,class W=common_type_t<U,V>>
+	friend matrix<W>& operator*(const U&lhs,const matrix<V>&rhs){
+		auto [row,col]=rhs.size();
+		size_t sz=rhs.data.size();
+		std::vector<W> data;
+		data.reserve(sz);
+		for(const auto&x:rhs)
+			data.emplace_back(lhs*x);
+		return matrix<W>(row,col,std::move(data));
+	}
+	template<class U,class V,class W=common_type_t<U,V>>
+	friend matrix<W>& operator*(const matrix<U>&lhs,const V&rhs){
+		auto [row,col]=lhs.size();
+		size_t sz=lhs.data.size();
+		std::vector<W> data;
+		data.reserve(sz);
+		for(const auto&x:lhs)
+			data.emplace_back(x*rhs);
+		return matrix<W>(row,col,std::move(data));
+	}
   template<class U> matrix& operator/=(const U&rhs){
     for(auto&x:data)x/=rhs;
     return*this;
   }
+	template<class U,class V,class W=common_type_t<U,V>>
+	friend matrix<W>& operator/(const matrix<U>&lhs,const V&rhs){
+		auto [row,col]=lhs.size();
+		size_t sz=lhs.data.size();
+		std::vector<W> data;
+		data.reserve(sz);
+		for(const auto&x:lhs)
+			data.emplace_back(x/rhs);
+		return matrix<W>(row,col,std::move(data));
+	}
 
   template<class U> matrix& operator*=(const matrix<U>&rhs){
     assert(col==rhs.col&&col==rhs.row);
@@ -219,6 +242,8 @@ class matrix{
   friend matrix<W> operator*(const matrix<U>&lhs,const matrix<V>&rhs){
     return matrix_mul(lhs,rhs);
   }
+
+	protected:
   /**
    * @brief a:NxN matrix. N is 2^i and N>1.
    * @return {A_00, A_01, A_10, A_11}
@@ -357,7 +382,8 @@ class matrix{
     }
   }
 
-  matrix pow(uint64_t b){
+	public:
+  matrix pow(uint64_t b)const{
     assert(b<=1||row==col);
     matrix r(row,row,T());
     for(size_t i=0;i<row;++i) r[i,i]=1;
