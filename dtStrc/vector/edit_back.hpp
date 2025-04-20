@@ -6,21 +6,22 @@ namespace elsie{
 
 template<class T>
 void vector<T>::push_back(T&&x){
-  if(capacity()==0) resize(size_+1);
+  resize(size_+1);
   data_[size_-1]=std::move(x);
 }
 
 template<class T>
 void vector<T>::push_back(const T&x){
-  if(capacity()==0) resize(size_+1);
+  resize(size_+1);
   data_[size_-1]=x;
 }
 
 template<class T>
 template<class... Args>
-reference vector<T>::emplace_back(Args&&... args){
-  if(capacity()==0) resize(size_+1);
-  new(data+size_-1) T(std::forward<Args>(args)...);
+vector<T>::reference
+vector<T>::emplace_back(Args&&... args){
+  resize(size_+1);
+  new(data_+size_-1) T(std::forward<Args>(args)...);
   return data_[size_-1];
 }
 

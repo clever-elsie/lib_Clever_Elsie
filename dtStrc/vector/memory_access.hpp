@@ -5,38 +5,48 @@
 namespace elsie{
 
 template<class T>
-reference vector<T>::operator[](size_type n){ return data_[n]; }
+vector<T>::reference
+vector<T>::operator[](size_type n){ return data_[n]; }
 
 template<class T>
-const_reference vector<T>::operator[](size_type n)const{ return data_[n]; }
+vector<T>::const_reference
+vector<T>::operator[](size_type n)const{ return data_[n]; }
 
 template<class T>
-reference vector<T>::at(size_type n){
+vector<T>::reference
+vector<T>::at(size_type n){
   if(n>=size_)throw std::out_of_range();
   return data_[n];
 }
 
 template<class T>
-reference vector<T>::at(size_type n)const{
+vector<T>::reference
+vector<T>::at(size_type n)const{
   if(n>=size_)throw std::out_of_range();
   return data_[n];
 }
 
-template<class T> T*data()noexcept{ return data_; }
-
-template<class T> const T*data()const noexcept{ return data_; }
+template<class T>
+T* vector<T>::data()noexcept{ return data_; }
 
 template<class T>
-reference front(){ return data_[0]; }
+const T* vector<T>::data()const noexcept{ return data_; }
 
 template<class T>
-const_reference front()const{ return data_[0]; }
+vector<T>::reference
+vector<T>::front(){ return data_[0]; }
 
 template<class T>
-reference back(){ return data_[size_-1]; }
+vector<T>::const_reference
+vector<T>::front()const{ return data_[0]; }
 
 template<class T>
-const_reference back()const{ return data_[size_-1]; }
+vector<T>::reference
+vector<T>::back(){ return data_[size_-1]; }
+
+template<class T>
+vector<T>::const_reference
+vector<T>::back()const{ return data_[size_-1]; }
 
 } // namespace elsie
 #endif

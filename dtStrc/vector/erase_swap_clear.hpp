@@ -29,7 +29,7 @@ vector<T>::erase(vector<T>::iterator first,vector<T>::iterator last){
 
 template<class T>
 void vector<T>::swap(vector&x){
-  vector<T> tmp=std::move(x);
+  vector<T> tmp(std::move(x));
   x=std::move(*this);
   *this=std::move(tmp);
 }

@@ -17,24 +17,20 @@
 
 namespace elsie{
 template<class T> class vector{
-  protected:
-  using std::size_t;
-  using std::ptrdiff_t;
-  using std::int32_t;
-  struct iter_class;
   public: // types
   using value_type=T;
   using pointer=T*;
   using reference=T&;
   using const_reference=const T&;
-  using size_type=size_t;
-  using difference_type=ptrdiff_t;
+  using size_type=std::size_t;
+  using difference_type=std::ptrdiff_t;
   using iterator_category=std::random_access_iterator_tag;
   struct iterator;
   struct const_iterator;
   struct reverse_iterator;
   struct const_reverse_iterator;
-  size_type aligned64_size(size_type n){
+  public:
+  static size_type aligned64_size(size_type n){
     constexpr static const size_type filter=0b11'1111ull-1;
     return ((sizeof(T)*n+filter)&~filter)/sizeof(T);
   }
@@ -96,9 +92,10 @@ template<class T> class vector{
   void pop_back();
   iterator insert(iterator pos,T&&x);
   iterator insert(iterator pos,const T&x);
-  iterator insert(iterator pos,size_type n,const T&x);
-  iterator insert(iterator pos,std::initializer_list<T>il);
-  template<class InputIter> iterator insert(iterator pos,InputIter first,InputIter last);
+  void insert(iterator pos,size_type n,const T&x);
+  void insert(iterator pos,std::initializer_list<T>il);
+  template<class InputIter> void insert(iterator pos,InputIter first,InputIter last);
+  template<std::random_access_iterator InputIter> void insert(iterator pos,InputIter first,InputIter last);
   template<class... Args> iterator emplace(iterator pos,Args&&... args);
   iterator erase(iterator pos);
   iterator erase(iterator first,iterator last);

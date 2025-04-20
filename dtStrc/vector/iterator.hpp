@@ -92,21 +92,21 @@ template<class T> struct vector<T>::const_iterator{
   const_iterator& operator=(const_iterator&&)=default;
   const_iterator& operator=(const const_iterator&)=default;
   const_iterator& operator++()noexcept{
-    --ptr;
+    ++ptr;
     return*this;
   }
   const_iterator& operator--()noexcept{
-    ++ptr;
+    --ptr;
     return*this;
   }
   const_iterator operator++(int)noexcept{
     const_iterator ret=*this;
-    --ptr;
+    ++ptr;
     return ret;
   }
   const_iterator operator--(int)noexcept{
     const_iterator ret=*this;
-    ++ptr;
+    --ptr;
     return ret;
   }
 
@@ -117,11 +117,11 @@ template<class T> struct vector<T>::const_iterator{
   bool operator!() const noexcept{ return !static_cast<bool>(*this); }
 
   const_iterator& operator+=(size_type n){
-    ptr-=n;
+    ptr+=n;
     return*this;
   }
   const_iterator& operator-=(size_type n){
-    ptr+=n;
+    ptr-=n;
     return*this;
   }
 
@@ -136,7 +136,7 @@ template<class T> struct vector<T>::const_iterator{
     return const_iterator(lhs)-=rhs;
   }
   friend difference_type operator-(const const_iterator&lhs,const const_iterator&rhs){
-    return rhs.ptr-lhs.ptr;
+    return lhs.ptr-rhs.ptr;
   }
 
   friend bool operator<=>(const const_iterator&,const const_iterator&)=default;
@@ -145,7 +145,7 @@ template<class T> struct vector<T>::const_iterator{
   const T*ptr;
 };
 
-template<class T> struct vector<T>:: reverse_iterator{
+template<class T> struct vector<T>::reverse_iterator{
   using value_type=vector<T>::value_type;
   using pointer=vector<T>::pointer;
   using reference=vector<T>::reference;
@@ -198,14 +198,14 @@ template<class T> struct vector<T>:: reverse_iterator{
   }
 
   friend reverse_iterator operator+(const reverse_iterator&lhs,size_type rhs){
-    return reverse_iterator(lhs)+=rhs;
+    return reverse_iterator(lhs)-=rhs;
   }  
   friend reverse_iterator operator+(size_type lhs,const reverse_iterator&rhs){
-    return reverse_iterator(rhs)+=lhs;
+    return reverse_iterator(rhs)-=lhs;
   }
 
   friend reverse_iterator operator-(const reverse_iterator&lhs,size_type rhs){
-    return reverse_iterator(lhs)-=rhs;
+    return reverse_iterator(lhs)+=rhs;
   }  
   friend difference_type operator-(const reverse_iterator&lhs,const reverse_iterator&rhs){
     return rhs.ptr-lhs.ptr;
@@ -249,21 +249,21 @@ template<class T> struct vector<T>::const_reverse_iterator{
   const_reverse_iterator& operator=(const_reverse_iterator&&)=default;
   const_reverse_iterator& operator=(const const_reverse_iterator&)=default;
   const_reverse_iterator& operator++()noexcept{
-    ++ptr;
+    --ptr;
     return*this;
   }
   const_reverse_iterator& operator--()noexcept{
-    --ptr;
+    ++ptr;
     return*this;
   }
   const_reverse_iterator operator++(int)noexcept{
     const_reverse_iterator ret=*this;
-    ++ptr;
+    --ptr;
     return ret;
   }
   const_reverse_iterator operator--(int)noexcept{
     const_reverse_iterator ret=*this;
-    --ptr;
+    ++ptr;
     return ret;
   }
 
@@ -277,26 +277,26 @@ template<class T> struct vector<T>::const_reverse_iterator{
   bool operator!() const noexcept{ return !static_cast<bool>(*this); }
 
   const_reverse_iterator& operator+=(size_type n){
-    ptr+=n;
+    ptr-=n;
     return*this;
   }
   const_reverse_iterator& operator-=(size_type n){
-    ptr-=n;
+    ptr+=n;
     return*this;
   }
 
   friend const_reverse_iterator operator+(const const_reverse_iterator&lhs,size_type rhs){
-    return const_reverse_iterator(lhs)+=rhs;
+    return const_reverse_iterator(lhs)-=rhs;
   }  
   friend const_reverse_iterator operator+(size_type lhs,const const_reverse_iterator&rhs){
-    return const_reverse_iterator(rhs)+=lhs;
+    return const_reverse_iterator(rhs)-=lhs;
   }
 
   friend const_reverse_iterator operator-(const const_reverse_iterator&lhs,size_type rhs){
-    return const_reverse_iterator(lhs)-=rhs;
+    return const_reverse_iterator(lhs)+=rhs;
   }  
   friend difference_type operator-(const const_reverse_iterator&lhs,const const_reverse_iterator&rhs){
-    return lhs.ptr-rhs.ptr;
+    return rhs.ptr-lhs.ptr;
   }
 
   friend bool operator==(const const_reverse_iterator&lhs,const const_reverse_iterator&rhs){
