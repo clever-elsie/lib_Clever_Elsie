@@ -70,7 +70,7 @@ template<class T> struct vector<T>::iterator{
     return lhs.ptr-rhs.ptr;
   }
 
-  friend bool operator<=>(const iterator&,const iterator&)=default;
+  friend auto operator<=>(const iterator&,const iterator&)=default;
   private:
   T*ptr;
 };
@@ -139,7 +139,7 @@ template<class T> struct vector<T>::const_iterator{
     return lhs.ptr-rhs.ptr;
   }
 
-  friend bool operator<=>(const const_iterator&,const const_iterator&)=default;
+  friend auto operator<=>(const const_iterator&,const const_iterator&)=default;
 
   private:
   const T*ptr;

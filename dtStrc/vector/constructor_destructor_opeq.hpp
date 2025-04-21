@@ -38,7 +38,7 @@ vector<T>::vector(size_t n)
 template<class T>
 vector<T>::vector(size_t n,const T&value)
 :size_(n),cap_(aligned64_size(n))
-,data_(static_cast<T*>(std::aligned_alloc(64,cap_*sizeof(T)))){ std::fill_n(data_,n,value); }
+,data_(static_cast<T*>(std::aligned_alloc(64,cap_*sizeof(T)))){ std::fill(data_,data_+size_,value); }
 
 template<class T>
 template<class InputIter>

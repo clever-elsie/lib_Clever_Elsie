@@ -1,6 +1,7 @@
 #ifndef ELSIE_RBTREE
 #define ELSIE_RBTREE
 #include<any> // swap()
+#include<new>
 #include<cstdint>
 #include<cstddef> // size_t
 #include<utility> // forward(), move()
@@ -13,7 +14,9 @@ namespace elsie{
 using namespace std;
 
 struct null_t{
-  null_t(){}
+  null_t()=default;
+  null_t(const null_t&)=default;
+  null_t(null_t&&)=default;
   friend bool operator<(const null_t&lhs,const null_t&rhs){ return true; }
   friend bool operator==(const null_t&lhs,const null_t&rhs){ return true; }
 };
@@ -21,22 +24,31 @@ struct null_t{
 template<class key_t,class val_t,class Cmp=less<key_t>,bool allow_duplicate_keys=false>
 class rbtree{
   protected:
-  struct node{
+  template<class T,bool for_set=std::same_as<val_t,null_t>>
+  struct holder{
+    T val;
+    holder()=default;
+    holder(const T&v):val(v){}
+    holder(T&&v):val(std::move(v)){}
+  };
+  template<class T>
+  struct holder<T,true>: private T{
+    holder()=default;
+    holder(const T&v){}
+    holder(T&&v){}
+  };
+  struct node:public holder<val_t> {
     using ip=node*;
+    using holder<val_t>::holder;
     ip p,ch[2]; // ch0=L, ch1=R
     uint64_t time,size; // time: odd red, even black
     key_t key;
-    val_t val;
-    node(){}
-    node(ip nil):key(),val(),time(0),size(1),p(nil){ ch[0]=ch[1]=nil; }
-    node(key_t&&k,val_t&&v,uint64_t tm,ip P,ip L,ip R)
-    :key(move(k)),val(move(v)),time(tm),size(1),p(P){ ch[0]=L,ch[1]=R; }
-    node(key_t&&k,const val_t&v,uint64_t tm,ip P,ip L,ip R)
-    :key(move(k)),val(v),time(tm),size(1),p(P){ ch[0]=L,ch[1]=R; }
-    node(const key_t&k,val_t&&v,uint64_t tm,ip P,ip L,ip R)
-    :key(k),val(move(v)),time(tm),size(1),p(P){ ch[0]=L,ch[1]=R; }
-    node(const key_t&k,const val_t&v,uint64_t tm,ip P,ip L,ip R)
-    :key(k),val(v),time(tm),size(1),p(P){ ch[0]=L,ch[1]=R; }
+    node()=default;
+    node(ip nil):holder<val_t>(),key(),time(0),size(1),p(nil){ ch[0]=ch[1]=nil; }
+    template<class KEY_T,class VAL_T>
+    requires (std::same_as<std::decay_t<KEY_T>,key_t>) && (std::same_as<std::decay_t<VAL_T>,val_t>)
+    node(KEY_T&&k,VAL_T&&v,uint64_t tm,ip P,ip L,ip R)
+    :holder<val_t>(std::forward<VAL_T>(v)),key(std::forward<KEY_T>(k)),time(tm),size(1),p(P){ ch[0]=L,ch[1]=R; }
   };
   using np=node*;
   using vp=pair<key_t,val_t>;
@@ -330,9 +342,7 @@ class rbtree{
     else{
       z=unused;
       unused=unused->p;
-      z->key=move(first),z->val=move(second);
-      z->time=time|filter_red,z->ch[0]=z->ch[1]=nil;
-      z->p=y,z->size=1;
+      new(z) node(move(first),move(second),time|filter_red,y,nil,nil);
     }
     if(y==nil) root=z;
     else y->ch[!cmp(z->key,y->key)]=z;
