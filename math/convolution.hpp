@@ -197,11 +197,16 @@ class convolution{
     array<u32,mod_cnt>val;
 
     template<size_t... I> constexpr mint_ntt& add_impl(const mint_ntt&rhs,index_sequence<I...>){
-      (...,(val[I]=(static_cast<u64>(val[I])+rhs.val[I])%mods[I]));
+      (...,add_impl_unit<I>(rhs));
       return*this;
     }
+    template<size_t I> constexpr void add_impl_unit(const mint_ntt&rhs){
+      u64 tmp=(static_cast<u64>(val[I])+rhs.val[I])%mods[I];
+      if(tmp>=mods[I])tmp-=mods[I];
+      val[I]=static_cast<u32>(tmp);
+    }
     template<size_t... I> constexpr mint_ntt& sub_impl(const mint_ntt&rhs,index_sequence<I...>){
-      (...,(val[I]=(static_cast<u64>(val[I])+mods[I]-rhs.val[I])%mods[I]));
+      (...,(val[I]=val[I]>=rhs.val[I]?val[I]-rhs.val[I]:mods[I]-rhs.val[I]+val[I]));
       return*this;
     }
     template<size_t... I> constexpr mint_ntt& mul_impl(const mint_ntt&rhs,index_sequence<I...>){
