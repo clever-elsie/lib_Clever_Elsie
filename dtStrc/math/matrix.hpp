@@ -354,7 +354,7 @@ template<class T>
 template<size_t row_,size_t col_>
 matrix<T>::matrix(const std::array<std::array<T,col_>,row_>&data_)
 :row(row_),col(col_),data(row*col){
-  static_assert(row&&col);
+  static_assert(row_&&col_);
   auto dtr=data.begin();
   for(const auto&y:data_)
   for(const auto&x:y) *(dtr++)=x;
