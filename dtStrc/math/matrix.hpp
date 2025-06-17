@@ -73,6 +73,7 @@ template<class T> class matrix{
   sz_t reduce();
   pair<sz_t,std::vector<T>> solve_linear_equation();
   tuple<sz_t,std::vector<T>,matrix> solve_linear_equation_with_basis();
+  pair<sz_t,matrix> inverse()const;
 
   using iterator=vc<T>::iterator;
   using const_iterator=vc<T>::const_iterator;
@@ -708,6 +709,26 @@ auto matrix<T>::solve_linear_equation() -> pair<matrix<T>::sz_t,std::vector<T>> 
 template<class T>
 auto matrix<T>::solve_linear_equation_with_basis()-> tuple<matrix<T>::sz_t,std::vector<T>,matrix<T>> {
   return reduce_impl<ReduceClass::solve_LE_with_basis>();
+}
+
+template<class T>
+auto matrix<T>::inverse() const ->pair<sz_t,matrix<T>>{
+  assert(row==col);
+  const sz_t n=row;
+  matrix<T> a(n,2*n,0);
+  for(sz_t i=0;i<n;++i){
+    for(sz_t j=0;j<n;++j)
+      a[i,j]=(*this)[i,j];
+    a[i,n+i]=1;
+  }
+  a.reduce();
+  for(sz_t i=0;i<n;++i)
+    if(a[i,i]!=1) return {-1,matrix<T>()};
+  matrix<T> b(n,n);
+  for(sz_t i=0;i<n;++i)
+    for(sz_t j=0;j<n;++j)
+      b[i,j]=a[i,j+n];
+  return {n,b};
 }
 
 }// namespace elsie

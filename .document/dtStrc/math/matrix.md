@@ -99,3 +99,35 @@ $N\times M,\ M\times L$ の行列積で， $\min{N,M,L}\ge 256$ で strassen alg
 matrix pow(uint64_t b)const;
 ```
 行列累乗 $R=C$ のとき， $N:=R$ とし $O(N^{\lg 7}\lg b)$
+
+### 逆行列
+```C++
+std::pair<int32_t, matrix<T>> inverse()const;
+```
+正方行列
+自分自身を書き換えず，逆行列を返す．
+逆行列が存在しないときは`first`が $-1$ となる．
+
+計算量は $O(n^3)$ ．
+
+### 階数・簡約化
+```C++
+int32_t rank()const;
+int32_t reduce();
+```
+行列の階数を求める`rank`と行列を簡約化する`reduce`．  
+`rank`は中身を書き換えないが，内部的にはコピーして簡約化している．  
+
+計算量は $n\times m$ 行列で $O(n^2m)$ .
+
+### 線形連立方程式の解を求める
+```C++
+std::pair<int32_t, std::vector<T>> solve_linear_equation();
+std::tuple<int32_t, std::vector<T>, matrix<T>> solve_linear_equation_with_basis();
+```
+拡大係数行列 $[A\mid b]$ を持つ`matrix<T>`を`reduce`するときにいい感じに情報を抽出することで連立方程式の解を得る．
+`with_basis`は解が自由度を持つときにその基底を返す．
+
+解無しの時は最初の値が $-1$ になる．
+
+計算量は $n\times m$ 行列について $O(n^2m)$ .
