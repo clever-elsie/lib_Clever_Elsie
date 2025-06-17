@@ -9,15 +9,17 @@
 #include <concepts>
 #include <type_traits>
 #include <utility>
-#include "dtStrc/vector/vector.hpp"
+//#include "dtStrc/vector/vector.hpp"
 #include <vector>
+#include <iostream>
 namespace elsie{
 using namespace std;
-template<class S>using vc=elsie::vector<S>;
+template<class S>using vc=std::vector<S>;
 template<class S>using vv=vc<vc<S>>;
 
 template<class T> class matrix{
   using ps=pair<size_t,size_t>;
+  using sz_t = int32_t;
   size_t row,col;
   vc<T> data;
   public:
@@ -48,9 +50,29 @@ template<class T> class matrix{
     if(j>=col||i>=row)return T();
     return data[i*col+j];
   }
+  private:
+  public:
+  template<class Char, class Traits>
+  inline void print(std::basic_ostream<Char,Traits>& os=std::cout)const{
+    const size_t sz_=row*col;
+    for(size_t i=0;i<sz_;i+=col)
+      for(size_t j=0;j<col;++j)
+        os<<data[i+j].val()<<" \n"[j==col-1];
+  }
 
   void transpose();
   matrix<T> pow(uint64_t b)const;
+  private:
+  enum class ReduceClass{
+    rank,solve_LE,solve_LE_with_basis
+  };
+  template<ReduceClass reduce_class>
+  tuple<sz_t,std::vector<T>,matrix> reduce_impl();
+  public:
+  sz_t rank()const;
+  sz_t reduce();
+  pair<sz_t,std::vector<T>> solve_linear_equation();
+  tuple<sz_t,std::vector<T>,matrix> solve_linear_equation_with_basis();
 
   using iterator=vc<T>::iterator;
   using const_iterator=vc<T>::const_iterator;
@@ -568,6 +590,124 @@ matrix<T> matrix<T>::pow(uint64_t b)const{
     k=k*k;
   }
   return r;
+}
+
+template<class T>
+template<matrix<T>::ReduceClass reduce_class>
+auto matrix<T>::reduce_impl() -> tuple<matrix<T>::sz_t,std::vector<T>,matrix<T>> {
+  if(row==0||col==0) return {0,std::vector<T>(),matrix<T>()};
+  const size_t col=this->col;
+  std::vector<T> sol(col-1);
+  std::vector<sz_t> p(row),q(col-1,-1);
+  std::vector<bool> is_main(col-1,0);
+  // O(n^3) なので32bitよりも大きいrow,colは考慮しない
+  sz_t start=0;
+  for(sz_t i=0;i<row;){
+    const sz_t r=i*col;
+    if(data[r+start]==0){
+      // 全0行削除，最後だけ非ゼロで制約矛盾
+      // 他行が非ゼロで入れ替え，それがないなら主成分を右へずらす
+      sz_t nonzero=-1;
+      for(sz_t j=start+1;j<col;++j)
+        if(data[r+j]!=0){
+          nonzero=j;
+          break;
+        }
+      if(nonzero==-1){
+        if(i+1!=row){
+          const sz_t tmp_r=(row-1)*col;
+          for(sz_t j=0;j<col;++j) data[r+j]=data[tmp_r+j];
+        }
+        --row;
+        data.resize(data.size()-col);
+        continue;
+      }else if constexpr(reduce_class!=ReduceClass::rank)
+        if(nonzero==col-1)
+          return {-1,std::vector<T>(),matrix<T>()};
+      bool empty=true;
+      for(sz_t ii=i+1,rr=r+col;ii<row;++ii,rr+=col){
+        if(data[rr+start]==0) continue;
+        empty=false;
+        auto zitr=data.begin()+r;
+        auto itr=data.begin()+rr;
+        auto end=itr+col;
+        for(;itr<end;++itr,++zitr)
+          swap(*zitr,*itr);
+        break;
+      }
+      if(empty){
+        ++start;
+        continue;
+      }
+    }
+    if constexpr(reduce_class!=ReduceClass::rank)
+    if(start+1>=col) return {-1,std::vector<T>(),matrix<T>()};
+    if constexpr(reduce_class==ReduceClass::solve_LE_with_basis){
+      is_main[start]=true;
+      p[i]=start;
+    }
+    const T divk=1/data[r+start];
+    for(sz_t j=start;j<col;++j)
+      data[r+j]*=divk;
+    for(sz_t ii=i+1,f=r+col;ii<row;++ii,f+=col){
+      if(data[f+start]==0) continue;
+      const T mulk=data[f+start];
+      for(sz_t j=start;j<col;++j)
+        data[f+j]-=data[r+j]*mulk;
+    }
+    ++start,++i;
+  }
+  for(sz_t i=row-1,r=i*col;i<row;--i,r-=col){
+    for(sz_t j=0;j<col;++j)if(data[r+j]!=0){
+      start=j;
+      break;
+    }
+    if constexpr(reduce_class != ReduceClass::rank)
+      sol[start]=data[r+col-1];
+    for(sz_t ii=0,rr=0;ii<i;++ii,rr+=col){
+      const T subk=data[rr+start];
+      for(sz_t j=start;j<col;++j)
+        data[rr+j]-=subk*data[r+j];
+    }
+  }
+  if constexpr(reduce_class==ReduceClass::rank)
+    return {row,std::vector<T>(),matrix<T>()};
+  else if constexpr(reduce_class==ReduceClass::solve_LE)
+    return {row,std::move(sol),matrix<T>()};
+  else if constexpr(reduce_class==ReduceClass::solve_LE_with_basis){
+    start=0;
+    const sz_t dim=col-1-row;
+    matrix<T> b(dim,col-1,T(0));
+    for(sz_t j=0,cur=-1;j<col-1;++j)
+      if(!is_main[j]) b[q[j]=++cur,j]=1;
+    for(sz_t i=0,r=0;i<row;++i,r+=col)
+      for(sz_t j=0;j<col-1;++j)if(q[j]>=0)
+        b[q[j],p[i]]=-data[r+j];
+    return {row,std::move(sol),std::move(b)};
+  }
+}
+
+
+template<class T>
+matrix<T>::sz_t matrix<T>::rank()const{
+  matrix<T> tmp(*this);
+  return tmp.reduce();
+}
+
+template<class T>
+matrix<T>::sz_t matrix<T>::reduce(){
+  return get<0>(reduce_impl<ReduceClass::rank>());
+}
+
+template<class T>
+auto matrix<T>::solve_linear_equation() -> pair<matrix<T>::sz_t,std::vector<T>> {
+  auto [r,sol,b]=reduce_impl<ReduceClass::solve_LE>();
+  return {r,std::move(b)};
+}
+
+template<class T>
+auto matrix<T>::solve_linear_equation_with_basis()-> tuple<matrix<T>::sz_t,std::vector<T>,matrix<T>> {
+  return reduce_impl<ReduceClass::solve_LE_with_basis>();
 }
 
 }// namespace elsie
