@@ -23,6 +23,7 @@ rbtreeは`set,map,multiset,multimap`に対応．
 ## <a href="./succinct/succinct.md">簡潔データ構造</a>
 * wavelet
 * flat vector
+* dynamic bitset
 ## <a href="./math/math.md">数数的データ構造</a>
 * 分数
 * MEX
