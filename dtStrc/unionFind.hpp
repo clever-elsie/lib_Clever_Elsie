@@ -21,8 +21,7 @@ class unionFind{
     it root(it u)const{return(pr[u]<0?u:pr[u]=root(pr[u]));}
     bool same(it u,it v)const{return root(u)==root(v);}
     void unite(it u,it v)const{
-      u=root(u),v=root(v);
-      if(u==v)return;
+			if((u=root(u))==(v=root(v))) return;
       if(pr[u]<pr[v])swap(u,v);
       pr[v]+=pr[u];
       pr[u]=v;
