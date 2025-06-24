@@ -29,3 +29,5 @@ rbtreeは`set,map,multiset,multimap`に対応．
 * MEX
 * modint
 * 行列
+## <a href="./queue.md">Queue</a>
+* double-ended priority queue
