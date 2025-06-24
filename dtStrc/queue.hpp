@@ -9,7 +9,6 @@
 namespace elsie{
 template<class T,class less_t=std::less<T>>
 class depq{
-  public:
   static constexpr less_t Less{};
   std::vector<T> data_;
   public:
