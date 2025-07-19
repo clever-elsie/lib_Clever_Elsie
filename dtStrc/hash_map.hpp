@@ -1,15 +1,12 @@
 #ifndef ELSIE_HASH_MAP
 #define ELSIE_HASH_MAP
+#include "holder.hpp"
 namespace elsie{
-struct hash_null_t{};
 template<class key_t,class val_t,auto hf=std::hash<key_t>()>
 class hash_map_base{
   protected:
-  template<bool is_null_t=false>
-  struct holder{ val_t val; }
-  template<> struct holder<true>{};
-  struct node:public holder<std::same_as<std::decay_t<val_t>,hash_null_t>>{ key_t key; };
-  
+  struct node:holder<key_t,val_t>{
+  };
   constexpr static const size_t max_dup=8;
 
   size_t map_size;
