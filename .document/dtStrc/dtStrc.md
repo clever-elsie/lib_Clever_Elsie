@@ -31,3 +31,5 @@ rbtreeは`set,map,multiset,multimap`に対応．
 * 行列
 ## <a href="./queue.md">Queue</a>
 * double-ended priority queue
+## <a href="./bucket.md">bucket</a>
+* `bucket`:サイズ上限付き`vector`のようなもの
