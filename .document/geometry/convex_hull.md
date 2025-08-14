@@ -4,8 +4,11 @@
 最も左の頂点が複数ある場合は，そのうち最も下の点から始める．  
 凸包の線分上に両端以外の点があるとき，その頂点は答えに含まない．  
 ```C++
-convex_hull c(); // デフォルトコンストラクタ 宣言するだけ
-vc<pi> c.monotone_chain(vc<pi>&); // 引数の配列はsortしてuniqueされる．コピーは無し
+namespace elsie{
+// 引数の配列はsortしてuniqueされる．コピーは無し
+std::vector<std::pair<int32_t, int32_t>>
+convex_hull(std::vector<std::pair<int32_t, int32_t>>&);
+}
 ```
 関数内部の`while`文に対して，比較演算子`<=`を`<`とすれば線分上の余分な点を含むことができる．  
 `x,y`を逆転させた入力に対して，演算子を`>=`に変えれば，最も下の最も左の点から反時計回りに点集合を構築できる．  
