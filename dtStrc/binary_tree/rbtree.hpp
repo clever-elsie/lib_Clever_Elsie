@@ -10,45 +10,30 @@
 #include<functional> // less<>
 #include<type_traits>
 #include<initializer_list>
+#include "dtStrc/holder.hpp"
+
 namespace elsie{
 using namespace std;
-
-struct null_t{
-  null_t()=default;
-  null_t(const null_t&)=default;
-  null_t(null_t&&)=default;
-  friend bool operator<(const null_t&lhs,const null_t&rhs){ return true; }
-  friend bool operator==(const null_t&lhs,const null_t&rhs){ return true; }
-};
 
 template<class key_t,class val_t,class Cmp=less<key_t>,bool allow_duplicate_keys=false>
 class rbtree{
   protected:
-  template<class T,bool for_set=std::same_as<val_t,null_t>>
-  struct holder{
-    T val;
-    holder()=default;
-    holder(const T&v):val(v){}
-    holder(T&&v):val(std::move(v)){}
-  };
-  template<class T>
-  struct holder<T,true>: private T{
-    holder()=default;
-    holder(const T&v){}
-    holder(T&&v){}
-  };
-  struct node:public holder<val_t> {
+  struct node{
     using ip=node*;
-    using holder<val_t>::holder;
     ip p,ch[2]; // ch0=L, ch1=R
     uint64_t time,size; // time: odd red, even black
     key_t key;
+    [[no_unique_address]] val_t val;
     node()=default;
-    node(ip nil):holder<val_t>(),key(),time(0),size(1),p(nil){ ch[0]=ch[1]=nil; }
+    node(ip nil):p{nil},ch{nil,nil},time{0},size{1},key(),val(){}
+
+    template<class KEY_T,class VAL_T> requires (std::same_as<std::decay_t<KEY_T>,key_t>)
+    node(KEY_T&&k,uint64_t tm,ip P,ip L,ip R):p{P},ch{L,R},time{tm},size{1},key(std::forward<KEY_T>(k)){}
+
     template<class KEY_T,class VAL_T>
     requires (std::same_as<std::decay_t<KEY_T>,key_t>) && (std::same_as<std::decay_t<VAL_T>,val_t>)
     node(KEY_T&&k,VAL_T&&v,uint64_t tm,ip P,ip L,ip R)
-    :holder<val_t>(std::forward<VAL_T>(v)),key(std::forward<KEY_T>(k)),time(tm),size(1),p(P){ ch[0]=L,ch[1]=R; }
+    :p{P},ch{L,R},time{tm},size{1},key(std::forward<KEY_T>(k)),val(std::forward<VAL_T>(v)){}
   };
   using np=node*;
   using vp=pair<key_t,val_t>;
@@ -60,10 +45,10 @@ class rbtree{
   constexpr static uint64_t filter_red=1;
   constexpr static uint64_t filter_black=0xFFFF'FFFF'FFFF'FFFEul;
   size_t cur_size,time;
-  np root,nil,unused;
-  Cmp cmp;
+  np root,nil;
+  [[no_unique_address]] Cmp cmp;
   public:
-  rbtree():cur_size(0),time(0),unused(nullptr){
+  rbtree():cur_size(0),time(0){
     root=nil=new node(nullptr);
     nil->p=nil->ch[0]=nil->ch[1]=nil;
     nil->size=0;
@@ -79,15 +64,16 @@ class rbtree{
         this->insert(move(x),val_t());
       else this->insert(move(x));
   }
-  ~rbtree(){ reset(); }
+  ~rbtree(){
+    clear();
+    delete nil;
+  }
   rbtree&operator=(rbtree&&rhs){
-    reset();
+    clear();
     cur_size=rhs.cur_size, time=rhs.time;
-    root=rhs.root, nil=rhs.nil, unused=rhs.unused;
-    cmp=move(rhs.cmp);
-    rhs.root=rhs.nil=new node(nullptr);
-    rhs.nil->p=nil->ch[0]=nil->ch[1]=nil;
-    rhs.nil->size=0;
+    root=rhs.root, nil=rhs.nil;
+    cmp=std::move(rhs.cmp);
+    rhs.nil=nullptr;
     return*this;
   }
   rbtree&operator=(const rbtree&rhs){
@@ -337,13 +323,7 @@ class rbtree{
     }
     cur_size+=1;
     time+=unit_time;
-    np z;
-    if(unused==nullptr) z=new node(move(first),move(second),time|filter_red,y,nil,nil);
-    else{
-      z=unused;
-      unused=unused->p;
-      new(z) node(move(first),move(second),time|filter_red,y,nil,nil);
-    }
+    np z=new node(move(first),move(second),time|filter_red,y,nil,nil);
     if(y==nil) root=z;
     else y->ch[!cmp(z->key,y->key)]=z;
     for(np s=y;s!=nil;s=s->p)
@@ -416,8 +396,7 @@ class rbtree{
     if(w!=nil)for(;w!=nil;w=w->p)
       w->size-=1;
     if(!y_was_red)rb_delete_fixup(x);
-    z->p=unused;
-    unused=z;
+    delete z;
   }
   public:
   iterator erase(iterator&itr){
@@ -434,31 +413,21 @@ class rbtree{
   iterator erase(const key_t&key){ return erase(find(key)); }
   iterator erase(key_t&&key){ return erase(find(move(key))); }
   // memory
+  private:
+  void clear(np p){
+    if(p==nil) return;
+    clear(p->ch[0]),clear(p->ch[1]);
+    delete p;
+  }
+  public:
   void clear(){
-    if(root==nil)return;
-    vector<np>st;
-    st.reserve(cur_size);
-    np c=min_max(root,false);
-    while(c!=nil){
-      st.push_back(c);
-      c=prev_next(c,true);
+    if(nil==nullptr){
+      root=nil=new node(nullptr);
+      return;
     }
-    for(const auto&x:st){
-      x->p=unused;
-      unused=x;
-    }
+    clear(root);
     time=0;
     root=nil;
-  }
-  void reset(){
-    clear();
-    np x=unused;
-    while(x!=nullptr){
-      np dl=x;
-      x=x->p;
-      delete dl;
-    }
-    delete nil;
   }
   bool empty()const{return cur_size==0;}
   size_t size()const{return cur_size;}
