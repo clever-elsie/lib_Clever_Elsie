@@ -7,6 +7,7 @@
 #include<utility> // forward(), move()
 #include<compare>
 #include<concepts>
+#include<iterator>
 #include<functional> // less<>
 #include<type_traits>
 #include<initializer_list>
@@ -34,6 +35,20 @@ class rbtree{
     requires (std::same_as<std::decay_t<KEY_T>,key_t>) && (std::same_as<std::decay_t<VAL_T>,val_t>)
     node(KEY_T&&k,VAL_T&&v,uint64_t tm,ip P,ip L,ip R)
     :p{P},ch{L,R},time{tm},size{1},key(std::forward<KEY_T>(k)),val(std::forward<VAL_T>(v)){}
+
+    ~node()=default;
+
+    void clear(const node*nil){
+      for(size_t i=0;i<2;++i)
+        if(nil!=ch[i]){
+          ch[i]->clear(nil);
+          delete ch[i];
+        }
+    }
+    
+    size_t update(){
+      return size=1+ch[0]->size+ch[1]->size;
+    }
   };
   using np=node*;
   using vp=pair<key_t,val_t>;
@@ -143,59 +158,6 @@ class rbtree{
     }
   };
   protected:
-  np lower_bound(const node&tar)const{
-    np cur=root,res=nil;
-    while(cur!=nil){
-      bool L=cmp(cur->key,tar.key);
-      if(L==cmp(tar.key,cur->key)){
-        if constexpr(allow_duplicate_keys){
-          uint64_t ct=cur->time&filter_black,tt=tar.time&filter_black;
-          if(ct==tt)return cur;
-          else if(ct<tt)cur=cur->ch[1];
-          else res=cur,cur=cur->ch[0];
-        }else return cur;
-      }else if(L)cur=cur->ch[1];
-      else res=cur,cur=cur->ch[0];
-    }
-    return res;
-  }
-  np upper_bound(const node&tar)const{
-    np cur=root,res=nil;
-    while(cur!=nil){
-      bool L=cmp(cur->key,tar.key);
-      if(L||L==cmp(tar.key,cur->key)){
-        if constexpr(allow_duplicate_keys)
-          if(uint64_t ct=cur->time&filter_black,tt=tar.time&filter_black;ct>tt){
-            res=cur,cur=cur->ch[0];
-            continue;
-          }
-        cur=cur->ch[1];
-      }else res=cur,cur=cur->ch[0];
-    }
-    return res;
-  }
-  np ordered_access(size_t idx)const{
-    np cur=root;
-    while(cur!=nil){
-      size_t L=cur->ch[0]->size;
-      if(L>idx)cur=cur->ch[0];
-      else if(L<idx){
-        cur=cur->ch[1];
-        idx-=L+1;
-      }else return cur;
-    }
-    return nil;
-  }
-  size_t order_of_node(np p)const{
-    if(p==nil)return cur_size;
-    size_t R=p->ch[0]->size;
-    while(p!=root){
-      if(p==p->p->ch[1])
-        R+=1+p->p->ch[0]->size;
-      p=p->p;
-    }
-    return R;
-  }
   //! @param min_max_f: 0 min, 1 max
   np min_max(np p,bool min_max_f)const{
     if(!p||p==nil)return nil;
@@ -214,72 +176,106 @@ class rbtree{
     }
     return x;
   }
-  iterator find_wrapper(np p)const{
+  public:
+  template<class KEY_T>
+  requires (std::is_convertible_v<KEY_T, key_t>)
+  iterator find(KEY_T&&key)const{
+    const key_t& tkey(std::forward<KEY_T>(key));
     np x=root;
     while(x!=nil){
-      if(bool L=cmp(p->key,x->key);L==cmp(x->key,p->key)){
+      if(bool L=cmp(tkey,x->key);L==cmp(x->key,tkey)){
         if constexpr(allow_duplicate_keys){
-          uint64_t pt=p->time&filter_black,xt=x->time&filter_black;
-          if(pt==xt)break;
-          if(pt<xt)x=x->ch[0];
+          uint64_t xt=x->time&filter_black; // p->time == 0
+          if(0==xt)break;
           else x=x->ch[1];
         }else break;
       }else x=x->ch[!L];
     }
     return iterator(this,x);
   }
-  iterator count_wrapper(auto&&key)const{
-    if constexpr(allow_duplicate_keys){
-      node P(forward(key),val_t(),0,nil,nil,nil);
-      size_t R=order_of_key(lower_bound(P));
-      P->time=UINT64_MAX;
-      return R-order_of_key(lower_bound(P));
+  template<class KEY_T>
+  requires (std::is_convertible_v<KEY_T, key_t>)
+  iterator lower_bound(KEY_T&&key)const{
+    const key_t& tkey(std::forward<KEY_T>(key));
+    np cur=root,res=nil;
+    while(cur!=nil){
+      bool L=cmp(cur->key,tkey);
+      if(L==cmp(tkey,cur->key)){
+        if constexpr(allow_duplicate_keys){
+          uint64_t ct=cur->time&filter_black;
+          if(ct==0)return cur;
+          else res=cur,cur=cur->ch[0];
+        }else return iterator(this,cur);
+      }else if(L)cur=cur->ch[1];
+      else res=cur,cur=cur->ch[0];
     }
-    return nil!=find(key);
+    return iterator(this,res);
   }
-  public:
-  iterator find(const key_t&key)const{
-    node tar(key,val_t(),0,nil,nil,nil);
-    return find_wrapper(&tar);
+  template<class KEY_T>
+  requires (std::is_convertible_v<KEY_T, key_t>)
+  iterator upper_bound(KEY_T&&key)const{
+    const key_t& tkey(std::forward<KEY_T>(key));
+    np cur=root,res=nil;
+    while(cur!=nil){
+      bool L=cmp(cur->key,tkey);
+      if(L||L==cmp(tkey,cur->key)){
+        if constexpr(allow_duplicate_keys)
+          if(uint64_t ct=cur->time&filter_black;ct>0){
+            res=cur,cur=cur->ch[0];
+            continue;
+          }
+        cur=cur->ch[1];
+      }else res=cur,cur=cur->ch[0];
+    }
+    return iterator(this,res);
   }
-  iterator find(key_t&&key)const{
-    node tar(move(key),val_t(),0,nil,nil,nil);
-    return find_wrapper(&tar);
-  }
-  iterator lower_bound(const key_t&key)const{
-    node tar(key,val_t(),0,nil,nil,nil);
-    return iterator(this,lower_bound(tar));
-  }
-  iterator lower_bound(key_t&&key)const{
-    node tar(move(key),val_t(),0,nil,nil,nil);
-    return iterator(this,lower_bound(tar));
-  }
-  iterator upper_bound(const key_t&key)const{
-    node tar(key,val_t(),UINT64_MAX,nil,nil,nil);
-    return iterator(this,upper_bound(tar));
-  }
-  iterator upper_bound(key_t&&key)const{
-    node tar(move(key),val_t(),UINT64_MAX,nil,nil,nil);
-    return iterator(this,upper_bound(tar));
+  iterator upper_bound(const iterator&itr)const{
+    if(itr==end()) return end();
+    return ++iterator(itr);
   }
   iterator find_by_order(int64_t idx)const{
     if(idx>=(int64_t)cur_size||-idx>(int64_t)cur_size) return iterator(this,nil);
-    return iterator(this,ordered_access(idx>=0?idx:cur_size+idx));
+    if(idx<0) idx=cur_size+idx;
+    np cur=root;
+    while(cur!=nil){
+      size_t L=cur->ch[0]->size;
+      if(L>idx)cur=cur->ch[0];
+      else if(L<idx){
+        cur=cur->ch[1];
+        idx-=L+1;
+      }else return iterator(this,cur);
+    }
+    return iterator(this,nil);
   }
-  size_t order_of_key(const key_t&key)const{
-    node tar(key,val_t(),0,nil,nil,nil);
-    return order_of_node(lower_bound(tar));
+  template<class KEY_T>
+  requires (std::is_convertible_v<KEY_T, key_t>)
+  size_t order_of(KEY_T&&key)const{
+    return order_of(lower_bound(key_t(std::forward<KEY_T>(key))));
   }
-  size_t order_of_key(key_t&&key)const{
-    node tar(move(key),val_t(),0,nil,nil,nil);
-    return order_of_node(lower_bound(tar));
+  size_t order_of(const iterator&itr)const{
+    node const* p=itr.n;
+    if(p==nil)return cur_size;
+    size_t R=p->ch[0]->size;
+    while(p!=root){
+      if(p==p->p->ch[1])
+        R+=1+p->p->ch[0]->size;
+      p=p->p;
+    }
+    return R;
   }
-  size_t count(const key_t&key)const{ return count_wrapper(key); }
-  size_t count(key_t&&key)const{ return count_wrapper(move(key)); }
-  bool contains(key_t&&key)const{ return end()!=find(move(key)); }
-  bool contains(const key_t&key)const{ return end()!=find(key); }
+  template<class KEY_T>
+  requires (std::is_convertible_v<KEY_T, key_t>)
+  size_t count(KEY_T&&key)const{
+    if constexpr(allow_duplicate_keys){
+      key_t tkey(std::forward<KEY_T>(key));
+      return order_of(upper_bound(tkey))-order_of(tkey);
+    }
+    return nil!=find(std::forward<KEY_T>(key));
+  }
+  template<class KEY_T>
+  requires (std::is_convertible_v<KEY_T, key_t>)
+  bool contains(KEY_T&&key)const{ return end()!=find(key_t(std::forward<KEY_T>(key))); }
   protected:
-  inline void calc_size(np x){ x->size=1+x->ch[0]->size+x->ch[1]->size; }
   //! @param left_right: 0 left, 1 right
   void rotation(np x,bool left_right){
     np y=x->ch[!left_right];
@@ -291,7 +287,7 @@ class rbtree{
     y->ch[left_right]=x;
     x->p=y;
     y->size=x->size;
-    calc_size(x);
+    x->update();
   }
   void rb_insert_fixup(np z){
     while(z->p->time&filter_red){
@@ -391,7 +387,7 @@ class rbtree{
       y->ch[0]->p=y;
       if(z->time&filter_red)y->time|=filter_red;
       else y->time&=filter_black;
-      calc_size(y);
+      y->update()
     }
     if(w!=nil)for(;w!=nil;w=w->p)
       w->size-=1;
@@ -413,19 +409,16 @@ class rbtree{
   iterator erase(const key_t&key){ return erase(find(key)); }
   iterator erase(key_t&&key){ return erase(find(move(key))); }
   // memory
-  private:
-  void clear(np p){
-    if(p==nil) return;
-    clear(p->ch[0]),clear(p->ch[1]);
-    delete p;
-  }
   public:
   void clear(){
     if(nil==nullptr){
       root=nil=new node(nullptr);
       return;
     }
-    clear(root);
+    if(root!=nil){
+      root->clear(nil);
+      delete root;
+    }
     time=0;
     root=nil;
   }
@@ -492,7 +485,7 @@ class varray:public rbtree<null_t,val_t,less<null_t>,true>{
           z->ch[0]=y->ch[0];
         }
         z->p=y,y->ch[0]=z;
-        super::calc_size(z);
+        z->update();
       }
       for(typename super::np s=z->p;s!=super::nil;s=s->p)
         s->size+=1;

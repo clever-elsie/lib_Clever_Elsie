@@ -226,10 +226,13 @@ iterator find_by_order(int64_t)const;
 計算量はもちろん $O(\lg N)$.  
 範囲外を参照したらnilが返る．
 
-## <a id="order_of_key">order_of_key</a>
+## <a id="order_of">order_of_key</a>
 ```C++
-size_t order_of_key(key_t&&)const;
-size_t order_of_key(const key_t&)const;
+template<class KEY_T>
+requires std::is_convertible_v<KEY_T,key_t>
+size_t order_of(KEY_T&&)const;
+
+size_t order_of(const iterator&)const;
 ```
 0-indexedな昇順の番号を返す．  
 キーが存在しないときはキー以上の最も小さい要素の番号を返す．  

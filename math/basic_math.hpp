@@ -4,15 +4,80 @@
 #include <limits>
 #include <cstdint>
 #include <concepts>
-#include <atcoder/modint>
+#include <iterator>
+#include <dtStrc/math/modint/static_modint.hpp>
 namespace elsie{
-using namespace std;
-using namespace atcoder;
 
-template<integral T,integral U>
+template<std::integral T,std::integral U>
 inline auto ceil(const T a,const U b){return(a+b-1)/b;}
-template<integral T,integral U>
+template<std::integral T,std::integral U>
 inline auto floor(const T a,const U b){return a/b-(a%b&&(a^b)<0);}
+
+// 比較回数 3n/2回 素朴な実装は2n回 ループ変数の比較はcpuが分岐予測できるため無視
+template<std::random_access_iterator Iterator>
+std::pair<Iterator, Iterator>
+minmax_element(Iterator first, const Iterator last){
+  const size_t n=last-first;
+  if(n==0) return {first,first};
+  Iterator min,max;
+  if(n&1) min=first,max=first++; // odd number of elements
+  else{
+    if(*first<*first+1) min=first,max=first+1;
+    else min=first+1,max=first;
+    first+=2;
+  }
+  for(;first!=last;first+=2){
+    auto next=first+1;
+    if(*first<*next){
+      if(*first<*min) min=first;
+      if(*next>*max) max=next;
+    }else{
+      if(*next<*min) min=next;
+      if(*first>*max) max=first;
+    }
+  }
+  return {min,max};
+}
+
+template<class Iterator>
+requires (!std::random_access_iterator<Iterator>)
+std::pair<Iterator, Iterator>
+minmax_element(Iterator first, Iterator last){
+  if(first==last) return {first,first};
+  Iterator min,max;
+  if(auto prev=first++;prev==last) return {prev,prev};
+  else{
+    if(*prev<*first) min=prev,max=first;
+    else min=first,max=prev;
+    first++;
+  }
+  for(;first!=last;first++){
+    auto prev=first++;
+    if(first!=last){
+      if(*prev<*first){
+        if(*prev<*min) min=prev;
+        if(*first>*max) max=first;
+      }else{
+        if(*first<*min) min=first;
+        if(*prev>*max) max=prev;
+      }
+    }else{
+      if(*prev<*min) min=prev;
+      else if(*prev>*max) max=prev;
+    }
+  }
+  return {min,max};
+}
+
+/**
+ * first==lastはUB
+ */
+template<class Iterator>
+std::pair<std::iter_value_t<Iterator>, std::iter_value_t<Iterator>>
+minmax(Iterator first, Iterator last){
+  auto [min,max]=minmax_element(first,last);
+  return {*min,*max};
+}
 
 // std::ceil(std::sqrtl(x:u64))が64bit精度で40%高速なので，long double 80bitならそちらを使うべき
 template<bool internal_invocate=false>
@@ -22,7 +87,7 @@ inline uint64_t sqrt_ceil(uint64_t x){
     if(x>uint64_t(UINT32_MAX)*UINT32_MAX)return 1ull<<32;
     else if(x<2)return x!=0;
   }
-  uint64_t nx,y=min<uint64_t>((1ULL<<((64-countl_zero(x))>>1)+1)-1,UINT32_MAX);
+  uint64_t nx,y=std::min<uint64_t>((1ULL<<((64-std::countl_zero(x))>>1)+1)-1,UINT32_MAX);
   y-=(y*y-x)/(y<<1);
   y-=(y*y-x)/(y<<1);
   y-=(y*y-x)/(y<<1);
@@ -43,25 +108,23 @@ inline uint64_t sqrt_floor(uint64_t x){
   return y-(y*y!=x);
 }
 
-using u128=__uint128_t;
-using u64 = uint64_t;
-inline __uint128_t mul64to128(u64 a,u64 b){
-  u64 hi,lo;
+inline __uint128_t mul64to128(uint64_t a,uint64_t b){
+  uint64_t hi,lo;
   asm("mulq %3" :"=a"(lo),"=d"(hi):"a"(a),"r"(b));
   return((__uint128_t)(hi)<<64)+lo;
 }
-inline pair<u128,u128>mul128(u128 a,u128 b){
-  constexpr static u128 Lfilter=0xFFFF'FFFF'FFFF'FFFFull;
-  u64 x1=a>>64,x0=a&Lfilter;
-  u64 y1=b>>64,y0=b&Lfilter;
-  u128 z2=mul64to128(x1,y1),z1=mul64to128(x1,y0)+mul64to128(x0,y1),z0=mul64to128(x0,y0);
-  u128 lower=z0+(z1<<64);
+inline pair<__uint128_t,__uint128_t>mul128(__uint128_t a,__uint128_t b){
+  constexpr static __uint128_t Lfilter=0xFFFF'FFFF'FFFF'FFFFull;
+  uint64_t x1=a>>64,x0=a&Lfilter;
+  uint64_t y1=b>>64,y0=b&Lfilter;
+  __uint128_t z2=mul64to128(x1,y1),z1=mul64to128(x1,y0)+mul64to128(x0,y1),z0=mul64to128(x0,y0);
+  __uint128_t lower=z0+(z1<<64);
   return{z2+(z1>>64)+(lower<z0),lower};
 }
-inline u128 rem256(pair<u128,u128>x,u128 mod){
-  u128 rem32=(u128(1)<<32)%mod;
-  u128 rem64=rem32*rem32%mod;
-  u128 rem128=rem64*rem64%mod;
+inline __uint128_t rem256(pair<__uint128_t,__uint128_t>x,__uint128_t mod){
+  __uint128_t rem32=(__uint128_t(1)<<32)%mod;
+  __uint128_t rem64=rem32*rem32%mod;
+  __uint128_t rem128=rem64*rem64%mod;
   auto&&[a,b]=x;
   a%=mod,b%=mod;
   return(a*rem128%mod+b)%mod;
@@ -86,9 +149,9 @@ int64_t safepow(int64_t a,uint64_t b){
   return ret;
 }
 
-template<integral T,class U=make_unsigned_t<T>>
+template<std::integral T,class U=std::make_unsigned_t<T>>
 constexpr T modpow(T a,U b,U mod){
-  if constexpr(is_same_v<U,__uint128_t>){ // mod=2^64専用
+  if constexpr(std::is_same_v<U,__uint128_t>){ // mod=2^64専用
     constexpr __uint128_t filter=uint64_t(-1);
     a%=mod;
     __uint128_t ret=1;
@@ -153,7 +216,7 @@ template<class T>T mod_inv(T a,T m){
 
 template<class T>T mod_inv_prime(T a,T p){ return modpow(a,p-2,p); }
 
-template<class mint=modint998244353>
+template<class mint=mint<998244353u>>
 class combination{
   private:
     using tint = long long;

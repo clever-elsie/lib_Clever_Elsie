@@ -93,5 +93,175 @@ public:
     return l;
   }
 };
+
+
+
+#include <cstddef>
+#include <cstdint>
+#include <utility>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <concepts>
+#include <iterator>
+#include <type_traits>
+
+namespace additional{
+
+class trie{
+  struct node{
+    size_t cnt, is_terminal;
+    node* parent;
+    std::string key;
+    std::unordered_map<char,node*> next;
+    ~node(){
+      for(auto&[c,n]:next)
+        delete n;
+    }
+    /**
+     * @param pos ここを後ろのノードの先頭にして分割
+     */
+    node* split(size_t pos){
+      if(pos>=key.size()||pos==0) return;
+      std::string key_next=key.substr(pos);
+      node*next=new node{cnt,is_terminal,std::move(key_next), std::move(next)};
+      is_terminal = false;
+      key.erase(pos);
+      next.clear();
+      next[key_next[0]]=next;
+      return next;
+    }
+    node*merge(){ // マージは一意に定まる
+    }
+    size_t LCP(const char*s){
+      // Safe from out-of-bounds access under not undefined behavior:
+      //  - The last character of `s` and `key` is always '\0' and any of other characters must not be '\0'.
+      //  - The condition `s[i] != key[i]` will fail before accessing out of bounds.
+      //  - Since `i < key.size()`, `key[i]` is always valid.
+      //  Note: writing to `s[i]` is undefined behavior, but reading is safe.
+      size_t ret=0;
+      for(size_t i=0;i<key.size();++i){
+        if(s[i]!=key[i]) break;
+        ++ret;
+      }
+      return ret;
+    }
+  };
+  std::unique_ptr<node> root;
+  public:
+  struct iterator:std::random_access_iterator_tag{
+    private:
+    node*cur;
+  };
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using value_type = std::string;
+  using size_type = size_t;
+
+  // constructor/destructor/operator=
+  trie():root(new node){}
+  ~trie()=default;
+  trie(const trie&rhs){ root=std::make_unique<node>(*rhs.root); }
+  trie(trie&&rhs){ root=std::move(rhs.root); }
+  trie& operator=(const trie&rhs){ root=std::make_unique<node>(*rhs.root); return *this; }
+  trie& operator=(trie&&rhs){ root=std::move(rhs.root); return *this; }
+
+  // accessor
+  iterator begin(){}
+  iterator end(){ return iterator(nullptr); }
+
+  // modifier
+  iterator insert(const std::string&s){ return insert(s.data()); }
+  iterator insert(const std::string_view&s){ return insert(s.data()); }
+  iterator insert(const char* s){
+    node*cur=root.get();
+    if(*s=='\0') {
+      ++(cur->cnt);
+      ++(cur->is_terminal);
+      return iterator(cur);
+    }
+    while(true){
+      size_t lcp=cur->LCP(s);
+      if(s[lcp]=='\0'){ // ここが挿入処理の最後
+        if(cur->key.size()==lcp) // 後ろの余計な文字列を別のノードとして分離
+          cur->split(lcp);
+        ++(cur->cnt); // 後ろの部分は増えないので，分割した後に加算する
+        cur->is_terminal=true;
+        break;
+      }else{ // 挿入文字列に続きがある
+        if(cur->key.size()!=lcp) cur->split(lcp);
+        ++(cur->cnt);
+        auto it=cur->next.find(s[lcp]);
+        if(it!=cur->next.end()){ // 次のノードの処理へループ
+          cur=it->second;
+          s+=lcp;
+        }else{ // 次が無いなら新しく作ればいいので，ループ終了
+          cur->next[s[lcp]]=new node{1, 1, cur, std::string(s+lcp), std::unordered_map<char,node*>{}};
+          cur=cur->next[s[lcp]];
+          break;
+        }
+      }
+    }
+    return iterator(cur);
+  }
+  
+  iterator find(const std::string&s){ return find(s.data()); }
+  iterator find(const std::string_view&s){ return find(s.data()); }
+  iterator find(const char* s){
+    node*cur=root.get();
+    while(true){
+      size_t lcp=cur->LCP(s);
+      if(s[lcp]=='\0'){
+        if(lcp==cur->key.size() && cur->is_terminal)
+          return iterator(cur);
+        else return iterator(nullptr);
+      }else{
+        if(lcp==cur->key.size()){
+          s+=lcp;
+          auto it=cur->next.find(s[lcp]);
+          if(it!=cur->next.end())
+            cur=it->second;
+          else return iterator(nullptr);
+        }else return iterator(nullptr);
+      }
+    }
+    return iterator(nullptr);// dead code
+  }
+  
+  iterator erase(const std::string&s){ return erase(s.data()); }
+  iterator erase(const std::string_view&s){ return erase(s.data()); }
+  iterator erase(const char* s){
+    iterator it=find(s);
+    if(it==end()) return it;
+    node*cur=it.cur;
+    --(cur->is_terminal), --(cur->cnt);
+    if(cur->cnt==0 && cur->next.empty()){
+      cur->parent->next.erase(cur->key[0]);
+      delete cur;
+    }
+    return it;
+  }
+  
+  iterator erase_all(const std::string&s){ return erase_all(s.data()); }
+  iterator erase_all(const std::string_view&s){ return erase_all(s.data()); }
+  iterator erase_all(const char* s){
+  }
+  
+  // counter
+  size_t size()const noexcept{ return root->cnt; }
+  size_t count(iterator it)const{ return it->is_terminal?it->cnt:0; }
+  size_t count(const std::string&s)const{ return count(s.data()); }
+  size_t count(const std::string_view&s)const{ return count(s.data()); }
+  size_t count(const char* s)const{
+  }
+
+};
+
+template<std::integral T>
+class trie<T>{
+  static_assert(trie_c<T>);
+};
+
+} // namespace additional
 }
 #endif

@@ -9,43 +9,44 @@
 #include<numeric>
 #include<utility>
 #include<concepts>
-#include<atcoder/fenwicktree>
+#include<iterator>
+
+#include<dtStrc/segtree/BIT.hpp>
+#include<misc/concepts.hpp>
+
 namespace elsie{
-using namespace std;
-using namespace atcoder;
-template<class T>
-concept Itrabl=requires(const T&x){x.begin();x.end();typename T::value_type;};
-template<class T>using vc=vector<T>;
-template<class T>using vv=vc<vc<T>>;
 
 template<Itrabl T>
-size_t LIS(const T&a){
-  vc<typename T::value_type>dp(a.size()+1,numeric_limits<typename T::value_type>::max());
-  dp[0]=numeric_limits<typename T::value_type>::lowest();
+size_t LIS(const T&a){ // longest increasing subsequence
+  typedef typename T::value_type V;
+  constexpr static auto maxofT = std::numeric_limits<V>::max();
+  std::vector<V>dp(a.size()+1,maxofT);
+  dp[0]=std::numeric_limits<V>::lowest();
   size_t ans=0;
   for(size_t i=0;i<a.size();++i){
-    size_t k=lower_bound(begin(dp),end(dp),a[i])-begin(dp);
+    size_t k=std::lower_bound(dp.begin(),dp.end(),a[i])-dp.begin();
     if(dp[k-1]<a[i]){
-      dp[k]=min(dp[k],a[i]);
-      ans=max(k,ans);
+      dp[k]=std::min(dp[k],a[i]);
+      ans=std::max(k,ans);
     }
   }
   return ans;
 }
 
 template<bool return_vector=false,Itrabl S>
-pair<size_t,S>LCS(const S&s,const S&t){
+std::pair<size_t,S>LCS(const S&s,const S&t){
   size_t ss=s.size(),ts=t.size();
-  vv dp(ss+1,vc<uint32_t>(ts+1,0));
+  std::vector dp(ss+1, std::vector<uint32_t>(ts+1,0u));
   for(size_t i=1;i<=ss;++i)
     for(size_t j=1;j<=ts;++j)
-      if(s[i-1]!=t[j-1])dp[i][j]=max(dp[i-1][j],dp[i][j-1]);
-      else dp[i][j]=max(dp[i-1][j-1]+1,max(dp[i][j-1],dp[i-1][j]));
+      if(s[i-1]!=t[j-1])dp[i][j]=std::max(dp[i-1][j],dp[i][j-1]);
+      else dp[i][j]=std::max(dp[i-1][j-1]+1,std::max(dp[i][j-1],dp[i-1][j]));
 
   if constexpr(return_vector==false)
     return{dp[ss][ts],S()};
 
-  vc<pair<uint32_t,uint32_t>>index,Stack;
+  using p32=std::pair<uint32_t,uint32_t>;
+  std::vector<p32>index,Stack;
   Stack.emplace_back(ss, ts);
   while(Stack.size()){
     auto[y,x]=Stack.back();
@@ -57,7 +58,7 @@ pair<size_t,S>LCS(const S&s,const S&t){
     while(dp[y][x-1]==now)--x;
     Stack.emplace_back(y-1,x-1);
   }
-  reverse(begin(index),end(index));
+  std::reverse(index.begin(),index.end());
   S res;
   for(const auto&[i,j]:index)
     if(0<=i&&i<(uint32_t)ss)
@@ -67,13 +68,14 @@ pair<size_t,S>LCS(const S&s,const S&t){
 
 template<Itrabl S>
 size_t edit_dist(const S&s,const S&t){
-  vc dp(s.size()+1,vc<size_t>(t.size()+1,UINT64_MAX));
+  constexpr static auto maxofu64 = std::numeric_limits<size_t>::max();
+  std::vector dp(s.size()+1,std::vector<size_t>(t.size()+1,maxofu64));
   dp[0][0]=0;
   for(size_t i=0,j;i<dp.size();++i){
     for(j=0;j<dp[i].size();++j){
-      if(i)dp[i][j]=min(dp[i-1][j]+1,dp[i][j]);
-      if(j)dp[i][j]=min(dp[i][j-1]+1,dp[i][j]);
-      if(i&&j)dp[i][j]=min(dp[i-1][j-1]+(s[i-1]!=t[j-1]),dp[i][j]);
+      if(i)dp[i][j]=std::min(dp[i-1][j]+1,dp[i][j]);
+      if(j)dp[i][j]=std::min(dp[i][j-1]+1,dp[i][j]);
+      if(i&&j)dp[i][j]=std::min(dp[i-1][j-1]+(s[i-1]!=t[j-1]),dp[i][j]);
     }
   }
   return dp.back().back();
@@ -84,12 +86,12 @@ size_t inv_number(const S&tar){
   const size_t n=tar.size();
   size_t res=0;
   S arr=tar,press=tar;
-  fenwick_tree<typename S::value_type>bit(n);
+  elsie::BIT<typename S::value_type>bit(n);
   auto prb=press.begin(),pre=press.end();
-  sort(prb,pre);
-  press.erase(unique(prb,pre),pre);
-  for(auto&x:arr)x=lower_bound(prb,pre,x)-prb;
-  for(int i=0;i<n;++i){
+  std::sort(prb,pre);
+  press.erase(std::unique(prb,pre),pre);
+  for(auto&x:arr)x=std::lower_bound(prb,pre,x)-prb;
+  for(size_t i=0;i<n;++i){
     res+=i-bit.sum(0,arr[i]+1);
     bit.add(arr[i],1);
   }

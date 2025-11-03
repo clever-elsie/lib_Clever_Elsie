@@ -7,15 +7,14 @@
 #include <algorithm>
 #include <cstddef>
 namespace elsie{
-using namespace std;
-template<class S>using vc=vector<S>;
-template<class S>using vv=vc<vc<S>>;
-template<class S>vc<int32_t>find_cycle_directed(const vv<S>&e){
+
+template<class S>
+std::vector<int32_t>find_cycle_directed(const std::vector<std::vector<S>>&e){
   size_t n=e.size();
-  vc<bool> seen(n,false);
-  set<int32_t>now_path;
-  vc<int32_t>cycle(0);cycle.reserve(n);
-  auto dfs=[&](auto dfs,int32_t now)->int {
+  std::vector<bool> seen(n,false);
+  std::set<int32_t>now_path;
+  std::vector<int32_t>cycle(0);cycle.reserve(n);
+  auto dfs=[&](auto dfs,int32_t now)->int32_t {
     for(const auto&to:e[now]){
       if(now_path.contains(to)){
         cycle.push_back(to);
@@ -42,17 +41,17 @@ template<class S>vc<int32_t>find_cycle_directed(const vv<S>&e){
     dfs(dfs,i);
     if(cycle.size())break;
   }
-  if(cycle.size())reverse(cycle.begin(),cycle.end());
-  return move(cycle);
+  if(cycle.size())std::reverse(cycle.begin(),cycle.end());
+  return std::move(cycle);
 }
 
 // e_id[id]={from,to}
 template<class S,class T,class U>
-vc<int32_t>reconstruct_edge(const vc<U>&v,const vc<map<S,T>>&e_id){
-  vc<int32_t>ans(v.size()-1);
+std::vector<int32_t>reconstruct_edge(const std::vector<U>&v,const std::vector<std::map<S,T>>&e_id){
+  std::vector<int32_t>ans(v.size()-1);
   for(int32_t i=0;i+1<v.size();++i)
     ans[i]=e_id[v[i]].find(v[i+1])->second;
-  return move(ans);
+  return std::move(ans);
 }
 }
 #endif
