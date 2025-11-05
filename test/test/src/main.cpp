@@ -19,8 +19,6 @@ inline const fs::path lib_path = test_path.parent_path();
 inline const std::string cc=std::string("g++ -std=c++23 -I")+lib_path.string()+" ";
 
 void update_last_executed_time(const fs::path&path, const std::chrono::system_clock::time_point&time){
-  if(!fs::exists(path / "meta.txt"))
-    fs::create_directories(path/"meta.txt");
   std::ofstream ofs(path / "meta.txt", std::ios::trunc);
   ofs << time.time_since_epoch().count();
 }
@@ -91,30 +89,37 @@ void check_test(const fs::path&path){
     for(const auto&[name, flag_time]:test_cases){
       auto[flag, time] = flag_time;
       if(time<since) continue;
-      int fd[2];
-      if(pipe(fd)==-1){
+      int in_fd[2], out_fd[2];
+      if(pipe(in_fd)==-1){
+        std::cerr << "pipe failed" << std::endl;
+        return true;
+      }
+      if(pipe(out_fd)==-1){
+        close(in_fd[0]),close(in_fd[1]);
         std::cerr << "pipe failed" << std::endl;
         return true;
       }
       if(int pid=fork(); pid==0){
-        dup2(fd[0], STDIN_FILENO);
-        dup2(fd[1], STDOUT_FILENO);
-        dup2(fd[1], STDERR_FILENO);
-        close(fd[0]),close(fd[1]);
+        dup2(in_fd[0], STDIN_FILENO);
+        dup2(out_fd[1], STDOUT_FILENO);
+        dup2(out_fd[1], STDERR_FILENO);
+        close(in_fd[0]),close(in_fd[1]);
+        close(out_fd[0]),close(out_fd[1]);
         execlp(exec.c_str(), exec.c_str(), nullptr);
       }else{
+        close(in_fd[0]); close(out_fd[0]); // 使わない
         std::stringstream ss;
         std::fstream os(in/(name+".in"));
         ss << os.rdbuf();
         ss << std::endl;
-        write(fd[1], ss.str().c_str(), ss.str().size());
-        close(fd[1]);
+        write(in_fd[1], ss.str().c_str(), ss.str().size());
+        close(in_fd[1]);
         std::string output;
         char buf[4096];
         ssize_t len;
-        for(;(len=read(fd[0], buf, sizeof(buf)))>0;)
+        for(;(len=read(out_fd[0], buf, sizeof(buf)))>0;)
           output.append(buf, len);
-        close(fd[0]);
+        close(out_fd[0]);
         int status;
         waitpid(pid, &status, 0);
         std::fstream expected(out/(name+".out"));
@@ -124,15 +129,16 @@ void check_test(const fs::path&path){
           std::cerr << name << " failed" << std::endl;
           return true;
         }
-        return false;
       }
     }
+    return false;
   };
   if(HWT>LET || TWT>OLD || SWT>OLD){
     std::system((cc+test_cpp.string()+" -g -O0 -Wall -Wextra -Werror -o "+test_out.string()).c_str());
     std::system((cc+spec_cpp.string()+" -O2 -flto -march=native -o "+spec_out.string()).c_str());
     if(test_cases.size()){
-      execute_test(test_cases, path/"tin", path/"tout", test_out.string(), system_clock::time_point::min());
+      if(execute_test(test_cases, path/"tin", path/"tout", test_out.string(), system_clock::time_point::min()))
+        return;
     }else if(!fs::exists(path/"tin")||fs::hard_link_count(path/"tin")<=2){
       // testケースが無い場合はtest.cppのみでコンパイルテストができるとみなす
       int code = std::system(test_out.string().c_str());
@@ -142,7 +148,8 @@ void check_test(const fs::path&path){
       }
     }
     if(spec_cases.size())
-      execute_test(spec_cases, path/"in", path/"out", spec_out.string(), system_clock::time_point::min());
+      if(execute_test(spec_cases, path/"in", path/"out", spec_out.string(), system_clock::time_point::min()))
+        return;
   }else{ // 新規追加の入出力ファイルに対してのみ実行
     if(test_cases.size())
       if(execute_test(test_cases, path/"tin", path/"tout", test_out.string(), LET))
@@ -151,6 +158,8 @@ void check_test(const fs::path&path){
       if(execute_test(spec_cases, path/"in", path/"out", spec_out.string(), LET))
         return;
   }
+  // テスト成功時に最終実行日を更新
+  update_last_executed_time(on_header, current_time);
 }
 
 void recursively_scan_test_files(const fs::path&path){
