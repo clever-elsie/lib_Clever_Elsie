@@ -15,16 +15,26 @@
 
 namespace elsie{
 
-template<class key_t,class val_t,class Cmp=std::less<key_t>,bool allow_duplicate_keys=false>
+template<class key_t, class val_t, bool is_multi, class Cmp, class Allocator>
 class rbtree{
   constexpr static bool is_set=std::same_as<val_t, null_t>;
   public:
+  using key_type = key_t;
   using value_type = std::conditional_t<is_set, const key_t, std::pair<const key_t, val_t>>;
-  using pointer = value_type*;
+  using mapped_type = val_t;
+  using key_compare = Cmp;
+  using allocator_type = Allocator;
   using reference = value_type&;
+  using const_reference = const value_type&;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
+  using pointer = value_type*;
+  using const_pointer = typename std::allocator_traits<Allocator>::const_pointer;
   protected:
   using mutable_value_type = std::conditional_t<is_set, key_t, std::pair<key_t, val_t>>;
   struct node{
+    constexpr static uint64_t filter_red=1;
+    constexpr static uint64_t filter_black=~filter_red;
     using ip=node*;
     ip p,ch[2]; // ch0=L, ch1=R
     uint64_t time,size; // time: odd red, even black
@@ -46,28 +56,13 @@ class rbtree{
       if constexpr(is_set) return val;
       else return val.first;
     }
-    
-    val_t& value(){
-      if constexpr(!is_set) return val.second;
-      else throw std::invalid_argument("elsie::rbtree node is set");
-    }
-
-    const val_t& value()const{
-      if constexpr(!is_set) return val.second;
-      else throw std::invalid_argument("elsie::rbtree node is set");
-    }
-
-    void clear(const node*nil){
-      for(size_t i=0;i<2;++i)
-        if(nil!=ch[i]){
-          ch[i]->clear(nil);
-          delete ch[i];
-        }
-    }
-    
-    size_t update(){
-      return size=1+ch[0]->size+ch[1]->size;
-    }
+    val_t& value() requires(!is_set) { return val.second; }
+    uint64_t update(){ return size=1+ch[0]->size+ch[1]->size; }
+    bool is_black()const noexcept{ return (time&1)==0; }
+    bool is_red()const noexcept{ return time&1; }
+    void set_black()noexcept{ time&=filter_black; }
+    void set_red()noexcept{ time|=filter_red; }
+    uint64_t get_time()const noexcept{ return time&filter_black; }
   };
   using np=node*;
   template<bool is_const, bool is_reverse>
@@ -105,10 +100,10 @@ class rbtree{
       --*this;
       return cur;
     }
-    decltype(auto) operator*(){ return ptr->val; }
-    decltype(auto) operator->(){ return &ptr->val; }
-    decltype(auto) operator*()const{ return ptr->val; }
-    decltype(auto) operator->()const{ return &ptr->val; }
+    auto& operator*(){ return ptr->val; }
+    auto operator->(){ return &(ptr->val); }
+    auto& operator*()const{ return ptr->val; }
+    auto operator->()const{ return &(ptr->val); }
     template<bool is_const1, bool is_reverse1>
     bool operator==(const iter<is_const1,is_reverse1>&itr)const{ return ptr==itr.ptr; }
     template<bool is_const1>
@@ -117,12 +112,16 @@ class rbtree{
       return tree->order_of(*this)<=>itr.tree->order_of(itr);
     }
     iter& operator+=(difference_type n){
-      auto x=tree->find_by_order(tree->order_of(*this)+n);
+      size_t idx=tree->order_of(*this)+n;
+      if constexpr(is_reverse) idx=tree->cur_size-idx-1;
+      auto x=tree->find_by_order(idx);
       ptr=x.ptr;
       return*this;
     }
     iter& operator-=(difference_type n){
-      auto x=tree->find_by_order(tree->order_of(*this)-n);
+      size_t idx=tree->order_of(*this)-n;
+      if constexpr(is_reverse) idx=tree->cur_size-idx-1;
+      auto x=tree->find_by_order(idx);
       ptr=x.ptr;
       return*this;
     }
@@ -137,8 +136,11 @@ class rbtree{
       if(tree!=itr.tree) throw std::domain_error("iter is not belonging to the same tree");
       return tree->order_of(*this)-tree->order_of(itr);
     }
+    auto& operator[](difference_type n){ return *(*this+n); }
+    auto& operator[](difference_type n)const{ return *(*this+n); }
     template<bool is_const1,bool is_reverse1>
     explicit operator iter<is_const1, is_reverse1>()const{
+      static_assert(is_const && !is_const1, "elsie::rbtree::iterator invalid conversion, const -> non-const.");
       return iter<is_const1, is_reverse1>(tree,ptr);
     }
     private:
@@ -154,7 +156,6 @@ class rbtree{
   };
   template<bool is_const, bool is_reverse>
   friend struct iter;
-
   public:
   using iterator=iter<false,false>;
   using reverse_iterator=iter<false,true>;
@@ -162,38 +163,41 @@ class rbtree{
   using const_reverse_iterator=iter<true,true>;
 
   protected:
+  using node_allocator = typename std::allocator_traits<Allocator>::template rebind_alloc<node>;
+  using node_traits = typename std::allocator_traits<node_allocator>;
   constexpr static uint64_t unit_time=2;
-  constexpr static uint64_t filter_red=1;
-  constexpr static uint64_t filter_black=0xFFFF'FFFF'FFFF'FFFEul;
   size_t cur_size,time;
   np root,nil;
   [[no_unique_address]] Cmp cmp;
+  [[no_unique_address]] node_allocator alloc;
   public:
-  rbtree():cur_size(0),time(0){
-    root=nil=new node(nullptr);
-    nil->p=nil->ch[0]=nil->ch[1]=nil;
-    nil->size=0;
-  }
+  rbtree():nil{nullptr}{ clear(); }
   rbtree(rbtree&&v):nil(nullptr){ *this=std::move(v); }
   rbtree(const rbtree&v):nil(nullptr){ *this=v; }
   template<class T>
   rbtree(std::initializer_list<T>init)
     requires (std::same_as<T,key_t>)||(std::same_as<T,std::pair<key_t,val_t>>)
     :rbtree(){
-    for(auto&&x:init)
-      if constexpr (std::same_as<T,key_t>)
-        this->insert(std::move(x),val_t());
-      else this->insert(std::move(x));
+    for(const auto&x:init)
+      this->insert(x);
   }
+  explicit rbtree(const Cmp& Cmp_):nil(nullptr),cmp(Cmp_){ clear(); }
+  explicit rbtree(const Allocator& Alloc):nil(nullptr),alloc(Alloc){ clear(); }
+  explicit rbtree(const Cmp& Cmp_, const Allocator& Alloc):nil(nullptr),cmp(Cmp_),alloc(Alloc){ clear(); }
+
   ~rbtree(){
     clear();
-    delete nil;
+    node_traits::destroy(alloc,nil);
+    node_traits::deallocate(alloc,nil,1);
+    nil=nullptr;
   }
   rbtree&operator=(rbtree&&rhs){
     if(nil) this->~rbtree();
     cur_size=rhs.cur_size, time=rhs.time;
     root=rhs.root, nil=rhs.nil;
     cmp=std::move(rhs.cmp);
+    if constexpr(node_traits::propagate_on_container_move_assignment)
+      alloc=std::move(rhs.alloc);
     rhs.root=rhs.nil=nullptr;
     rhs.cur_size=rhs.time=0;
     rhs.clear();
@@ -201,6 +205,8 @@ class rbtree{
   }
   rbtree&operator=(const rbtree&rhs){
     if(nil) this->~rbtree();
+    if constexpr(node_traits::propagate_on_container_copy_assignment)
+      alloc=rhs.alloc;
     for(auto itr=rhs.begin();itr!=rhs.end();++itr)
       this->insert(*itr);
     return*this;
@@ -232,8 +238,8 @@ class rbtree{
     np x=root;
     while(x!=nil){
       if(bool L=cmp(key,x->key());L==cmp(x->key(),key)){
-        if constexpr(allow_duplicate_keys){
-          uint64_t xt=x->time&filter_black; // p->time == 0
+        if constexpr(is_multi){
+          uint64_t xt=x->get_time(); // p->time == 0
           if(0==xt)break;
           else x=x->ch[1];
         }else break;
@@ -242,29 +248,32 @@ class rbtree{
     return x;
   }
   public:
-  template<std::convertible_to<key_t> KEY_T>
-  iterator find(KEY_T&&key){
-    return iterator(this,find_impl(std::forward<KEY_T>(key)));
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  iterator find(Args&&... args){
+    return iterator(this,find_impl(std::forward<Args>(args)...));
   }
-  template<std::convertible_to<key_t> KEY_T>
-  const_iterator find(KEY_T&&key)const{
-    return const_iterator(this,find_impl(std::forward<KEY_T>(key)));
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  const_iterator find(Args&&... args)const{
+    return const_iterator(this,find_impl(std::forward<Args>(args)...));
   }
 
-  template<std::convertible_to<key_t> KEY_T>
-  requires (!is_set)
-  val_t& operator[](KEY_T&&key){
-    auto it=find(std::forward<KEY_T>(key));
+  template<class... Args>
+  requires (!is_set) && (std::constructible_from<key_t, Args...>)
+  val_t& operator[](Args&&... args){
+    key_t key(std::forward<Args>(args)...);
+    auto it=find(key);
     if(it==end()){
       if constexpr(!std::is_default_constructible_v<val_t>)
         throw std::invalid_argument("elsie::rbtree out of map. val_t is not default constructible");
-      it=insert(std::forward<KEY_T>(key),val_t());
+      it=insert(std::move(key),val_t());
     }
-    return it.ptr->val;
+    return it->value();
   }
   
   const key_t& operator[](size_t idx)const requires (is_set){
-    return find_by_order(idx).key;
+    return find_by_order(idx).ptr->key();
   }
   
   private:
@@ -273,8 +282,8 @@ class rbtree{
     while(cur!=nil){
       bool L=cmp(cur->key(),key);
       if(L==cmp(key,cur->key())){
-        if constexpr(allow_duplicate_keys){
-          uint64_t ct=cur->time&filter_black;
+        if constexpr(is_multi){
+          uint64_t ct=cur->get_time();
           if(ct==0)return cur;
           else res=cur,cur=cur->ch[0];
         }else return cur;
@@ -284,13 +293,15 @@ class rbtree{
     return res;
   }
   public:
-  template<std::convertible_to<key_t> KEY_T>
-  iterator lower_bound(KEY_T&&key){
-    return iterator(this,lower_bound_impl(std::forward<KEY_T>(key)));
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  iterator lower_bound(Args&&... args){
+    return iterator(this,lower_bound_impl(std::forward<Args>(args)...));
   }
-  template<std::convertible_to<key_t> KEY_T>
-  const_iterator lower_bound(KEY_T&&key)const{
-    return const_iterator(this,lower_bound_impl(std::forward<KEY_T>(key)));
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  const_iterator lower_bound(Args&&... args)const{
+    return const_iterator(this,lower_bound_impl(std::forward<Args>(args)...));
   }
   private:
   np upper_bound_impl(const key_t&key)const{
@@ -298,8 +309,8 @@ class rbtree{
     while(cur!=nil){
       bool L=cmp(cur->key(),key);
       if(L||L==cmp(key,cur->key())){
-        if constexpr(allow_duplicate_keys)
-          if(uint64_t ct=cur->time&filter_black;ct>0){
+        if constexpr(is_multi)
+          if(uint64_t ct=cur->get_time();ct>0){
             res=cur,cur=cur->ch[0];
             continue;
           }
@@ -309,13 +320,15 @@ class rbtree{
     return res;
   }
   public:
-  template<std::convertible_to<key_t> KEY_T>
-  iterator upper_bound(KEY_T&&key){
-    return iterator(this,upper_bound_impl(std::forward<KEY_T>(key)));
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  iterator upper_bound(Args&&... args){
+    return iterator(this,upper_bound_impl(std::forward<Args>(args)...));
   }
-  template<std::convertible_to<key_t> KEY_T>
-  const_iterator upper_bound(KEY_T&&key)const{
-    return const_iterator(this,upper_bound_impl(std::forward<KEY_T>(key)));
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  const_iterator upper_bound(Args&&... args)const{
+    return const_iterator(this,upper_bound_impl(std::forward<Args>(args)...));
   }
   private:
   np find_by_order_impl(int64_t idx)const{
@@ -339,9 +352,10 @@ class rbtree{
   const_iterator find_by_order(int64_t idx)const{
     return const_iterator(this,find_by_order_impl(idx));
   }
-  template<std::convertible_to<key_t> KEY_T>
-  size_t order_of(KEY_T&&key)const{
-    return order_of(lower_bound(std::forward<KEY_T>(key)));
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  size_t order_of(Args&&... args)const{
+    return order_of(lower_bound(std::forward<Args>(args)...));
   }
   template<bool is_const, bool is_reverse>
   size_t order_of(const iter<is_const, is_reverse>&itr)const{
@@ -357,16 +371,17 @@ class rbtree{
       return cur_size-R-1;
     else return R;
   }
-  template<std::convertible_to<key_t> KEY_T>
-  size_t count(KEY_T&&key)const{
-    if constexpr(allow_duplicate_keys){
-      key_t tkey(std::forward<KEY_T>(key));
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  size_t count(Args&&... args)const{
+    if constexpr(is_multi){
+      key_t tkey(std::forward<Args>(args)...);
       return order_of(upper_bound(tkey))-order_of(tkey);
-    }
-    return contains(std::forward<KEY_T>(key));
+    }else return contains(std::forward<Args>(args)...);
   }
-  template<std::convertible_to<key_t> KEY_T>
-  bool contains(KEY_T&&key)const{ return end()!=find(std::forward<KEY_T>(key)); }
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  bool contains(Args&&... args)const{ return end()!=find(std::forward<Args>(args)...); }
   protected:
   //! @param left_right: 0 left, 1 right
   void rotation(np x,bool left_right){
@@ -382,22 +397,22 @@ class rbtree{
     x->update();
   }
   void rb_insert_fixup(np z){
-    while(z->p->time&filter_red){
+    while(z->p->is_red()){
       bool LR=z->p==z->p->p->ch[0];
-      if(np y=z->p->p->ch[LR];y->time&filter_red){
-        z->p->time&=filter_black,y->time&=filter_black;
-        z->p->p->time|=filter_red,z=z->p->p;
+      if(np y=z->p->p->ch[LR];y->is_red()){
+        z->p->set_black(),y->set_black();
+        z->p->p->set_red(),z=z->p->p;
       }else{
         if(z==z->p->ch[LR])rotation(z=z->p,!LR);
-        z->p->time&=filter_black,z->p->p->time|=filter_red;
+        z->p->set_black(),z->p->p->set_red();
         rotation(z->p->p,LR);
       }
     }
-    root->time&=filter_black;
+    root->set_black();
   }
   public:
   template<class... Args>
-  requires (std::is_constructible_v<value_type, Args...>)
+  requires (std::constructible_from<value_type, Args...>)
   iterator insert(Args&&... args){
     mutable_value_type t(std::forward<Args>(args)...);
     const key_t* key;
@@ -408,7 +423,7 @@ class rbtree{
       y=x;
       bool L=cmp(*key,x->key());
       if(L==cmp(x->key(),*key))
-        if constexpr(!allow_duplicate_keys){
+        if constexpr(!is_multi){
           if constexpr(!is_set)
             x->value()=std::move(t.second);
           return iterator(this,x);
@@ -417,9 +432,10 @@ class rbtree{
     }
     cur_size+=1;
     time+=unit_time;
-    np z;
-    if constexpr(is_set) z=new node(std::move(t), time|filter_red,y,nil,nil);
-    else z=new node(std::move(t.first),std::move(t.second),time|filter_red,y,nil,nil);
+    np z=node_traits::allocate(alloc,1);
+    if constexpr(is_set)
+      node_traits::construct(alloc,z,std::move(t), time|node::filter_red,y,nil,nil);
+    else node_traits::construct(alloc,z,std::move(t.first),std::move(t.second),time|node::filter_red,y,nil,nil);
     if(y==nil) root=z;
     else y->ch[!cmp(z->key(),y->key())]=z;
     for(np s=y;s!=nil;s=s->p)
@@ -429,30 +445,30 @@ class rbtree{
   }
   protected:
   void rb_delete_fixup(np x){
-    while(x!=root&&!(x->time&filter_red)){
+    while(x!=root&&!(x->is_red())){
       bool LR=x==x->p->ch[0];
       np w=x->p->ch[LR];
-      if(w->time&filter_red){
-        w->time&=filter_black,x->p->time|=filter_red;
+      if(w->is_red()){
+        w->set_black(),x->p->set_red();
         rotation(x->p,!LR);
         w=x->p->ch[LR];
       }
-      if(!((w->ch[0]->time&filter_red)||(w->ch[1]->time&filter_red)))
-        w->time|=filter_red,x=x->p;
+      if(!(w->ch[0]->is_red()||w->ch[1]->is_red()))
+        w->set_red(),x=x->p;
       else{
-        if(!(w->ch[LR]->time&filter_red)){
-          w->ch[!LR]->time&=filter_black,w->time|=filter_red;
+        if(!(w->ch[LR]->is_red())){
+          w->ch[!LR]->set_black(),w->set_red();
           rotation(w,LR);
           w=x->p->ch[LR];
         }
-        if(x->p->time&filter_red)w->time|=filter_red;
-        else w->time&=filter_black;
-        x->p->time&=filter_black,w->ch[LR]->time&=filter_black;
+        if(x->p->is_red())w->set_red();
+        else w->set_black();
+        x->p->set_black(),w->ch[LR]->set_black();
         rotation(x->p,!LR);
         x=root;
       }
     }
-    x->time&=filter_black;
+    x->set_black();
   }
   void erase(np z){
     auto transplant=[&](np u,np v){
@@ -461,7 +477,7 @@ class rbtree{
       v->p=u->p;
     };
     np x,y=z,w=z->p;
-    bool y_was_red=y->time&filter_red;
+    bool y_was_red=y->is_red();
     if(z->ch[0]==nil) transplant(z,x=z->ch[1]);
     else if(z->ch[1]==nil) transplant(z,x=z->ch[0]);
     else{
@@ -469,7 +485,7 @@ class rbtree{
         y->size-=1;
         if(y->ch[0]==nil)break;
       }
-      y_was_red=y->time&filter_red;
+      y_was_red=y->is_red();
       x=y->ch[1];
       if(y!=z->ch[1]){
         transplant(y,y->ch[1]);
@@ -478,50 +494,58 @@ class rbtree{
       transplant(z,y);
       y->ch[0]=z->ch[0];
       y->ch[0]->p=y;
-      if(z->time&filter_red)y->time|=filter_red;
-      else y->time&=filter_black;
+      if(z->is_red())y->set_red();
+      else y->set_black();
       y->update();
     }
     if(w!=nil)for(;w!=nil;w=w->p)
       w->size-=1;
     if(!y_was_red)rb_delete_fixup(x);
-    delete z;
+    node_traits::destroy(alloc,z);
+    node_traits::deallocate(alloc,z,1);
   }
   public:
   // is_constはfalseじゃないと書き換えできないので，false
-  template<bool is_reverse>
-  iter<false, is_reverse> erase(iter<false, is_reverse>&itr){
+  template<bool is_reverse1>
+  iter<false, is_reverse1> erase(iter<false, is_reverse1>&itr){
     if(itr.ptr!=nil){
       cur_size-=1;
-      np nx=prev_next<!is_reverse>(itr.ptr);
+      np nx=prev_next<!is_reverse1>(itr.ptr);
       erase(itr.ptr);
       itr.ptr=nx;
       return itr;
     }
     return iterator(this,nil);
   }
-  template<bool is_reverse>
-  iter<false, is_reverse> erase(iter<false, is_reverse>&&itr){ return erase(itr); }
-  template<std::convertible_to<key_t> KEY_T>
-  iterator erase(KEY_T&& key){
-    return erase(find(std::forward<KEY_T>(key)));
+  template<bool is_reverse1>
+  iter<false, is_reverse1> erase(iter<false, is_reverse1>&&itr){ return erase(itr); }
+  template<class... Args>
+  requires(std::constructible_from<key_t, Args...>)
+  iterator erase(Args&&... args){
+    return erase(find(std::forward<Args>(args)...));
   }
   // memory
+  private:
+  void clear(np x){
+    if(x==nil) return;
+    clear(x->ch[0]);
+    clear(x->ch[1]);
+    node_traits::destroy(alloc,x);
+    node_traits::deallocate(alloc,x,1);
+  }
   public:
   void clear(){
     if(nil==nullptr){
-      root=nil=new node(nullptr);
-      return;
-    }
-    if(root!=nil){
-      root->clear(nil);
-      delete root;
-    }
+      nil=node_traits::allocate(alloc,1);
+      node_traits::construct(alloc,nil,nullptr);
+      nil->p=nil->ch[0]=nil->ch[1]=nil;
+      nil->size=0;
+    }else clear(root);
     time=cur_size=0;
     root=nil;
   }
-  bool empty()const{return cur_size==0;}
-  size_t size()const{return cur_size;}
+  bool empty()const noexcept{return cur_size==0;}
+  size_t size()const noexcept{return cur_size;}
   // iterator
   iterator begin(){ return iterator(this,cur_size?min_max<false>(root):nil); }
   iterator end(){ return iterator(this,nil); }
@@ -537,61 +561,17 @@ class rbtree{
   const_reverse_iterator crend()const{ return const_reverse_iterator(this,nil); }
 };
 
-template<class key_t, class cmp=std::less<key_t>>
-using set=rbtree<key_t,null_t,cmp,false>;
+template<class key_t, class cmp=std::less<key_t>, class Allocator=std::allocator<key_t>>
+using set=rbtree<key_t,null_t,false,cmp,Allocator>;
 
-template<class key_t, class val_t, class cmp=std::less<key_t>>
-using map=rbtree<key_t,val_t,cmp,false>;
+template<class key_t, class val_t, class cmp=std::less<key_t>, class Allocator=std::allocator<std::pair<const key_t, val_t>>>
+using map=rbtree<key_t,val_t,false,cmp,Allocator>;
 
-template<class key_t, class cmp=std::less<key_t>>
-using multiset=rbtree<key_t,null_t,cmp,true>;
+template<class key_t, class cmp=std::less<key_t>, class Allocator=std::allocator<key_t>>
+using multiset=rbtree<key_t,null_t,true,cmp,Allocator>;
 
-template<class key_t,class val_t,class cmp=std::less<key_t>>
-using multimap=rbtree<key_t,val_t,cmp,true>;
-
-
-template<class val_t>
-class varray:public rbtree<null_t,val_t,std::less<null_t>,true>{
-  protected:
-  using super=rbtree<null_t,val_t,std::less<null_t>,true>;
-  typename super::iterator insert_key_null(size_t idx,val_t&&t){
-    if(super::cur_size==0)return super::insert(null_t(),std::move(t));
-    else{
-      super::cur_size+=1;
-      super::time+=super::unit_time;
-      typename super::np y,z;
-      if(super::unused==nullptr)z=new super::node(super::nil);
-      else{
-        z=super::unused;
-        super::unused=z->p;
-      }
-      z->val=std::move(t),z->ch[0]=z->ch[1]=super::nil;
-      z->size=1,z->time=super::time|super::filter_red;
-      if(super::cur_size-1<=idx){
-        y=super::template min_max<true>(super::root);
-        z->p=y,y->ch[1]=z;
-      }else{
-        y=super::find_by_order_impl(idx);
-        if(y->ch[0]!=super::nil){
-          y->ch[0]->p=z;
-          z->ch[0]=y->ch[0];
-        }
-        z->p=y,y->ch[0]=z;
-        z->update();
-      }
-      for(typename super::np s=z->p;s!=super::nil;s=s->p)
-        s->size+=1;
-      super::rb_insert_fixup(z);
-      return typename super::iterator(this,z);
-    }
-  }
-  public:
-  using iterator=super::iterator;
-  iterator insert(int64_t idx,const val_t&v){ return insert_key_null(idx<0?super::cur_size+idx:idx,v); }
-  iterator insert(int64_t idx,val_t&&v){ return insert_key_null(idx<0?super::cur_size+idx:idx,move(v)); }
-  iterator erase(int64_t idx){ return super::erase(super::find_by_order(idx)); }
-  val_t& get(int64_t idx){ return super::find_by_order(idx).s(); }
-};
+template<class key_t,class val_t,class cmp=std::less<key_t>,class Allocator=std::allocator<std::pair<const key_t, val_t>>>
+using multimap=rbtree<key_t,val_t,true,cmp,Allocator>;
 
 }
 
