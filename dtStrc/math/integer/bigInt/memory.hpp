@@ -12,7 +12,7 @@ void bigInt::shrink_to_fit(){
 
 void bigInt::sign_expand(uint64_t len){
   if(data.size()<=len) return;
-  data.resize(len.data.back());
+  data.resize(len);
 }
 }
 #endif

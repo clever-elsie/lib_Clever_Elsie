@@ -3,23 +3,22 @@
 #include <cstddef>
 #include <cstdint>
 namespace elsie{
-  using namespace std;
   template<class val_t>struct splay_node{
     using np=splay_node*;
     np p,ch[2];
     val_t val;
-    size_t size;
+    std::size_t size;
     splay_node():size(0){}
     splay_node(np nil):size(0){ p=ch[0]=ch[1]=nil; }
     void set(const val_t&v){val=v;}
-    void set(val_t&&v){val=move(v);}
+    void set(val_t&&v){val=std::move(v);}
   };
   template<class val_t>
   class splay_tree{
     using node=splay_node<val_t>;
     using np=node*;
     np root,nil;
-    size_t size_;
+    std::size_t size_;
 
     inline void calc_size(np x){
       if(x!=nil) x->size=1+x->ch[0]->size+x->ch[1]->size;
@@ -70,7 +69,7 @@ namespace elsie{
       if(idx<0||size_<=idx)return nil;
       np cur=root;
       while(cur!=nil){
-        size_t L=cur->ch[0]->size;
+        std::size_t L=cur->ch[0]->size;
         if(L>idx)cur=cur->ch[0];
         else if(L<idx){
           cur=cur->ch[1];

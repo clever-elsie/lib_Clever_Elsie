@@ -28,7 +28,7 @@ public:
   using size_type=std::size_t;
   using difference_type=std::ptrdiff_t;
   using iterator=pointer;
-  using iterator=const_pointer;
+  using const_iterator=const_pointer;
   using reverse_iterator=std::reverse_iterator<iterator>;
   using const_reverse_iterator=std::reverse_iterator<const_iterator>;
   constexpr ~bucket();
@@ -37,7 +37,10 @@ public:
   constexpr bucket(const bucket&x);
   constexpr bucket(size_t size,const_reference x=T())noexcept(false);
   explicit constexpr bucket(std::initializer_list<value_type>init)noexcept(false);
-  template<class InputIterator>
+  template<std::random_access_iterator InputIterator>
+  constexpr bucket(InputIterator first,InputIterator last)noexcept(false);
+  template<std::forward_iterator InputIterator>
+  requires (!std::random_access_iterator<InputIterator>)
   constexpr bucket(InputIterator first,InputIterator last)noexcept(false);
   constexpr bucket& operator=(bucket&&x);
   constexpr bucket& operator=(const bucket&&x);
@@ -81,7 +84,7 @@ public:
   constexpr const_reverse_iterator rend()const noexcept;
   constexpr const_reverse_iterator crend()const noexcept;
 
-  constexpr static size_type max_size()const noexcept;
+  constexpr static size_type max_size()noexcept;
   constexpr friend bool operator==(const bucket&lhs,const bucket&rhs);
   constexpr friend auto operator<=>(const bucket&lhs,const bucket&rhs);
 };
@@ -373,9 +376,9 @@ bucket<T,N>::const_reverse_iterator
 bucket<T,N>::crend()const noexcept{ return const_reverse_iterator(begin()); }
 
 template<class T,size_t N>
-constexpr static inline
+constexpr inline
 bucket<T,N>::size_type
-bucket<T,N>::max_size()const noexcept{ return N; }
+bucket<T,N>::max_size()noexcept{ return N; }
 
 template<class T,size_t N>
 constexpr inline

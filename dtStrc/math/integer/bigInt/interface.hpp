@@ -2,14 +2,14 @@
 #define ELSIE_BIGINT_INTERFACE
 #include "dtStrc/math/integer/bigInt/bigInt_image.hpp"
 namespace elsie{
-string bigInt::to_string()const{
+std::string bigInt::to_string()const{
   bigInt cp=*this;
   constexpr uint64_t base=1'000'000'000;
-  vector<uint32_t>digits;
+  std::vector<uint32_t>digits;
   bool neg=cp.data.back();
-  if(neg) cp=move(-cp);
+  if(neg) cp=std::move(-cp);
   cp.data.pop_back();
-  if(cp.data.size()==1&&cp.data[0]==0)return string("0");
+  if(cp.data.size()==1&&cp.data[0]==0)return std::string("0");
   while(cp.data.size()){
     uint64_t remainder=0;
     for(int32_t i=(int32_t)cp.data.size()-1;i>=0;--i){
@@ -20,7 +20,7 @@ string bigInt::to_string()const{
     digits.push_back((uint32_t)remainder);
     while(cp.data.size()&&cp.data.back()==0)cp.data.pop_back();
   }
-  string r=std::to_string(digits.back());
+  std::string r=std::to_string(digits.back());
   return r;
 }
 }// namespace elsie

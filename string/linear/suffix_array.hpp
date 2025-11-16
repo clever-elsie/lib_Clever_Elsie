@@ -16,17 +16,17 @@
 #include <algorithm>
 #include <string/rollingHash.hpp>
 namespace elsie{
-using namespace std;
 template<class T>concept Itrabl=requires(const T&x){x.begin();x.end();x.size();typename T::value_type;};
 /**
  * @class suffix_array
  * @brief compute suffix array of iterable object.
  * @attention Itrabl concept requires method {.begin(), .end(), .size()}. but may be needed operator++ and operator-- at T::iterator for sequential access.
  */
-template<size_t psz,Itrabl T>class suffix_array{
+template<std::size_t psz,Itrabl T>
+class suffix_array{
   public:
-  template<class S>using vc=vector<S>;
-  constexpr static size_t tsz=1024;
+  template<class S>using vc=std::vector<S>;
+  constexpr static std::size_t tsz=1024;
   T v;
   vc<int32_t>sa;
   rollingHash<psz,T>rolh;
@@ -36,10 +36,10 @@ template<size_t psz,Itrabl T>class suffix_array{
   suffix_array(T&&s):v(s),rolh(){fix();}
   suffix_array(const T&s):v(s),rolh(){fix();}
   ~suffix_array()=default;
-  size_t lower_bound(const T&t){
+  std::size_t lower_bound(const T&t){
     if constexpr (psz>0){
       if(t.size()>tsz){
-        vector<arl>h;
+        std::vector<arl>h;
         rolh.make_hash(t,h);
         return lower_bound(h,t);
       }
@@ -60,10 +60,10 @@ template<size_t psz,Itrabl T>class suffix_array{
     }
     return ok;
   }
-  size_t upper_bound(const T&t){
+  std::size_t upper_bound(const T&t){
     if constexpr(psz>0){
       if(t.size()>tsz){
-        vector<arl>h;
+        std::vector<arl>h;
         rolh.make_hash(t,h);
         return upper_bound(h,t);
       }
@@ -71,7 +71,7 @@ template<size_t psz,Itrabl T>class suffix_array{
     int64_t ok=v.size(),ng=-1;
     while(ng+1<ok){
       int64_t m=(ok+ng)/2,nx=0;
-      for(size_t i=0,u=min(t.size(),v.size()-sa[m]);i<u;++i){
+      for(std::size_t i=0,u=std::min(t.size(),v.size()-sa[m]);i<u;++i){
         if(v[sa[m]+i]==t[i])continue;
         if(v[sa[m]+i]<t[i]) ng=m;
         else ok=m;
@@ -83,10 +83,10 @@ template<size_t psz,Itrabl T>class suffix_array{
     }
     return ok;
   }
-  size_t count(const T&t){
+  std::size_t count(const T&t){
     if constexpr(psz>0){
       if(t.size()>tsz){
-        vector<arl>h;
+        std::vector<arl>h;
         rolh.make_hash(t,h);
         return upper_bound(h,t)-lower_bound(h,t);
       }
@@ -96,51 +96,51 @@ template<size_t psz,Itrabl T>class suffix_array{
   void fix(){
     loop=((64-countl_zero(v.size()))+(popcount(v.size())!=1)+base_exp-1)/base_exp;
     T prs=v;
-    sort(prs.begin(),prs.end());
-    prs.erase(unique(prs.begin(),prs.end()),prs.end());
-    vector<int32_t>p(v.size());
-    for(size_t i=0;i<v.size();++i)
+    std::sort(prs.begin(),prs.end());
+    prs.erase(std::unique(prs.begin(),prs.end()),prs.end());
+    std::vector<int32_t>p(v.size());
+    for(std::size_t i=0;i<v.size();++i)
       p[i]=std::lower_bound(prs.begin(),prs.end(),v[i])-prs.begin();
     sa=SA_IS(p,prs.back());
     if constexpr(psz>0) rolh.set(v);
   }
   void set(const T&s){ v=s; fix(); }
-  void set(T&&s){ v=move(s); fix(); }
+  void set(T&&s){ v=std::move(s); fix(); }
   protected:
-  using ps2=pair<int32_t,int32_t>;
-  using ps3=pair<ps2,int32_t>;
-  using vps3=vector<ps3>;
+  using ps2=std::pair<int32_t,int32_t>;
+  using ps3=std::pair<ps2,int32_t>;
+  using vps3=std::vector<ps3>;
   constexpr static int32_t base_exp=4;
-  constexpr static size_t base=1ull<<base_exp;
-  constexpr static size_t bit_mask=base-1;
+  constexpr static std::size_t base=1ull<<base_exp;
+  constexpr static std::size_t bit_mask=base-1;
   //! loop size for radix_sort
-  size_t loop;
-  vector<int32_t> SA_log(const vector<int32_t>&p){
-    size_t n=p.size();
+  std::size_t loop;
+  std::vector<int32_t> SA_log(const std::vector<int32_t>&p){
+    std::size_t n=p.size();
     vps3 Rsubstr(n);
-    vector<int32_t>rank(n);
-    for(size_t i=0;i<n;++i) Rsubstr[i]={{p[i],(i+1<n?p[i+1]:-1)},i};
-    sort(Rsubstr.begin(),Rsubstr.end());
-    for(size_t l=2,r=1;l<n;l<<=1,r=1){
+    std::vector<int32_t>rank(n);
+    for(std::size_t i=0;i<n;++i) Rsubstr[i]={{p[i],(i+1<n?p[i+1]:-1)},i};
+    std::sort(Rsubstr.begin(),Rsubstr.end());
+    for(std::size_t l=2,r=1;l<n;l<<=1,r=1){
       rank[Rsubstr[0].second]=1;
-      for(size_t i=1;i<n;++i){
+      for(std::size_t i=1;i<n;++i){
         auto&&[a,b]=Rsubstr[i].first;
         auto&&[c,d]=Rsubstr[i-1].first;
         rank[Rsubstr[i].second]=(r+=a!=c||b!=d);
       }
-      for(size_t i=0;i<n;++i) Rsubstr[i]={{rank[i],(i+l<n?rank[i+l]:-1)},i};
+      for(std::size_t i=0;i<n;++i) Rsubstr[i]={{rank[i],(i+l<n?rank[i+l]:-1)},i};
       //radix_sort(Rsubstr);
-      sort(Rsubstr.begin(),Rsubstr.end());
+      std::sort(Rsubstr.begin(),Rsubstr.end());
     }
-    vector<int32_t>sa_ret(n);
-    for(size_t i=0;i<n;++i) sa_ret[i]=Rsubstr[i].second;
+    std::vector<int32_t>sa_ret(n);
+    for(std::size_t i=0;i<n;++i) sa_ret[i]=Rsubstr[i].second;
     return sa_ret;
   }
-  vector<int32_t> SA_naive(const vector<int32_t>&s){
-    size_t n=s.size();
-    vector<int32_t>sap(n);
-    iota(sap.begin(),sap.end(),0);
-    sort(sap.begin(),sap.end(),[&](int32_t l,int32_t r){
+  std::vector<int32_t> SA_naive(const std::vector<int32_t>&s){
+    std::size_t n=s.size();
+    std::vector<int32_t>sap(n);
+    std::iota(sap.begin(),sap.end(),0);
+    std::sort(sap.begin(),sap.end(),[&](int32_t l,int32_t r){
       if(l==r)return false;
       while(l<n&&r<n){
         if(s[l]!=s[r])return s[l]<s[r];
@@ -150,7 +150,7 @@ template<size_t psz,Itrabl T>class suffix_array{
     });
     return sap;
   }
-  vector<int32_t> SA_IS(const vector<int32_t>&p,int32_t upper){
+  std::vector<int32_t> SA_IS(const std::vector<int32_t>&p,int32_t upper){
     constexpr int32_t tnv=10,tlog=40;
     int32_t n=p.size();
     if(n<tlog){
@@ -165,10 +165,10 @@ template<size_t psz,Itrabl T>class suffix_array{
         else return SA_log(p);
       }
     }
-    vector<int32_t>sap(n);
-    vector<bool>ls(n);
+    std::vector<int32_t>sap(n);
+    std::vector<bool>ls(n);
     for(int32_t i=n-2;i>=0;--i) ls[i]=p[i]==p[i+1]?ls[i+1]:p[i]<p[i+1];
-    vector<int32_t>sum_l(upper+1),sum_s(upper+1);
+    std::vector<int32_t>sum_l(upper+1),sum_s(upper+1);
     for(int32_t i=0;i<n;++i)
       if(!ls[i])++sum_s[p[i]];
       else ++sum_l[p[i]+1];
@@ -176,36 +176,36 @@ template<size_t psz,Itrabl T>class suffix_array{
       sum_s[i]+=sum_l[i];
       sum_l[i+1]+=sum_s[i];
     }sum_s[upper]+=sum_l[upper];
-    auto induce=[&](const vector<int32_t>&lms){
-      fill(sap.begin(),sap.end(),-1);
-      vector<int32_t>buf(upper+1);
-      copy(sum_s.begin(),sum_s.end(),buf.begin());
+    auto induce=[&](const std::vector<int32_t>&lms){
+      std::fill(sap.begin(),sap.end(),-1);
+      std::vector<int32_t>buf(upper+1);
+      std::copy(sum_s.begin(),sum_s.end(),buf.begin());
       for(const auto&d:lms){
         if(d==n)continue;
         sap[buf[p[d]]++]=d;
       }
-      copy(sum_l.begin(),sum_l.end(),buf.begin());
+      std::copy(sum_l.begin(),sum_l.end(),buf.begin());
       sap[buf[p[n-1]]++]=n-1;
       for(int32_t i=0;i<n;++i)
         if(int32_t v=sap[i];v>=1&&!ls[v-1])
           sap[buf[p[v-1]]++]=v-1;
-      copy(sum_l.begin(),sum_l.end(),buf.begin());
+      std::copy(sum_l.begin(),sum_l.end(),buf.begin());
       for(int32_t i=n-1;i>=0;--i)
         if(int32_t v=sap[i];v>=1&&ls[v-1])
           sap[--buf[p[v-1]+1]]=v-1;
     };
-    vector<int32_t>lms_map(n+1,-1);
+    std::vector<int32_t>lms_map(n+1,-1);
     int32_t m=0;
     for(int32_t i=1;i<n;++i) if(!ls[i-1]&&ls[i]) lms_map[i]=m++;
-    vector<int32_t>lms;
+    std::vector<int32_t>lms;
     lms.reserve(m);
     for(int32_t i=1;i<n;++i) if(!ls[i-1]&&ls[i]) lms.push_back(i);
     induce(lms);
     if(m==0)return sap;
-    vector<int32_t>sorted_lms;
+    std::vector<int32_t>sorted_lms;
     sorted_lms.reserve(m);
     for(const auto&v:sap) if(lms_map[v]!=-1) sorted_lms.push_back(v);
-    vector<int32_t>rec_s(m);
+    std::vector<int32_t>rec_s(m);
     int32_t rec_upper=0;
     rec_s[lms_map[sorted_lms[0]]]=0;
     for(int32_t i=1;i<m;++i){
@@ -229,10 +229,10 @@ template<size_t psz,Itrabl T>class suffix_array{
     return sap;
   }
   void radix_sort(vps3&a){
-    const size_t n=a.size();
+    const std::size_t n=a.size();
     auto rsort=[&](vps3::iterator l,vps3::iterator r,bool key_first){
-      array<vps3,1<<base_exp>rd;
-      for(size_t i=0,shift=0;i<loop;++i,shift+=base_exp){
+      std::array<vps3,1<<base_exp>rd;
+      for(std::size_t i=0,shift=0;i<loop;++i,shift+=base_exp){
         for(auto&x:rd)x.clear();
         if(key_first)
           for(auto itr=l;itr!=r;++itr)
@@ -256,11 +256,11 @@ template<size_t psz,Itrabl T>class suffix_array{
     }
   }
   void LCP(){} // 未実装
-  size_t lower_bound(const vector<arl>&h,const T&t){
+  std::size_t lower_bound(const std::vector<arl>&h,const T&t){
     int64_t ok=v.size(),ng=-1;
     while(ng+1<ok){
       int64_t m=(ok+ng)>>1;
-      size_t lcp=LCP_hash(sa[m],h),len=v.size()-sa[m];
+      std::size_t lcp=LCP_hash(sa[m],h),len=v.size()-sa[m];
       if(lcp<t.size()&&lcp<len){
         if(v[sa[m]+lcp]<t[lcp]) ng=m;
         else ok=m;
@@ -271,11 +271,11 @@ template<size_t psz,Itrabl T>class suffix_array{
     }
     return ok;
   }
-  size_t upper_bound(const vector<arl>&h,const T&t){
+  std::size_t upper_bound(const std::vector<arl>&h,const T&t){
     int64_t ok=v.size(),ng=-1;
     while(ng+1<ok){
       int64_t m=(ok+ng)>>1;
-      size_t lcp=LCP_hash(sa[m],h),len=v.size()-sa[m];
+      std::size_t lcp=LCP_hash(sa[m],h),len=v.size()-sa[m];
       if(lcp<t.size()&&lcp<len){
         if(v[sa[m]+lcp]<t[lcp])ng=m;
         else ok=m;
@@ -283,8 +283,8 @@ template<size_t psz,Itrabl T>class suffix_array{
     }
     return ok;
   }
-  inline size_t LCP_hash(size_t idx,const vector<arl>&h){
-    size_t len=min(v.size()-idx,h.size()-1);
+  inline std::size_t LCP_hash(std::size_t idx,const std::vector<arl>&h){
+    std::size_t len=std::min(v.size()-idx,h.size()-1);
     int64_t ok=0,ng=len+1;
     while(ok+1<ng){
       int64_t m=(ok+ng)>>1;

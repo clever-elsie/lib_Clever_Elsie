@@ -11,11 +11,10 @@
 #include <utility>
 #include <math/prime_factor.hpp>
 namespace elsie{
-using namespace std;
 
 template<uint32_t M=998244353>
 class convolution_fast{
-static_assert(is_prime(M),"convolution_fast requires that M is prime");
+static_assert(std::is_prime(M),"convolution_fast requires that M is prime");
 private:
 using i32 = int32_t; using u32 = uint32_t;
 using i64 = int64_t; using u64 = uint64_t;
@@ -30,9 +29,9 @@ static inline u32 modpow(u32 a,u32 b){
 }
 struct ntt_info{
   static constexpr i32 e2=countr_zero(M-1);
-  array<u32,e2+1>r,i;
-  array<u32,max(0,e2-1)>r2,i2;
-  array<u32,max(0,e2-2)>r3,i3;
+  std::array<u32,e2+1>r,i;
+  std::array<u32,std::max(0,e2-1)>r2,i2;
+  std::array<u32,std::max(0,e2-2)>r3,i3;
   ntt_info(){
     r[e2]=convolution_fast<M>::modpow(primitive_root(M),(M-1)>>e2);
     i[e2]=mod_inv<__int128_t>(r[e2],M);
@@ -57,7 +56,7 @@ struct ntt_info{
   }
 };
 ntt_info info=ntt_info();
-void ntt(vector<u32>&a){
+void ntt(std::vector<u32>&a){
   u32 len=0,n=static_cast<u32>(a.size()),h=countr_zero(n);
   while(len<h){
     if(h-len==1){
@@ -97,7 +96,7 @@ void ntt(vector<u32>&a){
     }
   }
 }
-void ntt_inv(vector<u32>&a){
+void ntt_inv(std::vector<u32>&a){
   u32 n=static_cast<u32>(a.size()),h=countr_zero(n);
   i32 len=h;
   while(len){
@@ -135,8 +134,8 @@ void ntt_inv(vector<u32>&a){
     }
   }
 }
-void conv_naive(vector<u32>&&a,vector<u32>&&b,vector<u32>&c){
-  if(b.size()>a.size())swap(a,b);
+void conv_naive(std::vector<u32>&&a,std::vector<u32>&&b,std::vector<u32>&c){
+  if(b.size()>a.size())std::swap(a,b);
   for(u32 i=0;i<a.size();++i)
   for(u32 j=0;j<b.size();++j){
     u32 tmp=(u64)a[i]*b[j]%M;
@@ -146,16 +145,16 @@ void conv_naive(vector<u32>&&a,vector<u32>&&b,vector<u32>&c){
 public:
 convolution_fast():info(){}
 template<bool is_Zmod=true>
-vector<u32>prod_move(vector<u32>&&a,vector<u32>&&b){
+std::vector<u32>prod_move(std::vector<u32>&&a,std::vector<u32>&&b){
   if(a.empty()||b.empty())return{0};
-  size_t m=a.size()+b.size()-1;
-  if(min(a.size(),b.size())<=60){
-    vector<u32>c(m,0);
-    conv_naive(move(a),move(b),c);
+  std::size_t m=a.size()+b.size()-1;
+  if(std::min(a.size(),b.size())<=60){
+    std::vector<u32>c(m,0);
+    conv_naive(std::move(a),std::move(b),c);
     return c;
   }
-  size_t u=1ull<<(sizeof(size_t)*8-1-countl_zero(m)+(popcount(m)!=1));
-  size_t sz=countr_zero(u);
+  std::size_t u=1ull<<(sizeof(std::size_t)*8-1-countl_zero(m)+(popcount(m)!=1));
+  std::size_t sz=countr_zero(u);
   if constexpr(!is_Zmod) for(auto&x:a) x%=M;
   a.resize(u,0),ntt(a);
   if constexpr(!is_Zmod) for(auto&x:b) x%=M;
@@ -168,61 +167,61 @@ vector<u32>prod_move(vector<u32>&&a,vector<u32>&&b){
   return a;
 }
 template<bool is_Zmod=true>
-vector<u32>prod_amove(vector<u32>&&a,vector<u32>b){ return prod_move<is_Zmod>(move(a),move(b)); }
+std::vector<u32>prod_amove(std::vector<u32>&&a,std::vector<u32>b){ return prod_move<is_Zmod>(std::move(a),std::move(b)); }
 template<bool is_Zmod=true>
-vector<u32>prod_bmove(vector<u32>a,vector<u32>&&b){ return prod_move<is_Zmod>(move(a),move(b)); }
+std::vector<u32>prod_bmove(std::vector<u32>a,std::vector<u32>&&b){ return prod_move<is_Zmod>(std::move(a),std::move(b)); }
 template<bool is_Zmod=true>
-vector<u32>prod(vector<u32>a,vector<u32>b){ return prod_move<is_Zmod>(move(a),move(b)); }
+std::vector<u32>prod(std::vector<u32>a,std::vector<u32>b){ return prod_move<is_Zmod>(std::move(a),std::move(b)); }
 };
 
-template<size_t M=998244353,size_t mod_cnt=5>
+template<std::size_t M=998244353,std::size_t mod_cnt=5>
 class convolution{
   using i32=int32_t; using u32=uint32_t;
   using i64=int64_t; using u64=uint64_t;
-  static constexpr size_t max_mods=11;
+  static constexpr std::size_t max_mods=11;
   static_assert(mod_cnt<=5);
-  static constexpr array<u32,max_mods>mods_list{
+  static constexpr std::array<u32,max_mods>mods_list{
     2'717'908'993u/*81 * 2^25 +1*/, 2'113'929'217u/*63 * 2^25 +1*/,
     1'711'276'033u/*51 * 2^25 +1*/, 1'107'296'257u/*33 * 2^25 +1*/,
       167'772'161u/* 5 * 2^25 +1*/
   };
-  static constexpr array<u32,max_mods>primitive_root_list{ 1100, 206, 947, 199, 124 };
+  static constexpr std::array<u32,max_mods>primitive_root_list{ 1100, 206, 947, 199, 124 };
   class mint_ntt{
     friend convolution;
     using i32=int32_t; using u32=uint32_t;
     using i64=int64_t; using u64=uint64_t;
-    template<size_t... I> static constexpr array<u32,mod_cnt> make_mods(index_sequence<I...>){ return {mods_list[I]...}; }
+    template<std::size_t... I> static constexpr std::array<u32,mod_cnt> make_mods(std::index_sequence<I...>){ return {mods_list[I]...}; }
     private:
-    static constexpr array<u32,mod_cnt> mods=make_mods(make_index_sequence<mod_cnt>{});
-    array<u32,mod_cnt>val;
+    static constexpr std::array<u32,mod_cnt> mods=make_mods(std::make_index_sequence<mod_cnt>{});
+    std::array<u32,mod_cnt>val;
 
-    template<size_t... I> constexpr mint_ntt& add_impl(const mint_ntt&rhs,index_sequence<I...>){
+    template<std::size_t... I> constexpr mint_ntt& add_impl(const mint_ntt&rhs,std::index_sequence<I...>){
       (...,add_impl_unit<I>(rhs));
       return*this;
     }
-    template<size_t I> constexpr void add_impl_unit(const mint_ntt&rhs){
+    template<std::size_t I> constexpr void add_impl_unit(const mint_ntt&rhs){
       u64 tmp=(static_cast<u64>(val[I])+rhs.val[I])%mods[I];
       if(tmp>=mods[I])tmp-=mods[I];
       val[I]=static_cast<u32>(tmp);
     }
-    template<size_t... I> constexpr mint_ntt& sub_impl(const mint_ntt&rhs,index_sequence<I...>){
+    template<std::size_t... I> constexpr mint_ntt& sub_impl(const mint_ntt&rhs,std::index_sequence<I...>){
       (...,(val[I]=val[I]>=rhs.val[I]?val[I]-rhs.val[I]:mods[I]-rhs.val[I]+val[I]));
       return*this;
     }
-    template<size_t... I> constexpr mint_ntt& mul_impl(const mint_ntt&rhs,index_sequence<I...>){
+    template<std::size_t... I> constexpr mint_ntt& mul_impl(const mint_ntt&rhs,std::index_sequence<I...>){
       (...,(val[I]=static_cast<u32>(static_cast<u64>(val[I])*rhs.val[I]%mods[I])));
       return*this;
     }
-    template<size_t... I> constexpr mint_ntt& div_impl(const mint_ntt&rhs,index_sequence<I...>){
+    template<std::size_t... I> constexpr mint_ntt& div_impl(const mint_ntt&rhs,std::index_sequence<I...>){
       (...,(val[I]=static_cast<u32>(static_cast<u64>(val[I])*modinv<I>(rhs.val[I])%mods[I])));
       return*this;
     }
-    template<size_t... I> static constexpr mint_ntt negate_impl(const mint_ntt&v,index_sequence<I...>){
+    template<std::size_t... I> static constexpr mint_ntt negate_impl(const mint_ntt&v,std::index_sequence<I...>){
       mint_ntt res(v);
       (...,(res.val[I]=(mods[I]-v.val[I])%mods[I]));
       return res;
     }
-    template<size_t... I> constexpr void assign(u64 x,index_sequence<I...>){
+    template<std::size_t... I> constexpr void assign(u64 x,std::index_sequence<I...>){
       (...,(val[I]=x%mods[I]));
     }
     public:
@@ -230,29 +229,29 @@ class convolution{
     constexpr mint_ntt()=default;
     constexpr mint_ntt(mint_ntt&&)=default;
     constexpr mint_ntt(const mint_ntt&)=default;
-    constexpr mint_ntt(u64 x){ assign(x,make_index_sequence<mod_cnt>{}); }
+    constexpr mint_ntt(u64 x){ assign(x,std::make_index_sequence<mod_cnt>{}); }
     constexpr mint_ntt& operator=(mint_ntt&&)=default;
     constexpr mint_ntt& operator=(const mint_ntt&)=default;
     constexpr mint_ntt& operator=(u64 x){
-      assign(x,make_index_sequence<mod_cnt>{});
+      assign(x,std::make_index_sequence<mod_cnt>{});
       return *this;
     }
 
-    constexpr mint_ntt& operator+=(const mint_ntt&rhs){ return add_impl(rhs,make_index_sequence<mod_cnt>{}); }  
-    constexpr mint_ntt& operator-=(const mint_ntt&rhs){ return sub_impl(rhs,make_index_sequence<mod_cnt>{}); }
-    constexpr mint_ntt& operator*=(const mint_ntt&rhs){ return mul_impl(rhs,make_index_sequence<mod_cnt>{}); }
-    constexpr mint_ntt& operator/=(const mint_ntt&rhs){ return div_impl(rhs,make_index_sequence<mod_cnt>{}); }
+    constexpr mint_ntt& operator+=(const mint_ntt&rhs){ return add_impl(rhs,std::make_index_sequence<mod_cnt>{}); }  
+    constexpr mint_ntt& operator-=(const mint_ntt&rhs){ return sub_impl(rhs,std::make_index_sequence<mod_cnt>{}); }
+    constexpr mint_ntt& operator*=(const mint_ntt&rhs){ return mul_impl(rhs,std::make_index_sequence<mod_cnt>{}); }
+    constexpr mint_ntt& operator/=(const mint_ntt&rhs){ return div_impl(rhs,std::make_index_sequence<mod_cnt>{}); }
 
     private:
-    template<size_t... k>
-    constexpr void outer_value(array<u64,mod_cnt+1>&coeffs,array<u64,mod_cnt+1>&constants,index_sequence<k...>)const{
+    template<std::size_t... k>
+    constexpr void outer_value(std::array<u64,mod_cnt+1>&coeffs,std::array<u64,mod_cnt+1>&constants,std::index_sequence<k...>)const{
       ((outer_step<k>(coeffs,constants)),...);
     }
     template<i32 k>
-    constexpr void outer_step(array<u64,mod_cnt+1>&coeffs,array<u64,mod_cnt+1>&constants)const{
+    constexpr void outer_step(std::array<u64,mod_cnt+1>&coeffs,std::array<u64,mod_cnt+1>&constants)const{
       u64 tmp = val[k]>=constants[k]? val[k]-constants[k] : val[k]+mods[k]-constants[k];
       u32 t = tmp*modinv<k>(coeffs[k])%mods[k];
-      inner_value<k>(coeffs,constants,t,make_index_sequence<mod_cnt-k-1>{});
+      inner_value<k>(coeffs,constants,t,std::make_index_sequence<mod_cnt-k-1>{});
       if constexpr(M!=0){ // M==0 then assume M==2^64
         constants[mod_cnt]=(t*coeffs[mod_cnt]%M+constants[mod_cnt])%M;
         coeffs[mod_cnt]=coeffs[mod_cnt]*mods[k]%M;
@@ -261,24 +260,24 @@ class convolution{
         coeffs[mod_cnt]=coeffs[mod_cnt]*mods[k];
       }
     }
-    template<i32 k,size_t... I>
-    constexpr void inner_value(array<u64,mod_cnt+1>&coeffs,array<u64,mod_cnt+1>&constants,const u32 t,index_sequence<I...>)const{
+    template<i32 k,std::size_t... I>
+    constexpr void inner_value(std::array<u64,mod_cnt+1>&coeffs,std::array<u64,mod_cnt+1>&constants,const u32 t,std::index_sequence<I...>)const{
       ((inner_step<k,I>(coeffs,constants,t)),...);
     }
     template<i32 k,i32 I>
-    constexpr void inner_step(array<u64,mod_cnt+1>&coeffs,array<u64,mod_cnt+1>&constants,const u32 t)const{
-      constexpr size_t i=k+1+I;
+    constexpr void inner_step(std::array<u64,mod_cnt+1>&coeffs,std::array<u64,mod_cnt+1>&constants,const u32 t)const{
+      constexpr std::size_t i=k+1+I;
       constants[i]=(t*coeffs[i]%mods[i]+constants[i])%mods[i];
       coeffs[i]=coeffs[i]*mods[k]%mods[i];
     }
     public:
     constexpr u64 value()const{
-      array<u64,mod_cnt+1>coeffs,constants;
+      std::array<u64,mod_cnt+1>coeffs,constants;
       coeffs.fill(1); constants.fill(0);
-      outer_value(coeffs,constants,make_index_sequence<mod_cnt>{});
+      outer_value(coeffs,constants,std::make_index_sequence<mod_cnt>{});
       return constants.back();
     }
-    template<size_t I> static constexpr u32 modinv(u32 a){
+    template<std::size_t I> static constexpr u32 modinv(u32 a){
       i64 x=1,u=0,b=mods[I];
       while(b){
         i64 k=a/b,r=a%b,tmp=u;
@@ -290,7 +289,7 @@ class convolution{
       if(a!=1)return -1;
       return(x%mods[I]+mods[I])%mods[I];
     }
-    template<size_t I> static constexpr u32 modpow(u32 a, u32 b){
+    template<std::size_t I> static constexpr u32 modpow(u32 a, u32 b){
       u64 r=1,k=a;
       for(;b;b>>=1){
         if(b&1)r=r*k%mods[I];
@@ -299,12 +298,12 @@ class convolution{
       return r;
     }
     private:
-    template<size_t... I> constexpr bool eq_impl(const mint_ntt&rhs,index_sequence<I...>)const{
+    template<std::size_t... I> constexpr bool eq_impl(const mint_ntt&rhs,std::index_sequence<I...>)const{
       return (...&&(val[I]==rhs.val[I]));
     }
     public:
-    friend constexpr bool operator!=(const mint_ntt&lhs,const mint_ntt&rhs){ return !lhs.eq_impl(rhs,make_index_sequence<mod_cnt>{}); }
-    friend constexpr bool operator==(const mint_ntt&lhs,const mint_ntt&rhs){ return lhs.eq_impl(rhs,make_index_sequence<mod_cnt>{}); }
+    friend constexpr bool operator!=(const mint_ntt&lhs,const mint_ntt&rhs){ return !lhs.eq_impl(rhs,std::make_index_sequence<mod_cnt>{}); }
+    friend constexpr bool operator==(const mint_ntt&lhs,const mint_ntt&rhs){ return lhs.eq_impl(rhs,std::make_index_sequence<mod_cnt>{}); }
     friend constexpr mint_ntt operator+(const mint_ntt&lhs,const mint_ntt&rhs){return mint_ntt(lhs)+=rhs;}
     friend constexpr mint_ntt operator-(const mint_ntt&lhs,const mint_ntt&rhs){return mint_ntt(lhs)-=rhs;}
     friend constexpr mint_ntt operator*(const mint_ntt&lhs,const mint_ntt&rhs){return mint_ntt(lhs)*=rhs;}
@@ -312,18 +311,18 @@ class convolution{
   };
   struct ntt_info{
     static constexpr i32 e2=25;
-    array<mint_ntt,e2+1>root,iroot;
-    array<mint_ntt,e2-1>root2,iroot2;
-    array<mint_ntt,e2-2>root3,iroot3;
+    std::array<mint_ntt,e2+1>root,iroot;
+    std::array<mint_ntt,e2-1>root2,iroot2;
+    std::array<mint_ntt,e2-2>root3,iroot3;
     private:
-    template<size_t... I>
-    constexpr void init_root(index_sequence<I...>){
+    template<std::size_t... I>
+    constexpr void init_root(std::index_sequence<I...>){
       (...,(root[e2].val[I]=mint_ntt::template modpow<I>(primitive_root_list[I],(convolution::mods_list[I]-1)>>e2)));
       (...,(iroot[e2].val[I]=mint_ntt::template modinv<I>(root[e2].val[I])));
     }
     public:
     constexpr ntt_info(){
-      init_root(make_index_sequence<mod_cnt>{});
+      init_root(std::make_index_sequence<mod_cnt>{});
       for(i32 i=e2-1;i>=0;--i){
         root[i]=root[i+1]*root[i+1];
         iroot[i]=iroot[i+1]*iroot[i+1];
@@ -346,7 +345,7 @@ class convolution{
   };
   constexpr static ntt_info info=ntt_info();
 
-  void ntt(vector<mint_ntt>&a)const{
+  void ntt(std::vector<mint_ntt>&a)const{
     u32 len=0,n=static_cast<u32>(a.size()),h=countr_zero(n);
     while(len<h){
       if(h-len==1){
@@ -385,7 +384,7 @@ class convolution{
       }
     }
   }
-  void inv_ntt(vector<mint_ntt>&a)const{
+  void inv_ntt(std::vector<mint_ntt>&a)const{
     u32 n=static_cast<u32>(a.size()),h=countr_zero(n);
     i32 len=h;
     while(len){
@@ -427,14 +426,14 @@ class convolution{
     }
   }
 
-  template<unsigned_integral T>
-  vector<uint64_t> convolution_naive(const vector<T>&a,const vector<T>&b)const{
-    size_t s=a.size()+b.size()-1;
-    vector<uint64_t> c(s,0);
+  template<std::unsigned_integral T>
+  std::vector<uint64_t> convolution_naive(const std::vector<T>&a,const std::vector<T>&b)const{
+    std::size_t s=a.size()+b.size()-1;
+    std::vector<uint64_t> c(s,0);
     const auto&p=(a.size()<b.size()?a:b);
     const auto&q=(a.size()<b.size()?b:a);
-    for(size_t i=0;i<p.size();++i)
-      for(size_t j=0;j<q.size();++j)
+    for(std::size_t i=0;i<p.size();++i)
+      for(std::size_t j=0;j<q.size();++j)
         if constexpr(M) c[i+j]=(c[i+j]+p[i]*q[j]%M)%M;
         else c[i+j]+=p[i]*q[j];
     return c;
@@ -442,38 +441,38 @@ class convolution{
 public:
   using mint=mint_ntt;
   convolution()=default;
-  template<unsigned_integral T>
-  vector<uint64_t> prod(const vector<T>&lhs,const vector<T>&rhs)const{
+  template<std::unsigned_integral T>
+  std::vector<uint64_t> prod(const std::vector<T>&lhs,const std::vector<T>&rhs)const{
     u32 n=lhs.size(),m=rhs.size();
     u32 nm=n+m-1;
     if(std::min(n,m)<=60) return convolution_naive(lhs,rhs);
     u32 e=31-countl_zero(nm)+(popcount(nm)!=1);
     u32 p=1u<<e;
-    vector<mint> a(p,0),b(p,0);
-    for(size_t i=0;i<lhs.size();++i) a[i]=lhs[i];
-    for(size_t i=0;i<rhs.size();++i) b[i]=rhs[i];
+    std::vector<mint> a(p,0),b(p,0);
+    for(std::size_t i=0;i<lhs.size();++i) a[i]=lhs[i];
+    for(std::size_t i=0;i<rhs.size();++i) b[i]=rhs[i];
     auto r=prod(std::move(a),std::move(b));
     r.resize(nm);
     return r;
   }
   private:
-  template<size_t ...I>
-  mint_ntt calc_invk(size_t len,index_sequence<I...>)const{
+  template<std::size_t ...I>
+  mint_ntt calc_invk(std::size_t len,std::index_sequence<I...>)const{
     mint_ntt v;
     (...,(v.val[I]=mint_ntt::template modinv<I>(len)));
     return v;
   }
   public:
-  vector<uint64_t> prod(vector<mint>&&lhs,vector<mint>&&rhs)const{
+  std::vector<uint64_t> prod(std::vector<mint>&&lhs,std::vector<mint>&&rhs)const{
     assert(lhs.size()==rhs.size() && popcount(lhs.size())==1);
     ntt(lhs);
     ntt(rhs);
-    for(size_t i=0;i<lhs.size();++i)
+    for(std::size_t i=0;i<lhs.size();++i)
       lhs[i]*=rhs[i];
     inv_ntt(lhs);
-    vector<uint64_t>ret(lhs.size());
-    mint_ntt invk=calc_invk(lhs.size(),make_index_sequence<mod_cnt>{});
-    for(size_t i=0;i<lhs.size();++i)
+    std::vector<uint64_t>ret(lhs.size());
+    mint_ntt invk=calc_invk(lhs.size(),std::make_index_sequence<mod_cnt>{});
+    for(std::size_t i=0;i<lhs.size();++i)
       ret[i]=(lhs[i]*=invk).value();
     return ret;
   }

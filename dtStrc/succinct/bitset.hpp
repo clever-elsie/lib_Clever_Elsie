@@ -136,7 +136,7 @@ class bitset{
     assert(pos<=len);
     return reference(data[pos>>6],pos&0x3f);
   }
-  friend bool operator==(const bitset&lhs,const bitset&rhs)const{
+  friend bool operator==(const bitset&lhs,const bitset&rhs){
     assert(lhs.len==rhs.len);
     if(lhs.len==0) return true;
     for(auto&[L,R]:std::views::zip(lhs.data,rhs.data)|std::views::take(lhs.data.size()-1))
@@ -144,16 +144,18 @@ class bitset{
     return(lhs.data.back()&lhs.last_filter)==(rhs.data.back()&rhs.last_filter);
   }
   friend bitset operator<<(const bitset&lhs,size_t rhs){
+    size_t len=lhs.len+rhs;
     bitset ndata(len,false);
     for(size_t i=rhs;i<len;++i)
-      if(data[i-rhs>>6]&(uint64_t)1<<(i-rhs&0x3f))
+      if(lhs.data[i-rhs>>6]&(uint64_t)1<<(i-rhs&0x3f))
         ndata.set(i,1);
     return ndata;
   }
   friend bitset operator>>(const bitset&lhs,size_t rhs){
+    size_t len=std::max<ssize_t>(0, (ssize_t)(lhs.len-rhs));
     bitset ndata(len,false);
     for(size_t i=0;i+rhs<len;++i)
-      if(data[i+rhs>>6]&(uint64_t)1<<(i+rhs&0x3f))
+      if(lhs.data[i+rhs>>6]&(uint64_t)1<<(i+rhs&0x3f))
         ndata.set(i,1);
     return ndata;
   }
@@ -222,7 +224,7 @@ class bitset{
   bool all()const{
     if(len==0) return true;
     for(auto&x:data|std::views::take(data.size()-1))
-      if(x!=uint64(-1)) return false;
+      if(x!=uint64_t(-1)) return false;
     return (data.back()&last_filter)==last_filter;
   }
   bool any()const{
@@ -250,44 +252,43 @@ class bitset{
       if((*this)[i]) s|=(uint64_t)1 << i;
     return s;
   }
+  bitset(const bitset&rhs);
+  bitset(bitset&&rhs);
+  bitset&operator=(const bitset&rhs);
+  bitset&operator=(bitset&&rhs);
+  void resize(size_t n,bool x=false);
+  bitset&operator&=(const bitset&rhs);
+  bitset&operator|=(const bitset&rhs);
+  bitset&operator^=(const bitset&rhs);
+  bitset&operator<<=(const bitset&rhs);
+  bitset&operator>>=(const bitset&rhs);
+  bitset&operator~()const noexcept;
+  reference operator[](size_t pos);
+  const reference operator[](size_t pos)const;
+  friend bool operator==(const bitset&lhs,const bitset&rhs)const;
+  friend bitset operator<<(const bitset&lhs,size_t rhs);
+  friend bitset operator>>(const bitset&lhs,size_t rhs);
+  friend bitset operator&(const bitset&lhs,const bitset&rhs);
+  friend bitset operator|(const bitset&lhs,const bitset&rhs);
+  friend bitset operator^(const bitset&lhs,const bitset&rhs);
+  template<class CharT,class Traits>
+  friend std::basic_istream<CharT,Traits>& operator>>(std::basic_istream<CharT,Traits>&is,bitset&rhs);
+  template<class CharT,class Traits>
+  friend std::basic_ostream<CharT,Traits>& operator<<(std::basic_ostream<CharT,Traits>&os,bitset&rhs);
+  bitset&set();
+  bitset&set(size_t pos, bool val=true);
+  bitset&reset();
+  bitset&reset(size_t pos);
+  bitset&flip();
+  bitset&flip(size_t pos);
+  size_t count()const;
+  size_t size()const;
+  bool test(size_t pos)const;
+  bool all()const;
+  bool any()const;
+  bool none()const;
+  std::string to_string()const;
+  uint64_t to_u64()const;
 };
-
-bitset(const bitset&rhs);
-bitset(bitset&&rhs);
-bitset&operator=(const bitset&rhs);
-bitset&operator=(bitset&&rhs);
-void resize(size_t n,bool x=false);
-bitset&operator&=(const bitset&rhs);
-bitset&operator|=(const bitset&rhs);
-bitset&operator^=(const bitset&rhs);
-bitset&operator<<=(const bitset&rhs);
-bitset&operator>>=(const bitset&rhs);
-bitset&operator~()const noexcept;
-reference operator[](size_t pos);
-const reference operator[](size_t pos)const;
-friend bool operator==(const bitset&lhs,const bitset&rhs)const;
-friend bitset operator<<(const bitset&lhs,size_t rhs);
-friend bitset operator>>(const bitset&lhs,size_t rhs);
-friend bitset operator&(const bitset&lhs,const bitset&rhs);
-friend bitset operator|(const bitset&lhs,const bitset&rhs);
-friend bitset operator^(const bitset&lhs,const bitset&rhs);
-template<class CharT,class Traits>
-friend std::basic_istream<CharT,Traits>& operator>>(std::basic_istream<CharT,Traits>&is,bitset&rhs);
-template<class CharT,class Traits>
-friend std::basic_ostream<CharT,Traits>& operator<<(std::basic_ostream<CharT,Traits>&os,bitset&rhs);
-bitset&set();
-bitset&set(size_t pos, bool val=true);
-bitset&reset();
-bitset&reset(size_t pos);
-bitset&flip();
-bitset&flip(size_t pos);
-size_t count()const;
-size_t size()const;
-bool test(size_t pos)const;
-bool all()const;
-bool any()const;
-bool none()const;
-std::string to_string()const;
-uint64_t to_u64()const;
 } // namespace elsie
 #endif

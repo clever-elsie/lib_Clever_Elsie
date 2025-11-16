@@ -4,14 +4,13 @@
 #include <vector>
 #include <set>
 namespace elsie{
-using namespace std;
 class scc_graph{
-  using vi=vector<int32_t>;
-  using vvi=vector<vi>;
-  size_t n,cnt;
+  using vi=std::vector<int32_t>;
+  using vvi=std::vector<vi>;
+  std::size_t n,cnt;
   vi visited,cmp;
-  vector<set<int32_t>> edge,redge;
-  vector<bool>seen;
+  std::vector<std::set<int32_t>> edge,redge;
+  std::vector<bool>seen;
   void dfs(int32_t now){
     seen[now]=1;
     for(const auto&to:edge[now])
@@ -43,7 +42,7 @@ class scc_graph{
     vvi ans(k);
     for(int32_t i=0;i<n;i++)
       ans[cmp[i]].push_back(i);
-    return move(ans);
+    return ans; //NRVO
   }
 };
 }

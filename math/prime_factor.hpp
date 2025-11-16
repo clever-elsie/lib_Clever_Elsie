@@ -5,13 +5,14 @@
 #include <deque>
 #include <random>
 #include <vector>
+#include <array>
+#include <limits>
 #include <cstdint>
 #include <numeric>
 #include <unordered_set>
-#include <atcoder/modint>
+#include <algorithm>
 #include <math/basic_math.hpp>
 namespace elsie{
-  using namespace std;
   // O(\sqrt{n})
   constexpr uint64_t eular_totient(uint64_t n){
     uint64_t r=n;
@@ -25,9 +26,9 @@ namespace elsie{
     return r;
   }
 
-  vector<uint64_t>quotients(uint64_t n){
+  std::vector<uint64_t>quotients(uint64_t n){
     using u64=uint64_t;
-    vector<u64>ret;
+    std::vector<u64>ret;
     for(int x=n;x>0;){
       u64 q=n/x;
       ret.push_back(q);
@@ -41,7 +42,7 @@ namespace elsie{
    * 2^64を受け取れるように一応しているが，実際に判定できるのはuint64_tだけ
    */
   template<class T>
-  constexpr bool is_prime(T p)requires is_integral_v<T>||same_as<T,__int128_t>||same_as<T,__uint128_t>{
+  constexpr bool is_prime(T p)requires std::integral<T>||std::same_as<T,__int128_t>||std::same_as<T,__uint128_t>{
     if constexpr(sizeof(T)>8) return false;
     else{
     if(p<=1)return false;
@@ -87,7 +88,7 @@ namespace elsie{
   constexpr uint64_t pollard_rho(uint64_t n){
     if(~n&1)return 2;
     if(is_prime(n))return n;
-    uint64_t x,y,ys,g,q,r,k,m=uint64_t(pow<double>(double(n),1.0/8.0))+1;
+    uint64_t x,y,ys,g,q,r,k,m=uint64_t(std::pow<double>(double(n),1.0/8.0))+1;
     for(uint64_t c=1;c<n;++c){
       auto f=[&](__uint128_t a){return(a*a+c)%n;};
       y=k=0;g=q=r=1;
@@ -116,20 +117,21 @@ namespace elsie{
     return 0;
   }
 
-  vector<uint64_t>factorize(uint64_t m){
+  std::vector<uint64_t>factorize(uint64_t m){
     if(m==1)return {};
     if(is_prime<uint64_t>(m))return{m};
-    vector<uint64_t>ret;
+    std::vector<uint64_t>ret;
     ret.reserve(64);
     while(m>1&&!is_prime(m))
       for(uint64_t p=pollard_rho(m);m%p==0;m/=p)
         ret.push_back(p);
     if(m>1)ret.push_back(m);
-    sort(begin(ret),end(ret));
+    std::sort(ret.begin(),ret.end());
     return ret;
   }
-  constexpr array<uint64_t,64>factorize_constexpr(uint64_t m){
-    array<uint64_t,64>ret; ret.fill(UINT64_MAX);
+  constexpr std::array<uint64_t,64> factorize_constexpr(uint64_t m){
+    std::array<std::uint64_t,64> ret;
+    ret.fill(std::numeric_limits<std::uint64_t>::max());
     if(m==1)return ret;
     if(is_prime<uint64_t>(m)){
       ret[0]=m;
@@ -140,18 +142,18 @@ namespace elsie{
       for(uint64_t p=pollard_rho(m);m%p==0;m/=p)
         ret[cnt++]=p;
     if(m>1)ret[cnt++]=m;
-    sort(ret.begin(),ret.end());
+    std::sort(ret.begin(),ret.end());
     return ret;
   }
 
   int64_t primitive_root(uint64_t n){
     if(n==2)return 1;
     if(n==3)return 2;
-    vector<uint64_t> factor=factorize(n-1);
-    factor.erase(unique(begin(factor),end(factor)),end(factor));
-    random_device seed;
-    mt19937_64 engine(seed());
-    uniform_int_distribution<uint64_t>rng(2,n-2);
+    std::vector<uint64_t> factor=factorize(n-1);
+    factor.erase(std::unique(factor.begin(),factor.end()),factor.end());
+    std::random_device seed;
+    std::mt19937_64 engine(seed());
+    std::uniform_int_distribution<uint64_t>rng(2,n-2);
     for(uint64_t g=1,ok=1;1;g=rng(engine),ok=1){
       for(const auto&q:factor)
         if(modpow(g,(n-1)/q,n)==1){ok=0;break;}

@@ -5,17 +5,16 @@
 #include <list>
 #include <vector>
 namespace elsie{
-using namespace std;
-template<class S>using vc=vector<S>;
+template<class S>using vc=std::vector<S>;
 template<class S>using vv=vc<vc<S>>;
 // e:cost,to
 // ret:|diameter|,from,to
 template<class S,class T>
-pair<int32_t,pair<int32_t,int32_t>> diameter(vv<pair<S,T>>&edge,int start=0){
-  auto farthest=[&](vv<pair<S,T>>&Edge,int Start)->pair<int32_t,int32_t> {
+std::pair<int32_t,std::pair<int32_t,int32_t>> diameter(vv<std::pair<S,T>>&edge,int start=0){
+  auto farthest=[&](vv<std::pair<S,T>>&Edge,int Start)->std::pair<int32_t,int32_t> {
     int32_t inf=INT32_MAX;
     vc<int32_t>dist(Edge.size(),-1);
-    list<int32_t>q;
+    std::list<int32_t>q;
     q.push_back(Start);
     dist[Start]=0;
     while(!q.empty()){
@@ -27,7 +26,7 @@ pair<int32_t,pair<int32_t,int32_t>> diameter(vv<pair<S,T>>&edge,int start=0){
         }
       }
     }
-    vector<int32_t>::iterator res=max_element(begin(dist),end(dist));
+    std::vector<int32_t>::iterator res=std::max_element(dist.begin(),dist.end());
     return {*res,res-dist.begin()};
   };
   auto st=farthest(edge,start).second;
@@ -36,10 +35,10 @@ pair<int32_t,pair<int32_t,int32_t>> diameter(vv<pair<S,T>>&edge,int start=0){
 }
 
 int32_t diameter(vv<int>&edge,int start=0){
-  vv<pair<int32_t,int32_t>>weighted_edge(edge.size());
-  for(size_t i=0;i<edge.size();++i){
+  vv<std::pair<int32_t,int32_t>>weighted_edge(edge.size());
+  for(std::size_t i=0;i<edge.size();++i){
     weighted_edge[i].resize(edge[i].size());
-    for(size_t j=0;j<edge[i].size();++j)
+    for(std::size_t j=0;j<edge[i].size();++j)
       weighted_edge[i][j]={1,edge[i][j]};
   }
   return diameter(weighted_edge,start).first;

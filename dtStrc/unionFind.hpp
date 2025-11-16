@@ -7,12 +7,11 @@
 #include <utility>
 #include <unordered_map>
 namespace elsie{
-using namespace std;
 class unionFind{
   protected:
     using it=int32_t;
     it _order;
-    mutable vector<it>pr;
+    mutable std::vector<it>pr;
   public:
     unionFind():_order(0),pr(0){}
     unionFind(it n):_order(n),pr(n,-1){}
@@ -22,13 +21,13 @@ class unionFind{
     bool same(it u,it v)const{return root(u)==root(v);}
     void unite(it u,it v)const{
 			if((u=root(u))==(v=root(v))) return;
-      if(pr[u]<pr[v])swap(u,v);
+      if(pr[u]<pr[v])std::swap(u,v);
       pr[v]+=pr[u];
       pr[u]=v;
     }
-    vector<vector<it>> groups()const{
-      vector<vector<it>>ret;
-      unordered_map<it,it>idx;
+    std::vector<std::vector<it>> groups()const{
+      std::vector<std::vector<it>>ret;
+      std::unordered_map<it,it>idx;
       for(it i=0;i<_order;++i){
         it r=root(i);
         auto itr=idx.find(r);
@@ -37,19 +36,19 @@ class unionFind{
           ret.emplace_back(1,i);
         }else ret[itr->second].push_back(i);
       }
-      return move(ret);
+      return ret; //NRVO
     }
     unionFind&operator=(auto&&other){
       if(this!=&other){
         _order=other._order;
-        pr=forward(other.pr);
+        pr=std::forward(other.pr);
       }return*this;
     }
 };
 
 template<class S,S(*op)(S,S),S(*e)()>
 class dsu:public unionFind{
-  private:vector<S>_mset;
+  private:std::vector<S>_mset;
   public:
     dsu():unionFind(),_mset(0){}
     dsu(int32_t n):unionFind(n),_mset(n,e()){}
@@ -65,8 +64,8 @@ class dsu:public unionFind{
 template<class S>class unionFindP{
   using it=int32_t;
   it _order;
-  mutable vector<it>pr;
-  mutable vector<S>pot;
+  mutable std::vector<it>pr;
+  mutable std::vector<S>pot;
   public:
   unionFindP():_order(0),pr(0),pot(0){}
   unionFindP(it n):_order(n),pr(n,-1),pot(n,S()){}
@@ -85,14 +84,14 @@ template<class S>class unionFindP{
     w+=potential(v)-potential(u);
     u=root(u),v=root(v);
     if(u==v)return w==S();
-    if(pr[u]<pr[v])swap(u,v),w=-w;
+    if(pr[u]<pr[v])std::swap(u,v),w=-w;
     pr[v]+=pr[u];pr[u]=v;pot[u]=w;return 1;
   }
   unionFindP&operator=(auto&&other){
     if(this!=&other){
       _order=other._order;
-      pr=forward(other.pr);
-      pot=forward(other.pot);
+      pr=std::forward(other.pr);
+      pot=std::forward(other.pot);
     }return*this;
   }
 };

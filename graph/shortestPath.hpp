@@ -7,17 +7,16 @@
 #include <cstdint>
 #include <limits>
 namespace elsie{
-using namespace std;
-template<class f>using vc=vector<f>;
+template<class f>using vc=std::vector<f>;
 template<class f>using vv=vc<vc<f>>;
-template<class f>using pqg=priority_queue<f,vc<f>,greater<f>>;
+template<class f>using pqg=std::priority_queue<f,vc<f>,std::greater<f>>;
 
 // weighted graph's dijkstra
 template<class ll>
-vc<ll>dijkstra(const vv<pair<ll,ll>>&edge,ll start=0){
-  constexpr size_t int_width=sizeof(int);
+vc<ll>dijkstra(const vv<std::pair<ll,ll>>&edge,ll start=0){
+  constexpr std::size_t int_width=sizeof(int);
   vc<ll>dist(edge.size(),1ll<<int_width*8-int_width/2);//16->15, 32->30, 64->60
-  pqg<pair<ll,int32_t>>q;
+  pqg<std::pair<ll,int32_t>>q;
   dist[start]=0;
   q.emplace(dist[start],start);
   while(!q.empty()) {
@@ -30,14 +29,14 @@ vc<ll>dijkstra(const vv<pair<ll,ll>>&edge,ll start=0){
       }
     }
   }
-  return move(dist);
+  return std::move(dist);
 }
 // [dist,path]
-template<class ll>pair<vc<ll>,vc<int32_t>> dijkstra(const vv<pair<ll,ll>>&edge,int start,int t){
-  constexpr size_t int_width=sizeof(ll);
+template<class ll>std::pair<vc<ll>,vc<int32_t>> dijkstra(const vv<std::pair<ll,ll>>&edge,int start,int t){
+  constexpr std::size_t int_width=sizeof(ll);
   vc<ll>dist(edge.size(),1ll<<int_width*8-int_width/2);//16->15, 32->30, 64->60
   vc<int32_t>pre(edge.size(),-1);
-  pqg<pair<ll,int32_t>>q;
+  pqg<std::pair<ll,int32_t>>q;
   dist[start]=0;
   q.emplace(dist[start],start);
   while (!q.empty()) {
@@ -56,15 +55,15 @@ template<class ll>pair<vc<ll>,vc<int32_t>> dijkstra(const vv<pair<ll,ll>>&edge,i
     t=pre[t];
     p.push_back(t);
   }
-  reverse(p.begin(),p.end());
+  std::reverse(p.begin(),p.end());
   return {dist,p};
 }
 
 // weight matrix dijkstra
 template<class ll>vc<ll>dijkstra(const vv<ll>&edge,int start=0){
-  constexpr size_t int_width=sizeof(int);
+  constexpr std::size_t int_width=sizeof(int);
   vc<ll> dist(edge.size(),1ll<<int_width*8-int_width/2);
-  pqg<pair<ll,int32_t>>q;
+  pqg<std::pair<ll,int32_t>>q;
   dist[start]=0;
   q.emplace(dist[start],start);
   while(q.size()){
@@ -83,9 +82,9 @@ template<class ll>vc<ll>dijkstra(const vv<ll>&edge,int start=0){
 /**
  * @return dist:vc, has_negative_cycle:bool
  */
-template<class ll>pair<vc<ll>,bool>
-BF(vv<pair<ll,ll>>&e,int start=0){
-  constexpr ll inf=numeric_limits<ll>::max();
+template<class ll>std::pair<vc<ll>,bool>
+BF(vv<std::pair<ll,ll>>&e,int start=0){
+  constexpr ll inf=std::numeric_limits<ll>::max();
   bool has_renew;
   vc<ll>dist(e.size(),inf);
   dist[start]=0;
@@ -97,16 +96,16 @@ BF(vv<pair<ll,ll>>&e,int start=0){
         has_renew=1,
         dist[to]=dist[i]+cost;
   }
-  return {move(dist),has_renew};
+  return {std::move(dist),has_renew};
 }
 
 template<class ll>void WF(vv<ll>&e)noexcept(false){
-  size_t n=e.size();
-  for(size_t k=0;k<n;++k)
-  for(size_t i=0;i<n;++i)
-  for(size_t j=0;j<n;++j)
-    e[i][j]=min(e[i][j],e[i][k]+e[k][j]);
-  for(size_t i=0;i<n;++i)
+  std::size_t n=e.size();
+  for(std::size_t k=0;k<n;++k)
+  for(std::size_t i=0;i<n;++i)
+  for(std::size_t j=0;j<n;++j)
+    e[i][j]=std::min(e[i][j],e[i][k]+e[k][j]);
+  for(std::size_t i=0;i<n;++i)
     if(e[i][i]<0)throw(int64_t)(-1);
 }
 }

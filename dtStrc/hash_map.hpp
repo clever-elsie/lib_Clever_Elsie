@@ -1,5 +1,6 @@
 #ifndef ELSIE_HASH_MAP
 #define ELSIE_HASH_MAP
+#include <functional>
 #include "holder.hpp"
 namespace elsie{
 template<class key_t,class val_t,auto hf=std::hash<key_t>()>

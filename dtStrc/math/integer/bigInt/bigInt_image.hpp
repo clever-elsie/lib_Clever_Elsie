@@ -10,16 +10,16 @@
 #include <iostream>
 #include <type_traits>
 namespace elsie{
-using namespace std;
 class bigInt{
 private:
-template<class T>using vc=vector<T>;
+template<class T>using vc=std::vector<T>;
 using i32=int32_t; using u32=uint32_t;
 using i64=int64_t; using u64=uint64_t;
 using vu32=vc<u32>; using vu64=vc<u64>;
 using cv32=const vc<u32>;
 using cv64=const vc<u64>;
-using sv64=span<const u64>;
+using sv64=std::span<const u64>;
+using mv64=std::span<u64>;
 private:
 // dataの最後の要素は符号拡張のみで値ではない．
 vu64 data;
@@ -28,11 +28,11 @@ public:
 bigInt():data(2,0){}
 bigInt(bigInt&&b):data(std::move(b.data)){}
 bigInt(const bigInt&b):data(b.data){}
-bigInt(const string&s){
+bigInt(const std::string&s){
 // 未実装
 }
 template<class T>
-bigInt(T x) requires is_integral_v<T> || same_as<remove_cvref_t<T>,__int128_t>
+bigInt(T x) requires std::signed_integral<T> || std::same_as<std::remove_cvref_t<T>,__int128_t>
 :data(2+(sizeof(T)==16),0){
   if constexpr(sizeof(T)<=8){
     data[0]=(u64)((i64)x);
@@ -43,30 +43,30 @@ bigInt(T x) requires is_integral_v<T> || same_as<remove_cvref_t<T>,__int128_t>
     data[2]=(u64)(u64(x>>127&1?-1:0));
   }
 }
-template<unsigned_integral T>
-bigInt(T x) requires is_integral_v<T> || same_as<remove_cvref_t<T>,__uint128_t>
+template<std::unsigned_integral T>
+bigInt(T x) requires std::unsigned_integral<T> || std::same_as<std::remove_cvref_t<T>,__uint128_t>
 :data(2+(sizeof(T)==16),0){
   data[0]=(u64)x;
   if constexpr(sizeof(T)>8) data[1]=(u64)(x>>64);
 }
 // 適切にコンストラクタを呼ぶためこれでよい
 template<class T>
-bigInt& operator=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>>{
+bigInt& operator=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>>{
   if constexpr(is_bigInt<T>){
     if constexpr(is_movable_bigInt<T>)
-      data=move(rhs.data);
+      data=std::move(rhs.data);
     else data=rhs.data;
-  }else*this=bigInt(forward<T>(rhs));
+  }else*this=bigInt(std::forward<T>(rhs));
   return*this;
 }
 
-string to_string()const; // interface
+std::string to_string()const; // interface
 private:
 template<class T> static constexpr
-bool is_bigInt=is_same_v<remove_cvref_t<T>,bigInt>;
+bool is_bigInt=std::is_same_v<std::remove_cvref_t<T>,bigInt>;
 
 template<class T>static constexpr
-bool is_copy_needed_bigInt=is_bigInt<T>&&(is_lvalue_reference_v<T>||is_const_v<remove_reference_t<T>>);
+bool is_copy_needed_bigInt=is_bigInt<T>&&(std::is_lvalue_reference_v<T>||std::is_const_v<std::remove_reference_t<T>>);
 
 template<class T> static constexpr
 bool is_movable_bigInt=is_bigInt<T>&&!is_copy_needed_bigInt<T>;
@@ -79,10 +79,10 @@ void shrink_to_fit(); // memory
 void sign_expand(uint64_t len); // memory
 
 template<bool is_sub> void adder(vu64&a,sv64&b); // add_sub
-static constexpr array<size_t,3>Lp{64,250,100000};
-void naive_mul(sv64 a,sv64 b,sv64 r); // mul
-void karatsuba(sv64 a,sv64 b,sv64 r); // mul
-void ntt_cnvlt(sv64 a,sv64 b,sv64 r); // mul
+static constexpr std::array<std::size_t,3>Lp{64,250,100000};
+void naive_mul(sv64 a,sv64 b,mv64 r); // mul
+void karatsuba(sv64 a,sv64 b,mv64 r); // mul
+void ntt_cnvlt(sv64 a,sv64 b,mv64 r); // mul
 void multiply(cv64&a,cv64&b); // mul
 public:
 // arithmetic operation
@@ -101,27 +101,27 @@ bigInt operator-()const noexcept{
   return bigInt(move(d));
 }
 template<class T>
-bigInt& operator+=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
+bigInt& operator+=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
   // bigInt以外では構築
-  if constexpr(!is_bigInt<T>) return*this+=bigInt(forward<T>(rhs));
+  if constexpr(!is_bigInt<T>) return*this+=bigInt(std::forward<T>(rhs));
   if(rhs.data.size()>data.size()) // 自分のほうが短いときに場所を確保する．
     if constexpr (is_copy_needed_bigInt<T>) // rhsが左辺値なら拡張確定
       data.resize(rhs.data.size(),data.back()); // 符号拡張
-    else swap(data,rhs.data); // movableなrhsが長いなら入れ替え
+    else std::swap(data,rhs.data); // movableなrhsが長いなら入れ替え
   adder<false>(data,sv64(rhs.data.begin(),rhs.data.end()));
   return*this;
 }
 template<class T>
-bigInt& operator-=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
-  if constexpr(!is_bigInt<T>)return*this-=bigInt(forward<T>(rhs));
+bigInt& operator-=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
+  if constexpr(!is_bigInt<T>)return*this-=bigInt(std::forward<T>(rhs));
   if(rhs.data.size()>data.size()) // 自分のほうが短いときに場所を確保する．
     data.resize(rhs.data.size(),data.back()); // 符号拡張
   adder<true>(data,sv64(rhs.data.begin(),rhs.data.end()));
   return*this;
 }
 template<class T>
-bigInt& operator*=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
-  if constexpr(!is_bigInt<T>)*this*=bigInt(forward<T>(rhs));
+bigInt& operator*=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
+  if constexpr(!is_bigInt<T>)*this*=bigInt(std::forward<T>(rhs));
   else{
     size_t len=data.size()+rhs.data.size()-1;
     sign_expand(len);
@@ -136,11 +136,11 @@ bigInt& operator*=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
   return*this;
 }
 template<class T>
-bigInt& operator/=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
+bigInt& operator/=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
   return*this;
 }
 template<class T>
-bigInt& operator%=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
+bigInt& operator%=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
   return*this;
 }
 //前置
@@ -157,44 +157,44 @@ bigInt operator--(int32_t){
 template<class S,class T>
 friend bigInt operator+(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
   if constexpr(is_bigInt<S>&&is_movable_bigInt<T>)
-    return rhs+=forward<T>(lhs);
+    return rhs+=std::forward<T>(lhs);
   else if constexpr(is_bigInt<T>&&is_movable_bigInt<S>)
-    return lhs+=forward<S>(rhs);
-  else return bigInt(forward<S>(lhs))+=forward<T>(rhs);
+    return lhs+=std::forward<S>(rhs);
+  else return bigInt(std::forward<S>(lhs))+=std::forward<T>(rhs);
 }
 template<class S,class T>
 friend bigInt operator-(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
   if constexpr(is_bigInt<S>&&is_movable_bigInt<T>)
-    return rhs-=forward<T>(lhs);
+    return rhs-=std::forward<T>(lhs);
   else if constexpr(is_bigInt<T>&&is_movable_bigInt<S>)
-    return lhs+=forward<S>(rhs);
-  else return bigInt(forward<S>(lhs))+=forward<T>(rhs);
+    return lhs+=std::forward<S>(rhs);
+  else return bigInt(std::forward<S>(lhs))+=std::forward<T>(rhs);
 }
 template<class S,class T>
 friend bigInt operator*(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
   return lhs; //dammy
 }
 template<class S,class T>
 friend bigInt operator/(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
   return lhs; // dammy
 }
 template<class S,class T>
 friend bigInt operator%(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
   return lhs; // dammy
 }
 
@@ -205,23 +205,23 @@ bigInt operator~()const{
   return r;
 }
 template<class T>
-bigInt& operator<<=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
+bigInt& operator<<=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
   return*this;
 }
 template<class T>
-bigInt& operator>>=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
+bigInt& operator>>=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
   return*this;
 }
 template<class T>
-bigInt& operator&=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
+bigInt& operator&=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
   return*this;
 }
 template<class T>
-bigInt& operator|=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
+bigInt& operator|=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
   return*this;
 }
 template<class T>
-bigInt& operator^=(T&&rhs)requires is_constructible_v<bigInt,decay_t<T>> {
+bigInt& operator^=(T&&rhs)requires std::is_constructible_v<bigInt,std::decay_t<T>> {
   return*this;
 }
 
@@ -230,50 +230,50 @@ bool operator!()const noexcept{}
 template<class S,class T>
 friend bool operator<(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
 }
 template<class S,class T>
 friend bool operator>(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
 }
 template<class S,class T>
 friend bool operator==(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
 }
 template<class S,class T>
 friend bool operator!=(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
 }
 template<class S,class T>
 friend bool operator<=(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
 }
 template<class S,class T>
 friend bool operator>=(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
 }
 template<class S,class T>
 friend bool operator&&(S&&lhs,T&&rhs)
 requires (is_bigInt<S>||is_bigInt<T>)
-&& is_constructible_v<bigInt,decay_t<T>>
-&& is_constructible_v<bigInt,decay_t<T>> {
+&& std::is_constructible_v<bigInt,std::decay_t<T>>
+&& std::is_constructible_v<bigInt,std::decay_t<T>> {
 }
 
 
 private: // friends
-template<class Char,class Traits> friend struct std::basic_ostream<Char,Traits>;
-template<class Char,class Traits> friend struct std::basic_istream<Char,Traits>;
+template<class Char,class Traits> friend struct std::basic_ostream;
+template<class Char,class Traits> friend struct std::basic_istream;
 };
 } // namespace elsie
 

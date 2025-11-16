@@ -6,24 +6,23 @@
 #include<cstdlib>
 #include<utility>
 namespace elsie{
-using namespace std;
-vector<ssize_t> morris_pratt(const string&tar){
-  size_t n=tar.size();
-  vector<ssize_t>t(n+1);
+std::vector<ssize_t> morris_pratt(const std::string&tar){
+  std::size_t n=tar.size();
+  std::vector<ssize_t>t(n+1);
   ssize_t j=-1;
   t[0]=-1;
-  for(size_t i=0;i<n;++i){
+  for(std::size_t i=0;i<n;++i){
     while(j>=0&&tar[i]!=tar[j])j=t[j];
     t[i+1]=++j;
   }
   return t;
 }
-vector<ssize_t> knuth_morris_pratt(const string&tar){
-  size_t n=tar.size();
-  vector<ssize_t>t(n+1);
+std::vector<ssize_t> knuth_morris_pratt(const std::string&tar){
+  std::size_t n=tar.size();
+  std::vector<ssize_t>t(n+1);
   ssize_t j=-1;
   t[0]=-1;
-  for(size_t i=0;i<n;++i){
+  for(std::size_t i=0;i<n;++i){
     while(j>=0&&tar[i]!=tar[j])j=t[j];
     if(tar[i+1]==tar[++j])t[i+1]=t[j];
     else t[i+1]=j;
@@ -32,28 +31,28 @@ vector<ssize_t> knuth_morris_pratt(const string&tar){
 }
 class kmp{
   private:
-  string src,word;
-  vector<ssize_t>t;
+  std::string src,word;
+  std::vector<ssize_t>t;
   public:
   kmp():src(""){}
-  kmp(string&&SRC):src(SRC){}
-  kmp(const string&SRC):src(SRC){}
-  kmp(string&&SRC,string&&tar):src(SRC){ build(move(tar)); }
-  kmp(string&&SRC,const string&tar):src(SRC){ build(tar); }
-  kmp(const string&SRC,string&&tar):src(SRC){ build(move(tar)); }
-  kmp(const string&SRC,const string&tar):src(SRC){ build(tar); }
-  void set(const string&SRC){ src=SRC; }
-  void set(string&&SRC){ src=move(SRC); }
-  void build(string&&tar){
-    word=move(tar);
+  kmp(std::string&&SRC):src(SRC){}
+  kmp(const std::string&SRC):src(SRC){}
+  kmp(std::string&&SRC,std::string&&tar):src(SRC){ build(std::move(tar)); }
+  kmp(std::string&&SRC,const std::string&tar):src(SRC){ build(tar); }
+  kmp(const std::string&SRC,std::string&&tar):src(SRC){ build(std::move(tar)); }
+  kmp(const std::string&SRC,const std::string&tar):src(SRC){ build(tar); }
+  void set(const std::string&SRC){ src=SRC; }
+  void set(std::string&&SRC){ src=std::move(SRC); }
+  void build(std::string&&tar){
+    word=std::move(tar);
     t=knuth_morris_pratt(word);
   }
-  void build(const string&tar){
+  void build(const std::string&tar){
     word=tar;
     t=knuth_morris_pratt(word);
   }
-  vector<ssize_t> find(){
-    vector<ssize_t> ret;
+  std::vector<ssize_t> find(){
+    std::vector<ssize_t> ret;
     ssize_t i=0,j=0;
     while(i+j<src.size()){
       if(src[i+j]==word[j]){

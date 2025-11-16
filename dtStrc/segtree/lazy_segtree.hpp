@@ -7,14 +7,13 @@
 #include<cstddef>
 #include<iostream>
 namespace elsie{
-  using namespace std;
 
   template<class S,S(*op)(S,S),S(*e)(),class F,S(*mapping)(F,S),F(*composition)(F,F),F(*id)()>
   class lazy_segtree{
   protected:
     using sz_t=uint32_t;
-    vector<S>data;
-    vector<F>lazy;
+    std::vector<S>data;
+    std::vector<F>lazy;
     sz_t sz,h,_n;
     void update(sz_t idx){data[idx]=op(data[2*idx],data[2*idx+1]);}
     void all_apply(sz_t idx,F f){
@@ -26,16 +25,16 @@ namespace elsie{
       all_apply(2*idx+1,lazy[idx]);
       lazy[idx]=id();
     }
-    size_t ceil2exp(size_t n)const{ return 1ull<<(63+(popcount(n)!=1)-countl_zero(n)); }
+    std::size_t ceil2exp(std::size_t n)const{ return 1ull<<(63+(popcount(n)!=1)-countl_zero(n)); }
   public:
-    lazy_segtree(size_t N=0):lazy_segtree(vector<S>(N,e())){_n=N;}
-    lazy_segtree(const vector<S>&v):_n(v.size()){
+    lazy_segtree(std::size_t N=0):lazy_segtree(std::vector<S>(N,e())){_n=N;}
+    lazy_segtree(const std::vector<S>&v):_n(v.size()){
       sz=ceil2exp(v.size());
       h=countr_zero(sz);
-      data=vector<S>(2*sz,e());
+      data=std::vector<S>(2*sz,e());
       for(sz_t i=0;i<v.size();++i)data[i+sz]=v[i];
       for(sz_t i=sz-1;i>0;--i)update(i);
-      lazy=vector<F>(sz,id());
+      lazy=std::vector<F>(sz,id());
     }
     void set(sz_t p,S val){
       p+=sz;

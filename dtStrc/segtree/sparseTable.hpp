@@ -4,8 +4,7 @@
 #include <cassert>
 
 namespace elsie{
-  using namespace std;
-  template<class S> using vc=vector<S>;
+  template<class S> using vc=std::vector<S>;
   template<class S> using vv=vc<vc<S>>;
 
   /**
@@ -18,24 +17,24 @@ namespace elsie{
     vv<S>b;
     bool fixed;
     void preprocess(){
-      for(size_t i=1,p=1;1;++i,p<<=1){
+      for(std::size_t i=1,p=1;1;++i,p<<=1){
         vc<S>nx;
-        size_t pre_size=b[i-1].size();
-        for(size_t j=0;j+p<pre_size;++j)
+        std::size_t pre_size=b[i-1].size();
+        for(std::size_t j=0;j+p<pre_size;++j)
           nx.push_back(op(b[i-1][j],b[i-1][j+p]));
-        if(nx.size())b.push_back(move(nx));
+        if(nx.size())b.push_back(std::move(nx));
         else break;
       }
     }
     public:
     sparseTable():b(1,vc<S>(0)),fixed(false){}
     sparseTable(const vc<S>&v):b(1,v),fixed(false){}
-    sparseTable(vc<S>&&v):b(1,v),fixed(false){}
-    void resize(size_t n){
+    sparseTable(vc<S>&&v):b(1,std::move(v)),fixed(false){}
+    void resize(std::size_t n){
       fixed=false;
       b[0].resize(n,e());
     }
-    void set(size_t idx,const S&x){
+    void set(std::size_t idx,const S&x){
       fixed=false;
       if(idx>=b[0].size())resize(idx+1);
       b[0][idx]=x;
@@ -44,7 +43,7 @@ namespace elsie{
      * @fn prod
      * @brief [L,R)
      */
-    S prod(size_t l,size_t r){
+    S prod(std::size_t l,std::size_t r){
       if(!fixed){
         fixed=true;
         preprocess();
@@ -52,7 +51,7 @@ namespace elsie{
       if(r>b[0].size())r=b[0].size();
       if(l==r)return e();
       assert(l<r);
-      size_t p=63-countl_zero(r-l);
+      std::size_t p=63-countl_zero(r-l);
       return op(b[p][l],b[p][r-(1ull<<p)]);
     }
   };

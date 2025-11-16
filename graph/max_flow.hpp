@@ -5,7 +5,6 @@
 #include<cstdint>
 #include<utility>
 namespace elsie{
-using namespace std;
 template<class type>
 class max_flow{
   class edge {
@@ -14,15 +13,15 @@ class max_flow{
       int64_t to, rev;
       type cap;
   };
-  vector<vector<edge>>e;
-  vector<bool>seen;
+  std::vector<std::vector<edge>>e;
+  std::vector<bool>seen;
   int64_t g,r;
   int64_t dfs(int64_t now,type ret){
     if(now==g)return ret;
     seen[now]=true;
     for(auto&x:e[now]){
       if(x.cap==0||seen[x.to])continue;
-      int64_t p=dfs(x.to,min(x.cap,ret));
+      int64_t p=dfs(x.to,std::min(x.cap,ret));
       if(p){
         x.cap-=p;
         e[x.to][x.rev].cap+=p;
@@ -40,7 +39,7 @@ class max_flow{
     int64_t flow(int64_t s,int64_t t){
       g=t,r=0;
       while(1){
-        fill(begin(seen),end(seen),false);
+        std::fill(seen.begin(),seen.end(),false);
         int64_t p=dfs(s,1ll<<62);
         if(p)r+=p;
         else break;
@@ -52,10 +51,10 @@ class max_flow{
 template<class cap_t,class cost_t>
 class mcmf{
   private:
-  template<class S>using vc=vector<S>;
+  template<class S>using vc=std::vector<S>;
   template<class S>using vv=vc<vc<S>>;
-  using pcc=pair<cap_t,cost_t>;
-  using u32=uint32_t;
+  using pcc=std::pair<cap_t,cost_t>;
+  using u32=std::uint32_t;
   public:
   struct edge{
     u32 to,rev;
@@ -65,20 +64,20 @@ class mcmf{
     :to(to_),cap(cap_),flow(0),cost(cost_),rev(rev_){}
   };
   private:
-  uint32_t v;
+  u32 v;
   vc<edge>e;
   vc<cost_t>pot;
-  vc<uint32_t>pv,pe;
+  vc<u32>pv,pe;
   public:
-  mcmf(uint32_t n):v(n),e(n),pot(n),pv(n),pe(n){}
-  void add_edge(uint32_t s,uint32_t t,cap_t cap,cost_t cost){
+  mcmf(u32 n):v(n),e(n),pot(n),pv(n),pe(n){}
+  void add_edge(u32 s,u32 t,cap_t cap,cost_t cost){
     e[s].emplace_back(edge(t,cap,cost,e[t].size()));
     e[t].emplace_back(edge(s,0,-cost,g[s].size()-1));
   }
-  pcc flow(uint32_t s,uint32_t t){}
-  pcc flow(uint32_t s,uint32_t t,cap_t flow_limit){}
-  vc<pcc>slope(uint32_t s,uint32_t t){}
-  vc<pcc>slope(uint32_t s,uint32_t t,cap_t flow_limit){}
+  pcc flow(u32 s,u32 t){}
+  pcc flow(u32 s,u32 t,cap_t flow_limit){}
+  vc<pcc>slope(u32 s,u32 t){}
+  vc<pcc>slope(u32 s,u32 t,cap_t flow_limit){}
 };
 #endif
 }

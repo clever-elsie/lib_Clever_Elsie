@@ -6,12 +6,11 @@
 #include <concepts>
 #include <type_traits>
 namespace elsie{
-using namespace std;
 
 template<class T>
-vector<uint32_t>manacher(const T&v){
+std::vector<uint32_t>manacher(const T&v){
   ssize_t i=0,j=0;
-  vector<uint32_t>r(v.size());
+  std::vector<uint32_t>r(v.size());
   while(i<v.size()){
     while(i-j>=0&&i+j<v.size()&&v[i-j]==v[i+j])++j;
     r[i]=j;
@@ -28,23 +27,23 @@ vector<uint32_t>manacher(const T&v){
  * @details 偶数長が中心のどちら側かは前後の偶数長と比較し同じ方である．両方同じことは多分ない．知らんけど
  */
 template<class T>
-vector<pair<uint32_t,uint32_t>>LongestPalindrome(const vector<T>&v){
-  vector<pair<uint32_t,uint32_t>>ret(v.size(),{0,0});
-  vector<uint32_t>r=manacher(v);
-  for(size_t i=0;i<v.size();++i)
+std::vector<std::pair<uint32_t,uint32_t>>LongestPalindrome(const std::vector<T>&v){
+  std::vector<std::pair<uint32_t,uint32_t>>ret(v.size(),{0,0});
+  std::vector<uint32_t>r=manacher(v);
+  for(std::size_t i=0;i<v.size();++i)
     ret[i].first=2*r[i]-1;
   if(r.size()>1){
-    vector<T>s;
+    std::vector<T>s;
     s.reserve(v.size()*2-1);
     s.push_back(r[0]);
-    for(size_t i=1;i<v.size();++i){
+    for(std::size_t i=1;i<v.size();++i){
       s.push_back(0);
       s.push_back(v[i]);
     }
-    vector<uint32_t>p=manacher(s);
-    for(size_t i=0,j=1;i+1<v.size();j+=2,++i){
+    std::vector<uint32_t>p=manacher(s);
+    for(std::size_t i=0,j=1;i+1<v.size();j+=2,++i){
       uint32_t c=(p[j]/2)*2;
-      ret[i].second=max(ret[i].second,c);
+      ret[i].second=std::max(ret[i].second,c);
       ret[i+1].second=c;
     }
   }

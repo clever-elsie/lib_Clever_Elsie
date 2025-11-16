@@ -6,14 +6,13 @@
 #include <concepts>
 #include <math/basic_math.hpp>
 namespace elsie{
-  using namespace std;
   template<class T>
-  concept ints=is_integral_v<T>||same_as<T,__int128_t>||same_as<T,__uint128_t>;
+  concept ints=std::is_integral_v<T>||std::same_as<T,__int128_t>||std::same_as<T,__uint128_t>;
   template<uint32_t M=998244353>
   class mint{
     public: // static
-    constexpr static size_t mod(){ return M; }
-    template<integral T>
+    constexpr static std::size_t mod(){ return M; }
+    template<std::integral T>
     static mint raw(T val){
       mint r;
       r.x=val;
@@ -24,7 +23,7 @@ namespace elsie{
     mint():x(0){}
     mint(const mint&n):x(n.x){}
     template<ints T>mint(T val){
-      if constexpr(is_signed_v<T>||same_as<T,__int128_t>){
+      if constexpr(std::is_signed_v<T>||std::same_as<T,__int128_t>){
         T v=val%M;
         if(v<0)v+=M;
         x=v;
@@ -42,9 +41,9 @@ namespace elsie{
       while(t){
         uint32_t k=s/t;
         s-=k*t%M;
-        swap(s,t);
+        std::swap(s,t);
         v-=k*u%M;
-        swap(v,u);
+        std::swap(v,u);
       }
       return mint(v);
     }
@@ -58,42 +57,42 @@ namespace elsie{
     mint operator++(int32_t){mint r=*this;++*this;return r;}
     mint operator--(int32_t){mint r=*this;--*this;return r;}
     template<class T>
-    mint&operator+=(T a) requires is_constructible_v<mint,T> {
-      if constexpr(same_as<T,mint<M>>) x=(u64)x+a.x-((u64)x+a.x>=M?M:0);
+    mint&operator+=(T a) requires std::is_constructible_v<mint,T> {
+      if constexpr(std::same_as<T,mint<M>>) x=(u64)x+a.x-((u64)x+a.x>=M?M:0);
       else *this+=mint(a);
       return*this;
     }
     template<class T>
-    mint&operator-=(T a) requires is_constructible_v<mint,T> {
-      if constexpr(same_as<T,mint<M>>) x=(x>=a.x?x-a.x:x+(M-a.x));
+    mint&operator-=(T a) requires std::is_constructible_v<mint,T> {
+      if constexpr(std::same_as<T,mint<M>>) x=(x>=a.x?x-a.x:x+(M-a.x));
       else*this-=mint(a);
       return*this;
     }
     template<class T>
-    mint&operator*=(T a) requires is_constructible_v<mint,T> {
-      if constexpr(same_as<T,mint<M>>) x=x*a.x%M;
+    mint&operator*=(T a) requires std::is_constructible_v<mint,T> {
+      if constexpr(std::same_as<T,mint<M>>) x=x*a.x%M;
       else*this*=mint(a);
       return*this;
     }
     template<class T>
-    mint&operator/=(mint a) requires is_constructible_v<mint,T> {
-      if constexpr(same_as<T,mint<M>>) return*this*=a.inv();
+    mint&operator/=(mint a) requires std::is_constructible_v<mint,T> {
+      if constexpr(std::same_as<T,mint<M>>) return*this*=a.inv();
       else return*this*=mint(a).inv();
     }
-    template<class T>friend mint operator+(mint a,T b) requires is_constructible_v<mint,T> {
-      if constexpr(same_as<T,mint>) return a+=b;
+    template<class T>friend mint operator+(mint a,T b) requires std::is_constructible_v<mint,T> {
+      if constexpr(std::same_as<T,mint>) return a+=b;
       else return a+=mint(b);
     }
-    template<class T>friend mint operator-(mint a,T b) requires is_constructible_v<mint,T> {
-      if constexpr(same_as<T,mint>) return a-=b;
+    template<class T>friend mint operator-(mint a,T b) requires std::is_constructible_v<mint,T> {
+      if constexpr(std::same_as<T,mint>) return a-=b;
       else return a-=mint(b);
     }
-    template<class T>friend mint operator*(mint a,T b) requires is_constructible_v<mint,T> {
-      if constexpr(same_as<T,mint>) return a*=b;
+    template<class T>friend mint operator*(mint a,T b) requires std::is_constructible_v<mint,T> {
+      if constexpr(std::same_as<T,mint>) return a*=b;
       else return a*=mint(b);
     }
-    template<class T>friend mint operator/(mint a,T b) requires is_constructible_v<mint,T> {
-      if constexpr(same_as<T,mint>) return a*=b.inv();
+    template<class T>friend mint operator/(mint a,T b) requires std::is_constructible_v<mint,T> {
+      if constexpr(std::same_as<T,mint>) return a*=b.inv();
       return a*=mint(b).inv();
     }
     template<ints T>friend mint operator+(T a,mint b){ return b*=mint(a); }
@@ -108,8 +107,8 @@ namespace elsie{
     template<ints T>friend bool operator==(T a,mint b){return mint(a).x==b.x;}
     template<ints T>friend bool operator!=(T a,mint b){return mint(a).x!=b.x;}
 
-    friend ostream&operator<<(ostream&os,mint a){return os<<a.x;}
-    friend istream&operator>>(istream&is,mint&a){
+    friend std::ostream&operator<<(std::ostream&os,mint a){return os<<a.x;}
+    friend std::istream&operator>>(std::istream&is,mint&a){
       int64_t v;is>>v;
       a=mint(v);
       return is;

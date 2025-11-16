@@ -113,7 +113,7 @@ inline __uint128_t mul64to128(uint64_t a,uint64_t b){
   asm("mulq %3" :"=a"(lo),"=d"(hi):"a"(a),"r"(b));
   return((__uint128_t)(hi)<<64)+lo;
 }
-inline pair<__uint128_t,__uint128_t>mul128(__uint128_t a,__uint128_t b){
+inline std::pair<__uint128_t,__uint128_t>mul128(__uint128_t a,__uint128_t b){
   constexpr static __uint128_t Lfilter=0xFFFF'FFFF'FFFF'FFFFull;
   uint64_t x1=a>>64,x0=a&Lfilter;
   uint64_t y1=b>>64,y0=b&Lfilter;
@@ -121,7 +121,7 @@ inline pair<__uint128_t,__uint128_t>mul128(__uint128_t a,__uint128_t b){
   __uint128_t lower=z0+(z1<<64);
   return{z2+(z1>>64)+(lower<z0),lower};
 }
-inline __uint128_t rem256(pair<__uint128_t,__uint128_t>x,__uint128_t mod){
+inline __uint128_t rem256(std::pair<__uint128_t,__uint128_t>x,__uint128_t mod){
   __uint128_t rem32=(__uint128_t(1)<<32)%mod;
   __uint128_t rem64=rem32*rem32%mod;
   __uint128_t rem128=rem64*rem64%mod;

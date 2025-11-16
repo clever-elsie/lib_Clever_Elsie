@@ -13,14 +13,13 @@
 #include <vector>
 #include <iostream>
 namespace elsie{
-using namespace std;
 template<class S>using vc=std::vector<S>;
 template<class S>using vv=vc<vc<S>>;
 
 template<class T> class matrix{
-  using ps=pair<size_t,size_t>;
+  using ps=std::pair<std::size_t,std::size_t>;
   using sz_t = int32_t;
-  size_t row,col;
+  std::size_t row,col;
   vc<T> data;
   public:
   matrix()=default;
@@ -30,23 +29,23 @@ template<class T> class matrix{
 	matrix&operator=(matrix&&)=default;
 	matrix&operator=(const matrix&)=default;
 
-  matrix(size_t row_,size_t col_);
-  matrix(size_t row_,size_t col_,const T&init);
+  matrix(std::size_t row_,std::size_t col_);
+  matrix(std::size_t row_,std::size_t col_,const T&init);
   matrix(const vv<T>&data_);
 
   template<class S>
   requires std::same_as<std::decay_t<S>,vc<T>>
   && (!std::same_as<std::decay_t<S>,T&>)
-  matrix(size_t row_,size_t col_,S&&data_);
+  matrix(std::size_t row_,std::size_t col_,S&&data_);
 
-  template<size_t row_,size_t col_>
-  matrix(const array<array<T,col_>,row_>&data_);
+  template<std::size_t row_,std::size_t col_>
+  matrix(const std::array<std::array<T,col_>,row_>&data_);
 
-  inline pair<size_t,size_t>size()const{return {row,col};}
-  inline T& operator[](size_t i,size_t j){ return data[i*col+j]; }
-  inline const T& operator[](size_t i,size_t j)const{ return data[i*col+j]; }
+  inline std::pair<std::size_t,std::size_t>size()const{return {row,col};}
+  inline T& operator[](std::size_t i,std::size_t j){ return data[i*col+j]; }
+  inline const T& operator[](std::size_t i,std::size_t j)const{ return data[i*col+j]; }
 
-  inline T val(size_t i,size_t j)const{
+  inline T val(std::size_t i,std::size_t j)const{
     if(j>=col||i>=row)return T();
     return data[i*col+j];
   }
@@ -54,9 +53,9 @@ template<class T> class matrix{
   public:
   template<class Char, class Traits>
   inline void print(std::basic_ostream<Char,Traits>& os=std::cout)const{
-    const size_t sz_=row*col;
-    for(size_t i=0;i<sz_;i+=col)
-      for(size_t j=0;j<col;++j)
+    const std::size_t sz_=row*col;
+    for(std::size_t i=0;i<sz_;i+=col)
+      for(std::size_t j=0;j<col;++j)
         os<<data[i+j].val()<<" \n"[j==col-1];
   }
 
@@ -67,13 +66,13 @@ template<class T> class matrix{
     rank,solve_LE,solve_LE_with_basis
   };
   template<ReduceClass reduce_class>
-  tuple<sz_t,std::vector<T>,matrix> reduce_impl();
+  std::tuple<sz_t,std::vector<T>,matrix> reduce_impl();
   public:
   sz_t rank()const;
   sz_t reduce();
-  pair<sz_t,std::vector<T>> solve_linear_equation();
-  tuple<sz_t,std::vector<T>,matrix> solve_linear_equation_with_basis();
-  pair<sz_t,matrix> inverse()const;
+  std::pair<sz_t,std::vector<T>> solve_linear_equation();
+  std::tuple<sz_t,std::vector<T>,matrix> solve_linear_equation_with_basis();
+  std::pair<sz_t,matrix> inverse()const;
 
   using iterator=vc<T>::iterator;
   using const_iterator=vc<T>::const_iterator;
@@ -264,7 +263,7 @@ matrix<T> matrix<T>::merge(const matrix<T>&c11,const matrix<T>&c12,const matrix<
   return c;
 }
 
-template<size_t naive=64,size_t base=256,bool q2=true,class U,class V,class W=common_type_t<U,V>>
+template<size_t naive=64,size_t base=256,bool q2=true,class U,class V,class W=std::common_type_t<U,V>>
 matrix<W> matrix_mul(const matrix<U>&a,const matrix<V>&b){
   assert(a.col==b.row);
   size_t N=a.row,M=b.row,L=b.col;
@@ -458,7 +457,7 @@ matrix<T>& matrix<T>::operator*=(const U&rhs){
   return*this;
 }
 
-template<class U,class V,class W=common_type_t<U,V>>
+template<class U,class V,class W=std::common_type_t<U,V>>
 matrix<W>& operator*(const U&lhs,const matrix<V>&rhs){
   auto [row,col]=rhs.size();
   size_t sz=rhs.data.size();
@@ -469,7 +468,7 @@ matrix<W>& operator*(const U&lhs,const matrix<V>&rhs){
   return matrix<W>(row,col,std::move(data));
 }
 
-template<class U,class V,class W=common_type_t<U,V>>
+template<class U,class V,class W=std::common_type_t<U,V>>
 matrix<W>& operator*(const matrix<U>&lhs,const V&rhs){
   auto [row,col]=lhs.size();
   size_t sz=lhs.data.size();
@@ -495,7 +494,7 @@ matrix<T>& matrix<T>::operator*=(const matrix<U>&rhs){
   return*this;
 }
 
-template<class U,class V,class W=common_type_t<U,V>>
+template<class U,class V,class W=std::common_type_t<U,V>>
 matrix<W>& operator/(const matrix<U>&lhs,const V&rhs){
   auto [row,col]=lhs.size();
   size_t sz=lhs.data.size();
@@ -595,7 +594,7 @@ matrix<T> matrix<T>::pow(uint64_t b)const{
 
 template<class T>
 template<matrix<T>::ReduceClass reduce_class>
-auto matrix<T>::reduce_impl() -> tuple<matrix<T>::sz_t,std::vector<T>,matrix<T>> {
+auto matrix<T>::reduce_impl() -> std::tuple<matrix<T>::sz_t,std::vector<T>,matrix<T>> {
   if(row==0||col==0) return {0,std::vector<T>(),matrix<T>()};
   const size_t col=this->col;
   std::vector<T> sol(col-1);
@@ -701,18 +700,18 @@ matrix<T>::sz_t matrix<T>::reduce(){
 }
 
 template<class T>
-auto matrix<T>::solve_linear_equation() -> pair<matrix<T>::sz_t,std::vector<T>> {
+auto matrix<T>::solve_linear_equation() -> std::pair<matrix<T>::sz_t,std::vector<T>> {
   auto [r,sol,b]=reduce_impl<ReduceClass::solve_LE>();
   return {r,std::move(b)};
 }
 
 template<class T>
-auto matrix<T>::solve_linear_equation_with_basis()-> tuple<matrix<T>::sz_t,std::vector<T>,matrix<T>> {
+auto matrix<T>::solve_linear_equation_with_basis()-> std::tuple<matrix<T>::sz_t,std::vector<T>,matrix<T>> {
   return reduce_impl<ReduceClass::solve_LE_with_basis>();
 }
 
 template<class T>
-auto matrix<T>::inverse() const ->pair<sz_t,matrix<T>>{
+auto matrix<T>::inverse() const ->std::pair<sz_t,matrix<T>>{
   assert(row==col);
   const sz_t n=row;
   matrix<T> a(n,2*n,0);
