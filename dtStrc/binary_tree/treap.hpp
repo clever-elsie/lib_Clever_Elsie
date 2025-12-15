@@ -1,127 +1,153 @@
 #ifndef ELSIE_TREAP
 #define ELSIE_TREAP
-#include <mutex>
 #include <random>
-#include <vector>
 #include <cstddef>
 #include <cstdint>
 #include <concepts>
-#include <functional>
 #include <type_traits>
-#include "dtStrc/holder.hpp"
+#include <memory>
+#include <algorithm>
+#include <utility>
+#include <math/random.hpp>
+
 namespace elsie{
 
-template<class T>
-class implicit_treap{
-  struct node{
-    enum way{L,R};
-    node*p;
-    node*ch[2]; // L=0, R=1;
-    size_t size,prior;
-    T val;
-    ~node(){ delete ch[L]; delete ch[R]; }
-    // default constructor
-    node():p(nullptr),ch{nullptr,nullptr},size(1),prior(rng()),T(){}
-    node(const T&val,node*par=nullptr,node*l=nullptr,node*r=nullptr)
-    :p(par),ch{l,r},size(1+(l?l->size:0)+(r?r->size:0)),prior(rng()),val(val){}
-    node(T&&val,node*par=nullptr,node*l=nullptr,node*r=nullptr)
-    :p(par),ch{l,r},size(1+(l?l->size:0)+(r?r->size:0)),prior(rng()),val(std::move(val)){}
-
-    // manipulator
-    void update(){ size=1+(ch[L]?ch[L]->size:0)+(ch[R]?ch[R]->size:0); }
-    void push(){
-    }
-    node* copy()const{
-      node*ret=new node(val);
-      if(ch[L]) ret->ch[L]=ch[L]->copy();
-      if(ch[R]) ret->ch[R]=ch[R]->copy();
-      ret->update();
-      return ret;
-    }
+template<class val_t, class allocator = std::allocator<void>>
+class implicit_treap {
+private:
+  struct node {
+    val_t val;
+    uint64_t priority;
+    node *par;
+    node *ch[2];
+    template<class... Args>
+    requires (std::constructible_from<val_t, Args...>)
+    node(size_t pri, Args&&... args)
+    :val(std::forward<Args>(args)...), priority(pri),
+     par(nullptr), ch{nullptr, nullptr} {}
   };
-
-  std::mt19937_64 rng;
-  node* root;
-  size_t sz;
-  static std::mutex mtx;
-  static std::random_device rd;
-
-
+  node *root;
+  size_t size_;
+  xor_shift<64> generator;
 public:
-  using value_type=T;
-  using reference=T&;
-  using const_reference=const T&;
-  using pointer=T*;
-  using const_pointer=const T*;
-  using difference_type=std::ptrdiff_t;
-  using size_type=size_t;
-  using iterator_category=std::bidirectional_iterator_tag;
-  class iterator{
-    implicit_treap*self;
-    node*x;
-    public:
-    iterator(implicit_treap*self,node*x):self(self),x(x){}
-    friend bool operator==(const iterator&lhs,const iterator&rhs){ return lhs.x==rhs.x; }
-    friend bool operator!=(const iterator&lhs,const iterator&rhs){ return lhs.x!=rhs.x; }
-  };
-  class const_iterator{
-    public:
-    const_iterator(const implicit_treap*self,node*x):iterator(self,x){}
-    const_iterator(const iterator&it):iterator(it){}
-  };
-  class reverse_iterator{
-  };
-  class const_reverse_iterator{
-  };
-  ~implicit_treap(){ delete root; }
-  implicit_treap():rng(),root(nullptr),sz(0){
-    std::lock_guard<std::mutex>lk(mtx);
-    rng.seed(rd());
+  implicit_treap() : root(nullptr), size_(0), generator(std::random_device{}()) {}
+
+  size_t size() const { return size_; }
+
+  bool empty() const { return size_ == 0; }
+
+  void insert(const val_t& val) {
+    root = insert_node(root, val);
+    size++;
   }
-  implicit_treap(implicit_treap&&rhs):rng{std::move(rhs.rng)},root{rhs.root},sz{rhs.sz}{
-    rhs.root=nullptr;
-    rhs.sz=0;
+
+  void erase(const val_t& val) {
+    root = erase_node(root, val);
+    size--;
   }
-  implicit_treap(const implicit_treap&rhs){
-    clear();
-    if(rhs.root){
-      root=rhs.root->copy();
-      sz=rhs.sz;
+
+  val_t& operator[](size_t index) {
+    if (index >= size) {
+      throw std::out_of_range("Index out of range");
+    }
+    auto it = find_by_order(index);
+    return it->val;
+  }
+
+  std::shared_ptr<node> find_by_order(size_t order) {
+    if (order >= size) {
+      throw std::out_of_range("Order out of range");
+    }
+    return find_by_order_node(root, order);
+  }
+
+private:
+  std::shared_ptr<node> insert_node(std::shared_ptr<node> node, const val_t& val) {
+    if (!node) {
+      return std::make_shared<node>(val);
+    }
+
+    if (val < node->val) {
+      node->left = insert_node(node->left, val);
+      if (node->left->priority > node->priority) {
+        node = rotate_right(node);
+      }
+    } else {
+      node->right = insert_node(node->right, val);
+      if (node->right->priority > node->priority) {
+        node = rotate_left(node);
+      }
+    }
+    return node;
+  }
+
+  std::shared_ptr<node> erase_node(std::shared_ptr<node> node, const val_t& val) {
+    if (!node) {
+      return nullptr;
+    }
+
+    if (val < node->val) {
+      node->left = erase_node(node->left, val);
+    } else if (val > node->val) {
+      node->right = erase_node(node->right, val);
+    } else {
+      if (!node->left) {
+        return node->right;
+      } else if (!node->right) {
+        return node->left;
+      } else {
+        if (node->left->priority > node->right->priority) {
+          node = rotate_right(node);
+          node->right = erase_node(node->right, val);
+        } else {
+          node = rotate_left(node);
+          node->left = erase_node(node->left, val);
+        }
+      }
+    }
+    return node;
+  }
+
+  std::shared_ptr<node> find_by_order_node(std::shared_ptr<node> node, size_t order) {
+    if (!node) {
+      return nullptr;
+    }
+
+    size_t left_size = 0;
+    if (node->left) {
+      left_size = get_size(node->left);
+    }
+
+    if (order == left_size) {
+      return node;
+    } else if (order < left_size) {
+      return find_by_order_node(node->left, order);
+    } else {
+      return find_by_order_node(node->right, order - left_size - 1);
     }
   }
-  implicit_treap&operator=(implicit_treap&&rhs){
-    if(this==&rhs) return *this;
-    clear();
-    rng=std::move(rhs.rng);
-    root=rhs.root;
-    sz=rhs.sz;
-  }
-  implicit_treap&operator=(const implicit_treap&rhs){
-    if(this==&rhs) return *this;
-    clear();
-    if(rhs.root){
-      root=rhs.root->copy();
-      sz=rhs.sz;
+
+  size_t get_size(std::shared_ptr<node> node) const {
+    if (!node) {
+      return 0;
     }
-    return *this;
+    return 1 + get_size(node->left) + get_size(node->right);
   }
 
-  // accessors
-  size_t size()const{ return sz; }
-  bool empty()const{ return sz==0; }
-
-  // manipulator
-  void clear(){
-    delete root;
-    root=nullptr;
-    sz=0;
+  std::shared_ptr<node> rotate_right(std::shared_ptr<node> node) {
+    std::shared_ptr<node> left_child = node->left;
+    node->left = left_child->right;
+    left_child->right = node;
+    return left_child;
   }
-  
-  private:
-  std::pair<node*,node*> split(node*t,size_t pos){
 
+  std::shared_ptr<node> rotate_left(std::shared_ptr<node> node) {
+    std::shared_ptr<node> right_child = node->right;
+    node->right = right_child->left;
+    right_child->left = node;
+    return right_child;
   }
-}; // implicit_treap
+};
 
 } // namespace elsie
 #endif
