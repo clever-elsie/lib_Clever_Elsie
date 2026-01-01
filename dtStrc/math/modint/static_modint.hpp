@@ -20,7 +20,7 @@ namespace elsie{
     }
     private: uint32_t x; // field
     public:
-    mint():x(0){}
+    mint()=default;
     mint(const mint&n):x(n.x){}
     template<ints T>mint(T val){
       if constexpr(std::is_signed_v<T>||std::same_as<T,__int128_t>){
