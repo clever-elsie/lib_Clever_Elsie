@@ -8,5 +8,10 @@
 		"rel_path_from_root": "math/fft",
 		"abs_path_of_cloned_repository": "/usr/local/include/elsie_fft",
 		"url": "https://github.com/clever-elsie/elsie_fft.git"
+	},
+	{
+		"rel_path_from_root": "dtStrc/math/matrix",
+		"abs_path_of_cloned_repository": "/usr/local/include/elsie_matrix",
+		"url": "https://github.com/clever-elsie/elsie_matrix.git"
 	}
 ]
