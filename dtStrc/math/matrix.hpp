@@ -1,26 +1,29 @@
-#ifndef ELSIE_STRASSEN
-#define ELSIE_STRASSEN
-#include <new>
-#include <array>
+#ifndef ELSIE_MATRIX
+#define ELSIE_MATRIX
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+
+#include <iostream>
+
+#include <bit>
+#include <new>
+
+#include <array>
+#include <vector>
+#include <utility>
+
 #include <algorithm>
+#include <iterator>
 #include <concepts>
 #include <type_traits>
-#include <utility>
-//#include "dtStrc/vector/vector.hpp"
-#include <vector>
-#include <iostream>
+
 namespace elsie{
-template<class S>using vc=std::vector<S>;
-template<class S>using vv=vc<vc<S>>;
 
 template<class T> class matrix{
-  using ps=std::pair<std::size_t,std::size_t>;
   using sz_t = int32_t;
-  std::size_t row,col;
-  vc<T> data;
+  size_t row,col;
+  std::vector<T> data;
   public:
   matrix()=default;
 	~matrix()=default;
@@ -29,23 +32,23 @@ template<class T> class matrix{
 	matrix&operator=(matrix&&)=default;
 	matrix&operator=(const matrix&)=default;
 
-  matrix(std::size_t row_,std::size_t col_);
-  matrix(std::size_t row_,std::size_t col_,const T&init);
-  matrix(const vv<T>&data_);
+  matrix(size_t row_,size_t col_);
+  matrix(size_t row_,size_t col_,const T&init);
+  matrix(const std::vector<std::vector<T>>&data_);
 
   template<class S>
-  requires std::same_as<std::decay_t<S>,vc<T>>
+  requires std::same_as<std::decay_t<S>,std::vector<T>>
   && (!std::same_as<std::decay_t<S>,T&>)
-  matrix(std::size_t row_,std::size_t col_,S&&data_);
+  matrix(size_t row_,size_t col_,S&&data_);
 
-  template<std::size_t row_,std::size_t col_>
+  template<size_t row_,size_t col_>
   matrix(const std::array<std::array<T,col_>,row_>&data_);
 
-  inline std::pair<std::size_t,std::size_t>size()const{return {row,col};}
-  inline T& operator[](std::size_t i,std::size_t j){ return data[i*col+j]; }
-  inline const T& operator[](std::size_t i,std::size_t j)const{ return data[i*col+j]; }
+  inline std::pair<size_t,size_t>size()const{return {row,col};}
+  inline T& operator[](size_t i,size_t j){ return data[i*col+j]; }
+  inline const T& operator[](size_t i,size_t j)const{ return data[i*col+j]; }
 
-  inline T val(std::size_t i,std::size_t j)const{
+  inline T val(size_t i,size_t j)const{
     if(j>=col||i>=row)return T();
     return data[i*col+j];
   }
@@ -53,9 +56,9 @@ template<class T> class matrix{
   public:
   template<class Char, class Traits>
   inline void print(std::basic_ostream<Char,Traits>& os=std::cout)const{
-    const std::size_t sz_=row*col;
-    for(std::size_t i=0;i<sz_;i+=col)
-      for(std::size_t j=0;j<col;++j)
+    const size_t sz_=row*col;
+    for(size_t i=0;i<sz_;i+=col)
+      for(size_t j=0;j<col;++j)
         os<<data[i+j].val()<<" \n"[j==col-1];
   }
 
@@ -74,10 +77,10 @@ template<class T> class matrix{
   std::tuple<sz_t,std::vector<T>,matrix> solve_linear_equation_with_basis();
   std::pair<sz_t,matrix> inverse()const;
 
-  using iterator=vc<T>::iterator;
-  using const_iterator=vc<T>::const_iterator;
-  using reverse_iterator=vc<T>::reverse_iterator;
-  using const_reverse_iterator=vc<T>::const_reverse_iterator;
+  using iterator=std::vector<T>::iterator;
+  using const_iterator=std::vector<T>::const_iterator;
+  using reverse_iterator=std::vector<T>::reverse_iterator;
+  using const_reverse_iterator=std::vector<T>::const_reverse_iterator;
   inline iterator begin(){return data.begin();}  
   inline iterator end(){return data.end();}
   inline const_iterator begin()const{return data.cbegin();}
@@ -267,7 +270,7 @@ template<size_t naive=64,size_t base=256,bool q2=true,class U,class V,class W=st
 matrix<W> matrix_mul(const matrix<U>&a,const matrix<V>&b){
   assert(a.col==b.row);
   size_t N=a.row,M=b.row,L=b.col;
-  auto[Q,P]=minmax({N,M,L});
+  auto[Q,P]=std::minmax({N,M,L});
   if(P<base){
     matrix<W>c(N,L,W());
     if(Q<naive){
@@ -293,9 +296,9 @@ matrix<W> matrix_mul(const matrix<U>&a,const matrix<V>&b){
       constexpr static uint16_t bs=naive;
       constexpr static uint16_t unrool=16-1;
       uint16_t I,J,K,i,j,k,it,jt,kt;
-      for(I=0,it=bs;I<N;I+=bs,it=min<uint16_t>(it+bs,N))
-      for(J=0,jt=bs;J<L;J+=bs,jt=min<uint16_t>(jt+bs,L))
-      for(K=0,kt=bs;K<M;K+=bs,kt=min<uint16_t>(kt+bs,M))
+      for(I=0,it=bs;I<N;I+=bs,it=std::min<uint16_t>(it+bs,N))
+      for(J=0,jt=bs;J<L;J+=bs,jt=std::min<uint16_t>(jt+bs,L))
+      for(K=0,kt=bs;K<M;K+=bs,kt=std::min<uint16_t>(kt+bs,M))
         for(i=I;i<it;++i){
           uint16_t ci=i*c.col,ai=i*a.col+K;
           for(k=K;k<kt;++k,++ai){
@@ -326,7 +329,7 @@ matrix<W> matrix_mul(const matrix<U>&a,const matrix<V>&b){
     return c;
   }else{
     size_t n;
-    if constexpr(q2) n=size_t(1)<<(63-countl_zero(P)+(popcount(P)!=1));
+    if constexpr(q2) n=std::bit_ceil(P);
     else n=L;
     auto as=a.template split<!q2>(n);
     auto bs=b.template split<!q2>(n);
@@ -367,7 +370,7 @@ matrix<T>::matrix(size_t row_,size_t col_,const T&init)
 
 template<class T>
 template<class S>
-requires std::same_as<std::decay_t<S>,vc<T>>
+requires std::same_as<std::decay_t<S>,std::vector<T>>
 && (!std::same_as<std::decay_t<S>,T&>)
 matrix<T>::matrix(size_t row_,size_t col_,S&&data_)
 :row(row_),col(col_),data(std::forward<S>(data_)){ assert(row&&col); }
@@ -384,7 +387,7 @@ matrix<T>::matrix(const std::array<std::array<T,col_>,row_>&data_)
 
 
 template<class T>
-matrix<T>::matrix(const vv<T>&data_)
+matrix<T>::matrix(const std::vector<std::vector<T>>&data_)
 :row(data_.size()),col(data_[0].size()),data(row*col){
   assert(row&&col);
   auto dtr=data.begin();
@@ -568,11 +571,11 @@ matrix<W> operator*(const matrix<U>&lhs,const matrix<V>&rhs){
 
 template<class T>
 void matrix<T>::transpose(){
-  vc<T> res(col*row);
+  std::vector<T> res(col*row);
   constexpr const size_t block_size=64;
   size_t i,j,I,J,Erow,Ecol;
-  for(i=0,Erow=min(block_size,row);i<row;Erow=min(i+=block_size,row))
-  for(j=0,Ecol=min(block_size,col);j<col;Ecol=min(j+=block_size,col))
+  for(i=0,Erow=std::min(block_size,row);i<row;Erow=std::min(i+=block_size,row))
+  for(j=0,Ecol=std::min(block_size,col);j<col;Ecol=std::min(j+=block_size,col))
     for(I=i;I<Erow;++I) for(J=j;J<Ecol;++J)
       res[J*col+I]=data[I*row+J];
   std::swap(row,col);

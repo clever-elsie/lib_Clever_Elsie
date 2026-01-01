@@ -69,8 +69,12 @@ namespace elsie{
     template<std::integral T>friend bool operator==(const T&a,const modint32&b){return modint32(a)==b.x;}
     template<std::integral T>friend bool operator!=(const T&a,const modint32&b){return modint32(a)!=b.x;}
 
-    friend std::ostream&operator<<(std::ostream&os,const modint32&a){return os<<a.x;}
-    friend std::istream&operator>>(std::istream&is,const modint32&a){
+		template<class CharT,class Trait>
+    friend std::basic_ostream<CharT,Trait>&operator<<(std::basic_ostream<CharT,Trait>&os,const modint32&a){
+			return os<<a.x;
+		}
+		template<class CharT,class Trait>
+    friend std::basic_istream<CharT,Trait>&operator>>(std::basic_istream<CharT,Trait>&is,const modint32&a){
       int64_t v;is>>v;
       a=modint32(v);
       return is;

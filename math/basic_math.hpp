@@ -203,7 +203,7 @@ template<class T>T exgcd(T a,T b,T&x,T&y){
     assign(x,u,u,x-u*k);
     assign(y,v,v,y-v*k);
   }
-  if constexpr(is_signed_v<T>)
+  if constexpr(std::is_signed_v<T>)
     if(a<0)a=-a,x=-x,y=-y;
   return a;
 }
@@ -216,12 +216,12 @@ template<class T>T mod_inv(T a,T m){
 
 template<class T>T mod_inv_prime(T a,T p){ return modpow(a,p-2,p); }
 
-template<class mint=mint<998244353u>>
+template<class mint>
 class combination{
   private:
     using tint = long long;
-    vector<mint>invprod,prod;
-    vector<tint>inv;
+    std::vector<mint>invprod,prod;
+    std::vector<tint>inv;
     const unsigned long long M;
   public:
   combination(int64_t n=1):invprod(2,1),prod(2,1),inv(2,0),M(mint(-1).val()+1){

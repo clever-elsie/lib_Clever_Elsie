@@ -58,7 +58,7 @@ namespace elsie{
     mint operator--(int32_t){mint r=*this;--*this;return r;}
     template<class T>
     mint&operator+=(T a) requires std::is_constructible_v<mint,T> {
-      if constexpr(std::same_as<T,mint<M>>) x=(u64)x+a.x-((u64)x+a.x>=M?M:0);
+      if constexpr(std::same_as<T,mint<M>>) x=(uint64_t)x+a.x-((uint64_t)x+a.x>=M?M:0);
       else *this+=mint(a);
       return*this;
     }
@@ -70,7 +70,7 @@ namespace elsie{
     }
     template<class T>
     mint&operator*=(T a) requires std::is_constructible_v<mint,T> {
-      if constexpr(std::same_as<T,mint<M>>) x=x*a.x%M;
+      if constexpr(std::same_as<T,mint<M>>) x=(uint64_t)x*a.x%M;
       else*this*=mint(a);
       return*this;
     }
@@ -95,10 +95,13 @@ namespace elsie{
       if constexpr(std::same_as<T,mint>) return a*=b.inv();
       return a*=mint(b).inv();
     }
-    template<ints T>friend mint operator+(T a,mint b){ return b*=mint(a); }
-    template<ints T>friend mint operator-(T a,mint b){ return b-=mint(a); }
-    template<ints T>friend mint operator*(T a,mint b){ return b*=mint(a); }
-    template<ints T>friend mint operator/(T a,mint b){ return b*=mint(a).inv(); }
+    template<ints T>friend mint operator+(T a,mint b){ return b+=mint(a); }
+    template<ints T>friend mint operator-(T a,mint b){
+      if constexpr(std::same_as<T,mint<M>>) return a-=b;
+      else return mint(a)-=b;
+    }
+    template<ints T>friend mint operator*(T a,mint b){ return b*=a; }
+    template<ints T>friend mint operator/(T a,mint b){ return a*mint(b).inv(); }
 
     friend bool operator==(mint a,mint b){return a.x==b.x;}
     friend bool operator!=(mint a,mint b){return a.x!=b.x;}
@@ -107,8 +110,12 @@ namespace elsie{
     template<ints T>friend bool operator==(T a,mint b){return mint(a).x==b.x;}
     template<ints T>friend bool operator!=(T a,mint b){return mint(a).x!=b.x;}
 
-    friend std::ostream&operator<<(std::ostream&os,mint a){return os<<a.x;}
-    friend std::istream&operator>>(std::istream&is,mint&a){
+		template<class CharT,class Trait>
+    friend std::basic_ostream<CharT,Trait>&operator<<(std::basic_ostream<CharT,Trait>&os,mint a){
+			return os<<a.x;
+		}
+		template<class CharT,class Trait>
+    friend std::basic_istream<CharT,Trait>&operator>>(std::basic_istream<CharT,Trait>&is,mint&a){
       int64_t v;is>>v;
       a=mint(v);
       return is;
