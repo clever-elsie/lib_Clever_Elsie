@@ -193,7 +193,8 @@ template<class S>S egcd(S a,S b,S&x,S&y){
   return d;
 }
 
-template<class T>T exgcd(T a,T b,T&x,T&y){
+template<class T>
+constexpr T exgcd(T a,T b,T&x,T&y){
   auto assign=[&](T&s,T&t,T u,T v)->void {s=u,t=v;};
   x=1,y=0;
   T u=0,v=1;
@@ -208,7 +209,8 @@ template<class T>T exgcd(T a,T b,T&x,T&y){
   return a;
 }
 
-template<class T>T mod_inv(T a,T m){
+template<class T>
+constexpr T mod_inv(T a,T m){
   T x,y,g=exgcd(a,m,x,y);
   if(g!=1)return -1;
   return(x%m+m)%m;

@@ -53,7 +53,7 @@ namespace elsie{
     uint64_t d=({
       uint64_t r=0;
       if constexpr(sizeof(T)<=8)
-        r=(p-1)>>countr_zero(make_unsigned_t<T>(p)-1);
+        r=(p-1)>>std::countr_zero(std::make_unsigned_t<T>(p)-1);
       else{
         T s=p-1;
         while((s&1)==0)s>>=1,++r;

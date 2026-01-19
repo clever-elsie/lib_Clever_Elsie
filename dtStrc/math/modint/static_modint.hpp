@@ -5,6 +5,7 @@
 #include <utility>
 #include <concepts>
 #include <math/basic_math.hpp>
+#include <string>
 namespace elsie{
   template<class T>
   concept ints=std::is_integral_v<T>||std::same_as<T,__int128_t>||std::same_as<T,__uint128_t>;
@@ -20,7 +21,8 @@ namespace elsie{
     }
     private: uint32_t x; // field
     public:
-    mint()=default;
+    constexpr static bool is_modint=true;
+    mint():x(0){}
     mint(const mint&n):x(n.x){}
     template<ints T>mint(T val){
       if constexpr(std::is_signed_v<T>||std::same_as<T,__int128_t>){
@@ -29,6 +31,8 @@ namespace elsie{
         x=v;
       }else x=val%M;
     }
+    operator uint32_t()const{ return x; }
+    operator std::string()const{ return std::to_string(x); }
 
     uint32_t val()const{ return x; }
     mint pow(uint64_t n)const{
