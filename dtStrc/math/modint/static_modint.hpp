@@ -19,6 +19,7 @@ namespace elsie{
       r.x=val;
       return r;
     }
+    using value_type=uint32_t;
     private: uint32_t x; // field
     public:
     constexpr static bool is_modint=true;

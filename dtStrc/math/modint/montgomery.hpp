@@ -8,6 +8,8 @@
 #include <limits>
 #include <math/basic_math.hpp>
 #include <math/prime_factor.hpp>
+#include <string>
+#include <iostream>
 
 /*
  * モンゴメリ乗算では，モンゴメリ表現空間で演算し，逆変換で元に戻す．
@@ -79,9 +81,11 @@ class montgomery_modint{
     }else val%=M;
     return reduction(val*R2);
   }
+  montgomery_modint(std::nullptr_t, T val):value(reduction((UpperType)val*R2)){}
   private:
   T value;
   public:
+  using value_type=T;
   constexpr static bool is_modint=true, is_montgomery=true;
   constexpr static std::pair<T,T> rrinv=RRinv();
   // R, RinvはTで表現可能だが，キャストを後で書きたくないのでUpperTypeにする
@@ -89,6 +93,7 @@ class montgomery_modint{
   constexpr static UpperType R2=get_R2();
   constexpr static UpperType m=get_m();
   constexpr static size_t mod(){ return M; }
+  constexpr static T Mdash(){ return get_m(); }
   
   montgomery_modint():value(0){}
   montgomery_modint(montgomery_modint&&)=default;
@@ -96,13 +101,39 @@ class montgomery_modint{
   template<class S>
     requires std::integral<S> || std::same_as<S,__int128_t> || std::same_as<S,__uint128_t>
   montgomery_modint(S val):value(init_value(val)){}
+  montgomery_modint(T val,std::nullptr_t):value(val){}
+  static montgomery_modint raw(T val){
+    return montgomery_modint(nullptr,val);
+  }
   montgomery_modint& operator=(montgomery_modint&&)=default;
   montgomery_modint& operator=(const montgomery_modint&)=default;
+  operator std::string()const{
+    return std::to_string(val());
+  }
   
   T val()const{
     return reduction(value);
   }
   T pow(uint64_t n)const{
+  }
+  template<size_t N>
+  std::pair<char*,size_t> write(char(&buf)[N])const{
+    T value=val();
+    char*ptr,*start;
+    if constexpr(std::same_as<T,uint32_t>)
+      ptr = buf + 10; // uint32_tの最大値は4294967295（10桁）
+    else ptr = buf + 20; // uint64_tの最大値は18446744073709551615（20桁）
+    start = ptr;
+    if(value == 0){
+      buf[0] = '0';
+      return {buf, 1};
+    }
+    while(value > 0){
+      *(--ptr) = '0' + (value % 10);
+      value /= 10;
+    }
+    size_t len = start - ptr;
+    return {ptr, len};
   }
   
   // 演算について，montgomery_modintの法が同じ場合と整数型についてのみ定義する
@@ -138,6 +169,16 @@ class montgomery_modint{
   {
     static_assert(false, "未実装");
   }
+  
+  montgomery_modint operator+(const montgomery_modint&rhs)const{
+    return montgomery_modint(*this)+=rhs;
+  }
+  montgomery_modint operator-(const montgomery_modint&rhs)const{
+    return montgomery_modint(*this)-=rhs;
+  }
+  montgomery_modint operator*(const montgomery_modint&rhs)const{
+    return montgomery_modint(*this)*=rhs;
+  }
 };
 
 template<size_t M,class T>
@@ -152,13 +193,16 @@ montgomery_modint<M,T>::RRinv(){
 template<size_t M,class T>
 constexpr T montgomery_modint<M,T>::reduction(UpperType x){
   if constexpr(R==0){
-    UpperType tmp= (x + ((T)x*(T)m)*(UpperType)M)>>(sizeof(T)*8);
-    x = tmp<M ? tmp : tmp-M;
+    const T t=(T)x*(T)m;
+    const UpperType u=(x+t*(UpperType)M)>>sizeof(T)*8;
+    if(u>=M) return u-M;
+    return u;
   }else{
-    UpperType tmp= (x + (x*m%R)*M)/R;
-    x = tmp<M ? tmp : tmp-M;
+    const UpperType t=x*m%R;
+    const UpperType u=(x+t*M)/R;
+    if(u>=M) return u-M;
+    return u;
   }
-  return x;
 }
 
 template<size_t M,class T>
