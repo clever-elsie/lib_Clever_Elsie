@@ -6,6 +6,7 @@
 #include <concepts>
 #include <type_traits>
 #include <limits>
+#include <charconv>
 #include <math/basic_math.hpp>
 #include <math/prime_factor.hpp>
 #include <string>
@@ -118,22 +119,12 @@ class montgomery_modint{
   }
   template<size_t N>
   std::pair<char*,size_t> write(char(&buf)[N])const{
-    T value=val();
-    char*ptr,*start;
-    if constexpr(std::same_as<T,uint32_t>)
-      ptr = buf + 10; // uint32_tの最大値は4294967295（10桁）
-    else ptr = buf + 20; // uint64_tの最大値は18446744073709551615（20桁）
-    start = ptr;
-    if(value == 0){
-      buf[0] = '0';
-      return {buf, 1};
-    }
-    while(value > 0){
-      *(--ptr) = '0' + (value % 10);
-      value /= 10;
-    }
-    size_t len = start - ptr;
-    return {ptr, len};
+    if constexpr(std::same_as<T,uint32_t>) static_assert(N >= 11);
+    else static_assert(N >= 21);
+    const T x = val();
+    const auto [ptr, ec] = std::to_chars(buf, buf + N, x, 10);
+    (void)ec; // 正しい利用前提（バッファ不足等は起きない）
+    return {buf, static_cast<size_t>(ptr - buf)};
   }
   
   // 演算について，montgomery_modintの法が同じ場合と整数型についてのみ定義する
