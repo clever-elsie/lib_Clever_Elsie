@@ -10,14 +10,16 @@
 #include<utility>
 #include<concepts>
 #include<iterator>
+#include<ranges>
 
 #include<dtStrc/segtree/BIT.hpp>
 #include<misc/concepts.hpp>
 
 namespace elsie{
 
+// longest increasing subsequence
 template<Itrabl T>
-size_t LIS(const T&a){ // longest increasing subsequence
+size_t _LIS(const T&a){
   typedef typename T::value_type V;
   constexpr static auto maxofT = std::numeric_limits<V>::max();
   std::vector<V>dp(a.size()+1,maxofT);
@@ -31,6 +33,35 @@ size_t LIS(const T&a){ // longest increasing subsequence
     }
   }
   return ans;
+}
+
+template<std::ranges::range T>
+std::pair<size_t,std::vector<size_t>> LIS(const T&a){
+  typedef typename T::value_type V;
+  constexpr static auto maxofT = std::numeric_limits<V>::max();
+  static auto lbidx=[]<std::ranges::range X, class W>(const X&b, const W&x) -> size_t {
+    return std::ranges::lower_bound(b,x)-b.begin();
+  };
+  std::vector<V>dp(a.size()+1, maxofT);
+  std::vector<int64_t>seq(a.size(),-1);
+  dp[0]=std::numeric_limits<V>::lowest();
+  size_t ans=0;
+  for(auto[i,x]:a|std::views::enumerate)
+    if(const size_t k=lbidx(dp,x);dp[k-1]<x){
+      dp[k]=std::min(dp[k],x);
+      ans=std::max(k,ans);
+      seq[i]=k;
+    }
+  std::vector<size_t> lis(ans);
+  V pre;
+  size_t cur=ans;
+  for(auto[i,x]:a|std::views::enumerate|std::views::reverse){
+    if(cur==seq[i]){
+      if(cur==ans) lis[--cur]=i, pre=x;
+      else if(x<pre) lis[--cur]=i, pre=x;
+    }
+  }
+  return std::make_pair(ans,std::move(lis));
 }
 
 template<bool return_vector=false,Itrabl S>

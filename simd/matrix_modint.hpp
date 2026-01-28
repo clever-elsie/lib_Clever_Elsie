@@ -72,7 +72,7 @@ template<>
 template<>
 __attribute__((target(select("avx512f", "avx2"))))
 __attribute__((optimize("O3")))
-inline mmat_t& mmat_t::fma(const mmat_t& a, const mmat_t& b) {
+inline mmat_t& mmat_t::fma_impl_blocked(const mmat_t& a, const mmat_t& b) {
   [[assume(dim().row == a.dim().row)]];
   [[assume(dim().col == b.dim().col)]];
   [[assume(a.dim().col == b.dim().row)]];
@@ -110,8 +110,8 @@ inline mmat_t& mmat_t::fma(const mmat_t& a, const mmat_t& b) {
   const v32_t Mminus1_32 = ELSIE_VSET1_EPI32(M - 1);
 
   for (I = 0, it = std::min(BLOCK_SIZE, row); I < row; I += BLOCK_SIZE, it = std::min(it + BLOCK_SIZE, row)) {
-    for (J = 0, jt = std::min(BLOCK_SIZE, col); J < col; J += BLOCK_SIZE, jt = std::min(jt + BLOCK_SIZE, col)) {
-      for (K = 0, kt = std::min(BLOCK_SIZE, midCR); K < midCR; K += BLOCK_SIZE, kt = std::min(kt + BLOCK_SIZE, midCR)) {
+    for (K = 0, kt = std::min(BLOCK_SIZE, midCR); K < midCR; K += BLOCK_SIZE, kt = std::min(kt + BLOCK_SIZE, midCR)) {
+      for (J = 0, jt = std::min(BLOCK_SIZE, col); J < col; J += BLOCK_SIZE, jt = std::min(jt + BLOCK_SIZE, col)) {
         for (i = I; i < it; ++i) {
           const auto as = a[i];
           auto cs = (*this)[i];

@@ -12,10 +12,9 @@ namespace elsie{
       for(;r;r-=r&-r) ret+=v[r-1];
       return ret;
     }
-    std::size_t ceil2exp(std::size_t n)const{ return 1ull<<(63+(popcount(n)!=1)-countl_zero(n)); }
     void setup(auto&&v_){
       v=std::forward<std::vector<type>>(v_);
-      v.resize(ceil2exp(v.size()),type());
+      v.resize(std::bit_ceil(v.size()),type());
     }
   public:
     BIT():v(0){}

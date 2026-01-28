@@ -14,8 +14,8 @@ concept Itrabl=requires(const T&x){
   typename T::value_type;
   typename T::iterator;
   typename T::const_iterator;
-  std::random_access_iterator<typename T::iterator>;
-  std::random_access_iterator<typename T::const_iterator>;
+  requires std::random_access_iterator<typename T::iterator>;
+  requires std::random_access_iterator<typename T::const_iterator>;
 };
 
 }
