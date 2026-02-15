@@ -241,7 +241,7 @@ class svector final{
   }
   private:
   void resize_shrink(size_type n)
-  // [[expects audit: n<cur_size]]
+  // pre(n<cur_size)
   {
     // TODO:最適化(セグメント毎に処理できる部分はまとめてやるほうがよい)
     for(size_type i=n;i<cur_size;++i)
