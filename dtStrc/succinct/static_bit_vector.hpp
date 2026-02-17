@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_STATIC_BIT_VECTOR
 #define ELSIE_STATIC_BIT_VECTOR
 #include <bit>

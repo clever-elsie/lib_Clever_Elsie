@@ -40,8 +40,8 @@ inline void skip_whitespace_and_comments(const std::string &s, size_t &i){
 }
 
 inline std::string parse_string(const std::string &s, size_t &i)
-// [[expects: s[i]=='\"' ]]
-// [[ensures: s[i-1]=='\"' ]]
+// pre(s[i]=='\"')
+// post(i==0 || s[i-1]=='\"')
 {
   std::string ret;
   ++i;
@@ -72,8 +72,8 @@ inline std::string parse_string(const std::string &s, size_t &i)
 }
 
 inline std::pair<std::string, std::string> parse_key_value(const std::string &s, size_t &i)
-// [[expects: s[i]=='\"' ]]
-// [[ensures: s[i-1]=='\"' ]]
+// pre(s[i]=='\"')
+// post(i==0 || s[i-1]=='\"')
 {
   std::pair<std::string, std::string> ret;
   ret.first=parse_string(s, i);
@@ -87,8 +87,8 @@ inline std::pair<std::string, std::string> parse_key_value(const std::string &s,
 }
 
 repository_t parse_repository(const std::string &s, size_t &i)
-// [[expects: s[i]=='{' ]]
-// [[ensures: s[i-1]=='}' ]]
+// pre(s[i]=='{')
+// post(i==0 || s[i-1]=='}')
 {
   ++i;
   repository_t repo;
@@ -115,8 +115,8 @@ repository_t parse_repository(const std::string &s, size_t &i)
 }
 
 std::vector<repository_t> parse_array(const std::string &s, size_t &i)
-// [[expects: s[i]=='[' ]]
-// [[ensures: s[i-1]==']' ]]
+// pre(s[i]=='[')
+// post(i==0 || s[i-1]==']')
 {
   ++i;
   std::vector<repository_t> repos;

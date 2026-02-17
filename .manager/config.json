@@ -1,17 +1,17 @@
 [
 	{
 		"rel_path_from_root": "dtStrc/binary_tree/rbtree",
-		"abs_path_of_cloned_repository": "/usr/local/include/elsie_rbtree",
-		"url": "https://github.com/clever-elsie/elsie_rbtree.git"
+		"abs_path_of_cloned_repository": "/usr/local/include/elsie/rbtree",
+		"url": "https://github.com/clever-elsie/rbtree.git"
 	},
 	{
 		"rel_path_from_root": "math/fft",
-		"abs_path_of_cloned_repository": "/usr/local/include/elsie_fft",
-		"url": "https://github.com/clever-elsie/elsie_fft.git"
+		"abs_path_of_cloned_repository": "/usr/local/include/elsie/fft",
+		"url": "https://github.com/clever-elsie/fft.git"
 	},
 	{
 		"rel_path_from_root": "dtStrc/math/matrix",
-		"abs_path_of_cloned_repository": "/usr/local/include/elsie_matrix",
-		"url": "https://github.com/clever-elsie/elsie_matrix.git"
+		"abs_path_of_cloned_repository": "/usr/local/include/elsie/matrix",
+		"url": "https://github.com/clever-elsie/matrix.git"
 	}
 ]

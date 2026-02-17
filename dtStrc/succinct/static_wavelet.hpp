@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_STATIC_WAVELET
 #define ELSIE_STATIC_WAVELET
 #include <array>

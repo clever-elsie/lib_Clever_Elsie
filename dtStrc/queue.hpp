@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_QUEUE
 #define ELSIE_QUEUE
 // double_ended_priority_queue

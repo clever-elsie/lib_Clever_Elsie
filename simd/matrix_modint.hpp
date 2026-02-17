@@ -1,4 +1,5 @@
-// Copyright (c) Elsie
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
 // AVX512 / AVX2 (4-lane) 専用の行列 FMA 実装
 // - 対象: elsie::matrix<montgomery_modint<MOD>>
 // - ここでは 998244353 を例示しているが、mod()/Mdash() を持つ Montgomery 型なら同様に拡張可能

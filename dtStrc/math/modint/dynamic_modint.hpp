@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_DYNAMIC_modint32
 #define ELSIE_DYNAMIC_modint32
 #include <cstddef>
