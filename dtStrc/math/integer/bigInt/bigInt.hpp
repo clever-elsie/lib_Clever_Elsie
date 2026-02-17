@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_BIGINT
 #define ELSIE_BIGINT
 #include "dtStrc/math/integer/bigInt/bigInt_image.hpp"

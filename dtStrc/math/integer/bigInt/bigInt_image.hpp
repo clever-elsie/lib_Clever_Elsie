@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_BIG_INT
 #define ELSIE_BIG_INT
 #include <span>

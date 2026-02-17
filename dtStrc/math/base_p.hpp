@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_BASE_P_INTEGER
 #define ELSIE_BASE_P_INTEGER
 #include <vector>

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_RANGE_TREE
 #define ELSIE_RANGE_TREE
 #include <vector>

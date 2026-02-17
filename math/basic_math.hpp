@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_BASIC_MATH
 #define ELSIE_BASIC_MATH
 #include <vector>

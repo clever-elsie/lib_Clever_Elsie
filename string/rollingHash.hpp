@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 CleverElsie
+
 #ifndef ELSIE_ROLLINGHASH
 #define ELSIE_ROLLINGHASH
 #include <array>
