@@ -87,7 +87,7 @@ inline uint64_t sqrt_ceil(uint64_t x){
     if(x>uint64_t(UINT32_MAX)*UINT32_MAX)return 1ull<<32;
     else if(x<2)return x!=0;
   }
-  uint64_t nx,y=std::min<uint64_t>((1ULL<<((64-std::countl_zero(x))>>1)+1)-1,UINT32_MAX);
+  uint64_t nx,y=std::min<uint64_t>(((1ULL<<((64-std::countl_zero(x))>>1))+1)-1,UINT32_MAX);
   y-=(y*y-x)/(y<<1);
   y-=(y*y-x)/(y<<1);
   y-=(y*y-x)/(y<<1);

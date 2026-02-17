@@ -50,7 +50,7 @@ namespace elsie{
       if(p==(T)s)return true;
       if(p%s==0)return false;
     }
-    uint64_t d=({
+    uint64_t d=[](T p){
       uint64_t r=0;
       if constexpr(sizeof(T)<=8)
         r=(p-1)>>std::countr_zero(std::make_unsigned_t<T>(p)-1);
@@ -58,8 +58,8 @@ namespace elsie{
         T s=p-1;
         while((s&1)==0)s>>=1,++r;
       }
-      r;
-    });
+      return r;
+    }(p);
     auto ok=[&](uint64_t a)-> bool {
       uint64_t y=modpow<uint64_t>(a,d,uint64_t(p));
       uint64_t t=d;

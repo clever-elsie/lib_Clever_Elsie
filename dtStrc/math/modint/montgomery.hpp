@@ -32,19 +32,20 @@
  *   F(x) = x * Rinv (mod M)
  *   計算
  *     tmp = (x + (x * M' mod R) * M) / R
+ *     tmp = x/R + (x*M' mod R)*M/R
  *     x = tmp<M ? tmp : tmp-M
  *   このとき，Rがunsigned型の最大値ならば除算，剰余算は不要
  *   証明
  *     x+(x * M' mod R) * M
- *     ≡ T+T*M*M'
- *     ≡ T-T
+ *     ≡ x+x*M*M'
+ *     ≡ x-x
  *     ≡ 0 (mod R)
  *     以上より， x+(x*M' mod R)*MはRで割り切れる
  *     tmp * R
  *     ≡ (x+(x*M' mod R)*M)/R * R
  *     ≡ x+(x*M' mod R)*M
- *     ≡ tmp (mod M)
- *     以上より tmp=x*R (mod M)
+ *     ≡ x (mod M)
+ *     以上より x=tmp*R (mod M)
  *     xの定義より x<M*R -> x/R < M
  *     T*M' mod R < R より (T*M' mod R)*M < R*M -> (T*M' mod R)*M/R < M
  *     tmp = x/R + (T*M' mod R)*M/R < M+M
@@ -82,7 +83,7 @@ class montgomery_modint{
     }else val%=M;
     return reduction(val*R2);
   }
-  montgomery_modint(std::nullptr_t, T val):value(reduction((UpperType)val*R2)){}
+  montgomery_modint(std::nullptr_t, T val):value(reduction(static_cast<UpperType>(val)*R2)){}
   private:
   T value;
   public:
